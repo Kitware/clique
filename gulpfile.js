@@ -54,6 +54,7 @@ gulp.task("uglify-cliquefix", function () {
 
     return gulp.src([
         "src/js/lib/preamble.js",
+        "src/js/lib/error.js",
         "src/js/lib/**/*.js"
     ])
         .pipe(concat("cliquefix.js"))
