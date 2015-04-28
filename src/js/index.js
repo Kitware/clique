@@ -34,6 +34,6 @@ $(function () {
 
     window.results = graph.getNeighborhood({
         name: "b",
-        radius: 2
+        radius: 1
     });
 });

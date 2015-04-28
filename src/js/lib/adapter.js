@@ -7,7 +7,8 @@
         var nodes = cfg.nodes,
             edges = cfg.edges,
             nodeIndex = {},
-            edgeIndex = {}, sourceIndex = {},
+            edgeIndex = {},
+            sourceIndex = {},
             targetIndex = {};
 
         if (!nodes) {
@@ -31,11 +32,14 @@
             edgeIndex[[e.source, e.target]] = e;
 
             sourceIndex[e.source] = sourceIndex[e.source] || {};
-            sourceIndex[e.source][e.target] = e;
+            sourceIndex[e.source][e.target] = true;
 
             targetIndex[e.target] = targetIndex[e.target] || {};
-            targetIndex[e.target][e.source] = e;
+            targetIndex[e.target][e.source] = true;
         });
+
+        console.log("sourceIndex", sourceIndex);
+        console.log("targetIndex", targetIndex);
 
         return {
             getNeighborhood: function (options) {
@@ -59,23 +63,41 @@
                     frontier[center.index] = true;
 
                     // Fan out from the center to reach the requested radius.
-                    _.each(_.range(options.radius), function () {
+                    _.each(_.range(options.radius), function (i) {
+                        console.log("hop", i);
+
                         var newFrontier = {};
 
                         // Find all edges to and from the current frontier
                         // nodes.
-                        _.each(frontier, function (node) {
-                            _.each(sourceIndex[node.index], function (neighbor) {
-                                neighborEdges[[node.index, neighbor]] = true;
+                        console.log("frontier", frontier);
+                        _.each(frontier, function (dummy, i) {
+                            var node = nodes[i];
+
+                            console.log("foo", i);
+                            console.log("foo", node);
+                            console.log("foo", node.index);
+                            console.log("foo", sourceIndex[node.index]);
+
+                            _.each(sourceIndex[node.index], function (dummy, neighbor) {
+                                neighbor = Number(neighbor);
+                                neighborEdges[JSON.stringify([node.index, neighbor])] = true;
                             });
 
-                            _.each(targetIndex[node.index], function (neighbor) {
-                                neighborEdges[[neighbor, node.index]] = true;
+                            _.each(targetIndex[node.index], function (dummy, neighbor) {
+                                neighbor = Number(neighbor);
+                                neighborEdges[JSON.stringify([neighbor, node.index])] = true;
                             });
                         });
 
+                        console.log("neighborEdges", neighborEdges);
+
                         // Collect the nodes named in the edges.
                         _.each(neighborEdges, function (dummy, edge) {
+                            edge = JSON.parse(edge);
+
+                            console.log("edge", edge);
+
                             if (!_.has(neighborNodes, edge[0])) {
                                 newFrontier[edge[0]] = true;
                             }
@@ -87,6 +109,8 @@
                             neighborNodes[edge[0]] = true;
                             neighborNodes[edge[1]] = true;
                         });
+
+                        console.log("newFrontier", newFrontier);
 
                         frontier = newFrontier;
                     });
@@ -108,6 +132,8 @@
                         return nodes[i];
                     }),
                     edges: _.map(neighborEdges, function (edge) {
+                        edge = JSON.parse(edge);
+
                         return {
                             source: edge[0],
                             target: edge[1]
