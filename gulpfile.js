@@ -47,19 +47,19 @@ gulp.task("uglify-index", function () {
         .pipe(dest());
 });
 
-gulp.task("uglify-libs", function () {
+gulp.task("uglify-cliquefix", function () {
     "use strict";
 
     var dest = _.bind(gulp.dest, gulp, "build/site");
 
     return gulp.src([
-        "src/js/preamble.js",
+        "src/js/lib/preamble.js",
         "src/js/lib/**/*.js"
     ])
-        .pipe(concat("libs.js"))
+        .pipe(concat("cliquefix.js"))
         .pipe(dest())
         .pipe(uglify())
-        .pipe(rename("libs.min.js"))
+        .pipe(rename("cliquefix.min.js"))
         .pipe(dest());
 });
 
@@ -95,7 +95,7 @@ gulp.task("clean", function () {
 
 gulp.task("uglify", [
     "uglify-index",
-    "uglify-libs"
+    "uglify-cliquefix"
 ]);
 
 gulp.task("default", [
