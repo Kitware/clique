@@ -4,7 +4,8 @@
 $(function () {
     "use strict";
 
-    var graph;
+    var graph,
+        view;
 
     $("#content").html("<p>Hello</p>");
 
@@ -31,6 +32,10 @@ $(function () {
                 {source: 5, target: 4}
             ]
         }
+    });
+
+    view = new cf.view.Cola({
+        model: graph
     });
 
     graph.getNeighborhood({
