@@ -34,25 +34,23 @@ $(function () {
         }
     });
 
-    view = new cf.view.Cola({
-        model: graph
-    });
-
-    graph.getNeighborhood({
+   graph.getNeighborhood({
         center: {
             name: "b"
         },
         radius: 1
     });
 
-    console.log(JSON.stringify(graph.attributes, null, 4));
+    //graph.getNeighborhood({
+        //center: {
+            //name: "c"
+        //},
+        //radius: 1
+    //});
 
-    graph.getNeighborhood({
-        center: {
-            name: "c"
-        },
-        radius: 1
+    view = new cf.view.Cola({
+        model: graph,
+        el: "#content"
     });
-
-    console.log(JSON.stringify(graph.attributes, null, 4));
-});
+    view.render();
+ });
