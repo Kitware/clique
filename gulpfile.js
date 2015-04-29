@@ -6,6 +6,7 @@ var gulp = require("gulp"),
     jade = require("gulp-jade"),
     jscs = require("gulp-jscs"),
     stylishJscs = require("gulp-jscs-stylish"),
+    job = require("gulp-job"),
     jshint = require("gulp-jshint"),
     plumber = require("gulp-plumber"),
     rename = require("gulp-rename"),
@@ -35,6 +36,20 @@ gulp.task("jade", function () {
         .pipe(gulp.dest("./build/site"));
 });
 
+gulp.task("jade-templates", function () {
+    "use strict";
+
+    return gulp.src("src/jade/template/**/*.jade")
+        .pipe(jade({
+            client: true
+        }))
+        .pipe(job({
+            namespace: "cf.template"
+        }))
+        .pipe(rename("templates.js"))
+        .pipe(gulp.dest("./build/jade"));
+});
+
 gulp.task("uglify-index", function () {
     "use strict";
 
@@ -54,7 +69,9 @@ gulp.task("uglify-cliquefix", function () {
 
     return gulp.src([
         "node_modules/jshashes/hashes.js",
+        "node_modules/jade/runtime.js",
         "src/js/lib/preamble.js",
+        "build/jade/templates.js",
         "src/js/lib/error.js",
         "src/js/lib/**/*.js"
     ])
@@ -96,6 +113,7 @@ gulp.task("clean", function () {
 });
 
 gulp.task("uglify", [
+    "jade-templates",
     "uglify-index",
     "uglify-cliquefix"
 ]);
