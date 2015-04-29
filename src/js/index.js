@@ -33,10 +33,21 @@ $(function () {
         }
     });
 
-    window.results = graph.getNeighborhood({
+    graph.getNeighborhood({
         center: {
             name: "b"
         },
         radius: 1
     });
+
+    console.log(JSON.stringify(graph.attributes, null, 4));
+
+    graph.getNeighborhood({
+        center: {
+            name: "c"
+        },
+        radius: 1
+    });
+
+    console.log(JSON.stringify(graph.attributes, null, 4));
 });
