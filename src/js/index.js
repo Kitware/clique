@@ -16,7 +16,8 @@ $(function () {
                 {name: "b"},
                 {name: "c"},
                 {name: "d"},
-                {name: "e"}
+                {name: "e"},
+                {name: "f"}
             ],
             edges: [
                 {source: 0, target: 2},
@@ -33,7 +34,9 @@ $(function () {
     });
 
     window.results = graph.getNeighborhood({
-        name: "b",
+        center: {
+            name: "b"
+        },
         radius: 1
     });
 });

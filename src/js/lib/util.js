@@ -1,4 +1,4 @@
-(function (cf, Hashes) {
+(function (cf, Hashes, _) {
     "use strict";
 
     cf.util = {};
@@ -10,4 +10,26 @@
             return md5.hex(s);
         };
     }());
-}(window.cf, window.Hashes));
+
+    cf.util.Set = function () {
+        var items = {};
+
+        return {
+            add: function (item) {
+                items[item] = null;
+            },
+
+            has: function (item) {
+                return _.has(items, item);
+            },
+
+            items: function (mapper) {
+                var stuff = _.keys(items);
+                if (mapper) {
+                    stuff = _.map(stuff, mapper);
+                }
+                return stuff;
+            }
+        };
+    };
+}(window.cf, window.Hashes, window._));

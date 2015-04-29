@@ -7,7 +7,6 @@
         var nodes = cfg.nodes,
             edges = cfg.edges,
             nodeIndex = {},
-            edgeIndex = {},
             sourceIndex = {},
             targetIndex = {};
 
@@ -19,23 +18,23 @@
             throw cf.error.required("edges");
         }
 
-        _.each(nodes, function (n, i) {
-            if (_.has(nodeIndex, n.name)) {
-                throw new Error("duplicate name '" + n.name + "' in node list");
-            }
-
-            nodeIndex[n.name] = n;
-            n.index = i;
+        _.each(nodes, function (n) {
+            var hash = cf.util.md5(_.uniqueId() + JSON.stringify(n));
+            n.key = hash;
+            nodeIndex[hash] = n;
         });
 
+        console.log("nodeIndex", nodeIndex);
+
         _.each(edges, function (e) {
-            edgeIndex[[e.source, e.target]] = e;
+            var sourceNode = nodes[e.source],
+                targetNode = nodes[e.target];
 
-            sourceIndex[e.source] = sourceIndex[e.source] || {};
-            sourceIndex[e.source][e.target] = true;
+            sourceIndex[sourceNode.key] = sourceIndex[sourceNode.key] || {};
+            sourceIndex[sourceNode.key][targetNode.key] = targetNode.key
 
-            targetIndex[e.target] = targetIndex[e.target] || {};
-            targetIndex[e.target][e.source] = true;
+            targetIndex[targetNode.key] = targetIndex[targetNode.key] || {};
+            targetIndex[targetNode.key][sourceNode.key] = sourceNode.key;
         });
 
         console.log("sourceIndex", sourceIndex);
@@ -44,11 +43,11 @@
         return {
             getNeighborhood: function (options) {
                 var center,
-                    frontier = {},
-                    neighborNodes = {},
-                    neighborEdges = {};
+                    frontier,
+                    neighborNodes = new cf.util.Set(),
+                    neighborEdges = new cf.util.Set();
 
-                if (!options.name) {
+                if (!options.center) {
                     throw cf.error.required("name");
                 }
 
@@ -56,87 +55,83 @@
                     throw cf.error.required("radius");
                 }
 
-                center = nodeIndex[options.name];
+                // center = nodeIndex[options.node];
+                center = _.findWhere(nodes, options.center);
 
                 if (center) {
-                    neighborNodes[center.index] = true;
-                    frontier[center.index] = true;
+                    neighborNodes.add(center.key);
+
+                    frontier = new cf.util.Set();
+                    frontier.add(center.key);
 
                     // Fan out from the center to reach the requested radius.
                     _.each(_.range(options.radius), function (i) {
                         console.log("hop", i);
 
-                        var newFrontier = {};
+                        var newFrontier = new cf.util.Set();
 
                         // Find all edges to and from the current frontier
                         // nodes.
                         console.log("frontier", frontier);
-                        _.each(frontier, function (dummy, i) {
-                            var node = nodes[i];
-
-                            console.log("foo", i);
-                            console.log("foo", node);
-                            console.log("foo", node.index);
-                            console.log("foo", sourceIndex[node.index]);
-
-                            _.each(sourceIndex[node.index], function (dummy, neighbor) {
-                                neighbor = Number(neighbor);
-                                neighborEdges[JSON.stringify([node.index, neighbor])] = true;
+                        _.each(frontier.items(), function (nodeKey) {
+                            _.each(sourceIndex[nodeKey], function (neighborKey) {
+                                neighborEdges.add(JSON.stringify([nodeKey, neighborKey]));
                             });
 
-                            _.each(targetIndex[node.index], function (dummy, neighbor) {
-                                neighbor = Number(neighbor);
-                                neighborEdges[JSON.stringify([neighbor, node.index])] = true;
+                            _.each(targetIndex[nodeKey], function (neighborKey) {
+                                neighborEdges.add(JSON.stringify([neighborKey, nodeKey]));
                             });
                         });
 
-                        console.log("neighborEdges", neighborEdges);
+                        console.log("neighborEdges", neighborEdges.items());
 
                         // Collect the nodes named in the edges.
-                        _.each(neighborEdges, function (dummy, edge) {
+                        _.each(neighborEdges.items(), function (edge) {
                             edge = JSON.parse(edge);
 
                             console.log("edge", edge);
 
-                            if (!_.has(neighborNodes, edge[0])) {
-                                newFrontier[edge[0]] = true;
+                            if (!neighborNodes.has(edge[0])) {
+                                newFrontier.add(edge[0]);
                             }
 
-                            if (!_.has(neighborNodes, edge[1])) {
-                                newFrontier[edge[1]] = true;
+                            if (!neighborNodes.has(edge[1])) {
+                                newFrontier.add(edge[1]);
                             }
 
-                            neighborNodes[edge[0]] = true;
-                            neighborNodes[edge[1]] = true;
+                            neighborNodes.add(edge[0]);
+                            neighborNodes.add(edge[1]);
                         });
 
-                        console.log("newFrontier", newFrontier);
+                        console.log("newFrontier", newFrontier.items());
 
                         frontier = newFrontier;
                     });
                 }
 
-                neighborNodes = _.keys(neighborNodes).sort(function (a, b) {
-                    return a - b;
-                });
+                neighborNodes = neighborNodes.items();
+/*                neighborNodes = _.keys(neighborNodes).sort(function (a, b) {*/
+                    // return a - b;
+                // });
 
-                neighborEdges = _.keys(neighborEdges).sort(function (a, b) {
-                    return a[0] - b[0] === 0 ? a[1] - b[1] : a[0] - b[0];
-                });
+                neighborEdges = neighborEdges.items();
+/*                neighborEdges = _.keys(neighborEdges).sort(function (a, b) {*/
+                    // return a[0] - b[0] === 0 ? a[1] - b[1] : a[0] - b[0];
+                // });
 
                 console.log(neighborNodes);
                 console.log(neighborEdges);
 
                 return {
                     nodes: _.map(neighborNodes, function (i) {
-                        return nodes[i];
+                        return nodeIndex[i];
                     }),
                     edges: _.map(neighborEdges, function (edge) {
                         edge = JSON.parse(edge);
 
                         return {
-                            source: edge[0],
-                            target: edge[1]
+                            source: nodeIndex[edge[0]],
+                            target: nodeIndex[edge[1]]
                         };
                     })
                 };
