@@ -53,7 +53,9 @@ gulp.task("uglify-cliquefix", function () {
     var dest = _.bind(gulp.dest, gulp, "build/site");
 
     return gulp.src([
+        "node_modules/jshashes/hashes.js",
         "src/js/lib/preamble.js",
+        "src/js/lib/error.js",
         "src/js/lib/**/*.js"
     ])
         .pipe(concat("cliquefix.js"))
