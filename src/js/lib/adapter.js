@@ -3,7 +3,7 @@
 
     cf.adapter = {};
 
-    cf.adapter.NodeEdgeList = function (cfg) {
+    cf.adapter.NodeLinkList = function (cfg) {
         var nodes = cfg.nodes,
             links = cfg.links,
             nodeIndex = {},
@@ -40,7 +40,7 @@
                 var center,
                     frontier,
                     neighborNodes = new cf.util.Set(),
-                    neighborEdges = new cf.util.Set();
+                    neighborLinks = new cf.util.Set();
 
                 if (!options.center) {
                     throw cf.error.required("name");
@@ -67,16 +67,16 @@
                         // nodes.
                         _.each(frontier.items(), function (nodeKey) {
                             _.each(sourceIndex[nodeKey], function (neighborKey) {
-                                neighborEdges.add(JSON.stringify([nodeKey, neighborKey]));
+                                neighborLinks.add(JSON.stringify([nodeKey, neighborKey]));
                             });
 
                             _.each(targetIndex[nodeKey], function (neighborKey) {
-                                neighborEdges.add(JSON.stringify([neighborKey, nodeKey]));
+                                neighborLinks.add(JSON.stringify([neighborKey, nodeKey]));
                             });
                         });
 
                         // Collect the nodes named in the links.
-                        _.each(neighborEdges.items(), function (link) {
+                        _.each(neighborLinks.items(), function (link) {
                             link = JSON.parse(link);
 
                             if (!neighborNodes.has(link[0])) {
@@ -97,7 +97,7 @@
 
                 return {
                     nodes: _.map(neighborNodes.items(), _.propertyOf(nodeIndex)),
-                    links: _.map(neighborEdges.items(), function (link) {
+                    links: _.map(neighborLinks.items(), function (link) {
                         link = JSON.parse(link);
 
                         return {

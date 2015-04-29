@@ -9,7 +9,7 @@ $(function () {
     $("#content").html("<p>Hello</p>");
 
     window.graph = graph = new cf.Graph({
-        adapter: cf.adapter.NodeEdgeList,
+        adapter: cf.adapter.NodeLinkList,
         options: {
             nodes: [
                 {name: "a"},
