@@ -19,7 +19,7 @@ $(function () {
                 {name: "e"},
                 {name: "f"}
             ],
-            edges: [
+            links: [
                 {source: 0, target: 2},
                 {source: 0, target: 4},
                 {source: 0, target: 5},

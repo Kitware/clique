@@ -32,11 +32,11 @@
                 }
             }, this));
 
-            _.each(nbd.edges, _.bind(function (edge) {
-                var edgeKey = JSON.stringify([edge.source.key, edge.target.key]);
-                if (!this.links.has(edgeKey)) {
-                    this.links.add(edgeKey);
-                    newLinks.push(edge);
+            _.each(nbd.links, _.bind(function (link) {
+                var linkKey = JSON.stringify([link.source.key, link.target.key]);
+                if (!this.links.has(linkKey)) {
+                    this.links.add(linkKey);
+                    newLinks.push(link);
                 }
             }, this));
 

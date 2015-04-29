@@ -5,7 +5,7 @@
 
     cf.adapter.NodeEdgeList = function (cfg) {
         var nodes = cfg.nodes,
-            edges = cfg.edges,
+            links = cfg.links,
             nodeIndex = {},
             sourceIndex = {},
             targetIndex = {};
@@ -14,8 +14,8 @@
             throw cf.error.required("nodes");
         }
 
-        if (!edges) {
-            throw cf.error.required("edges");
+        if (!links) {
+            throw cf.error.required("links");
         }
 
         _.each(nodes, function (n) {
@@ -24,7 +24,7 @@
             nodeIndex[hash] = n;
         });
 
-        _.each(edges, function (e) {
+        _.each(links, function (e) {
             var sourceNode = nodes[e.source],
                 targetNode = nodes[e.target];
 
@@ -63,7 +63,7 @@
                     _.each(_.range(options.radius), function () {
                         var newFrontier = new cf.util.Set();
 
-                        // Find all edges to and from the current frontier
+                        // Find all links to and from the current frontier
                         // nodes.
                         _.each(frontier.items(), function (nodeKey) {
                             _.each(sourceIndex[nodeKey], function (neighborKey) {
@@ -75,20 +75,20 @@
                             });
                         });
 
-                        // Collect the nodes named in the edges.
-                        _.each(neighborEdges.items(), function (edge) {
-                            edge = JSON.parse(edge);
+                        // Collect the nodes named in the links.
+                        _.each(neighborEdges.items(), function (link) {
+                            link = JSON.parse(link);
 
-                            if (!neighborNodes.has(edge[0])) {
-                                newFrontier.add(edge[0]);
+                            if (!neighborNodes.has(link[0])) {
+                                newFrontier.add(link[0]);
                             }
 
-                            if (!neighborNodes.has(edge[1])) {
-                                newFrontier.add(edge[1]);
+                            if (!neighborNodes.has(link[1])) {
+                                newFrontier.add(link[1]);
                             }
 
-                            neighborNodes.add(edge[0]);
-                            neighborNodes.add(edge[1]);
+                            neighborNodes.add(link[0]);
+                            neighborNodes.add(link[1]);
                         });
 
                         frontier = newFrontier;
@@ -97,12 +97,12 @@
 
                 return {
                     nodes: _.map(neighborNodes.items(), _.propertyOf(nodeIndex)),
-                    edges: _.map(neighborEdges.items(), function (edge) {
-                        edge = JSON.parse(edge);
+                    links: _.map(neighborEdges.items(), function (link) {
+                        link = JSON.parse(link);
 
                         return {
-                            source: nodeIndex[edge[0]],
-                            target: nodeIndex[edge[1]]
+                            source: nodeIndex[link[0]],
+                            target: nodeIndex[link[1]]
                         };
                     })
                 };
