@@ -34,18 +34,26 @@ $(function () {
         }
     });
 
-    graph.getNeighborhood({
-        center: {
-            name: "b"
-        },
-        radius: 1
+    $("#nbd-b").on("click", function () {
+        graph.getNeighborhood({
+            center: {
+                name: "b"
+            },
+            radius: 1
+        });
+
+        $(this).attr("disabled", true);
     });
 
-    graph.getNeighborhood({
-        center: {
-            name: "c"
-        },
-        radius: 1
+    $("#nbd-c").on("click", function () {
+        graph.getNeighborhood({
+            center: {
+                name: "c"
+            },
+            radius: 1
+        });
+
+        $(this).attr("disabled", true);
     });
 
     view = new cf.view.Cola({
