@@ -16,4 +16,7 @@
         cf = oldCf;
         return handle;
     };
+
+    // Namespace for views.
+    cf.view = {};
 }());

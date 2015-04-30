@@ -4,7 +4,8 @@
 $(function () {
     "use strict";
 
-    var graph;
+    var graph,
+        view;
 
     $("#content").html("<p>Hello</p>");
 
@@ -40,8 +41,6 @@ $(function () {
         radius: 1
     });
 
-    console.log(JSON.stringify(graph.attributes, null, 4));
-
     graph.getNeighborhood({
         center: {
             name: "c"
@@ -49,5 +48,9 @@ $(function () {
         radius: 1
     });
 
-    console.log(JSON.stringify(graph.attributes, null, 4));
+    view = new cf.view.Cola({
+        model: graph,
+        el: "#content"
+    });
+    view.render();
 });
