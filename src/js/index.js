@@ -41,16 +41,14 @@ $(function () {
         radius: 1
     });
 
-    if (false) {
-        graph.getNeighborhood({
-            center: {
-                name: "c"
-            },
-            radius: 1
-        });
-    }
+    graph.getNeighborhood({
+        center: {
+            name: "c"
+        },
+        radius: 1
+    });
 
-    window.view = view = new cf.view.Cola({
+    view = new cf.view.Cola({
         model: graph,
         el: "#content"
     });
