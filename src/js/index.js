@@ -35,10 +35,12 @@ $(function () {
     });
 
     $("#nbd-b").on("click", function () {
+        var center = graph.findNodes({
+            name: "b"
+        });
+
         graph.getNeighborhood({
-            center: {
-                name: "b"
-            },
+            center: center[0],
             radius: 1
         });
 
@@ -46,10 +48,12 @@ $(function () {
     });
 
     $("#nbd-c").on("click", function () {
+        var center = graph.findNodes({
+            name: "c"
+        });
+
         graph.getNeighborhood({
-            center: {
-                name: "c"
-            },
+            center: center[0],
             radius: 1
         });
 
