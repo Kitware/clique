@@ -36,7 +36,8 @@ $(function () {
 
     var graphData,
         graph,
-        view;
+        view,
+        info;
 
     graphData = randomGraph(26, 0.20);
 
@@ -72,4 +73,9 @@ $(function () {
         el: "#content"
     });
     view.render();
+
+    window.info = info = new cf.view.SelectionInfo({
+        model: view.selection,
+        el: "#info"
+    });
 });
