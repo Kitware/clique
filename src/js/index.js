@@ -67,7 +67,7 @@ $(function () {
         }
     });
 
-    view = new cf.view.Cola({
+    window.view = view = new cf.view.Cola({
         model: graph,
         el: "#content"
     });

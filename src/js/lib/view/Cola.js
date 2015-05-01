@@ -21,6 +21,8 @@
                 .size([this.$el.width(), this.$el.height()])
                 .start();
 
+            this.selection = new cf.model.Selection();
+
             this.$el.html(cf.template.cola());
             this.listenTo(this.model, "change", this.render);
         },
@@ -51,9 +53,17 @@
                 .attr("r", 0)
                 .style("fill", "limegreen")
                 .on("click", function (d) {
-                    var me = d3.select(this);
+                    var me = d3.select(this),
+                        selected = !me.classed("selected");
+
                     if (!that.dragging) {
-                        me.classed("selected", !me.classed("selected"));
+                        me.classed("selected", selected);
+
+                        if (selected) {
+                            that.selection.add(d.key);
+                        } else {
+                            that.selection.remove(d.key);
+                        }
                     }
                     that.dragging = false;
                 })
