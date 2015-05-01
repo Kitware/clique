@@ -38,14 +38,19 @@
 
         render: function () {
             var nodes = this.model.items(),
+                node,
                 that = this;
 
             if (this.focalPoint >= _.size(nodes)) {
                 this.focalPoint = Math.max(0, _.size(nodes) - 1);
             }
 
+            node = this.graph.adapter.getNode(this.model.items()[this.focalPoint]);
+
+            this.trigger("focus", node && node.key || undefined);
+
             this.$el.html(cf.template.selectionInfo({
-                node: this.graph.adapter.getNode(this.model.items()[this.focalPoint])
+                node: node
             }));
 
             d3.select(this.el)

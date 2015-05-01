@@ -72,6 +72,11 @@
                 .duration(500)
                 .attr("r", this.nodeRadius);
 
+            this.nodes
+                .style("fill", _.bind(function (d) {
+                    return d.key === this.focused ? "crimson" : "limegreen";
+                }, this));
+
             this.links = d3.select(this.el)
                 .select("g.links")
                 .selectAll("line.link")
