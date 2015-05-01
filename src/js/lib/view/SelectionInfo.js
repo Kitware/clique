@@ -7,6 +7,8 @@
                 throw cf.error.required("model");
             }
 
+            this.focalPoint = 0;
+
             options = options || {};
             this.graph = options.graph;
 
@@ -17,12 +19,32 @@
             this.listenTo(this.model, "change", this.render);
         },
 
+        focus: function (target) {
+            this.focalPoint = target;
+            this.render();
+        },
+
+        focusRight: function () {
+            if (this.focalPoint < _.size(this.model.attributes) - 1) {
+                this.focus(this.focalPoint + 1);
+            }
+        },
+
+        focusLeft: function () {
+            if (this.focalPoint > 0) {
+                this.focus(this.focalPoint - 1);
+            }
+        },
+
         render: function () {
-            var nodes = this.model.items(),
-                data = _.map(nodes, this.graph.adapter.getNode, this.graph.adapter);
+            var nodes = this.model.items();
+
+            if (this.focalPoint >= _.size(nodes)) {
+                this.focalPoint = Math.max(0, _.size(nodes) - 1);
+            }
 
             this.$el.html(cf.template.selectionInfo({
-                nodes: data
+                node: this.graph.adapter.getNode(this.model.items()[this.focalPoint])
             }));
         }
     });

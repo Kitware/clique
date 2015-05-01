@@ -1,8 +1,8 @@
-if (nodes.length === 0)
+if (_.isUndefined(node))
     em (Selection is empty)
 else
     table.table.table-striped
-        for keyval in _.pairs(nodes[0])
+        for keyval in _.pairs(node)
             tr
                 td.text-right: strong #{keyval[0]}
                 td #{keyval[1]}
