@@ -28,7 +28,8 @@
         render: function () {
             var nodeData = this.model.get("nodes"),
                 linkData = this.model.get("links"),
-                drag;
+                drag,
+                that = this;
 
             this.cola
                 .nodes(nodeData)
@@ -49,12 +50,13 @@
                 .classed("node", true)
                 .attr("r", 0)
                 .style("fill", "limegreen")
-                .on("click", _.bind(function (d) {
-                    if (!this.dragging) {
-                        console.log(d);
+                .on("click", function (d) {
+                    var me = d3.select(this);
+                    if (!that.dragging) {
+                        me.classed("selected", !me.classed("selected"));
                     }
-                    this.dragging = false;
-                }, this))
+                    that.dragging = false;
+                })
                 .call(drag)
                 .transition()
                 .duration(500)
