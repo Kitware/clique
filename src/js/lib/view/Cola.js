@@ -27,7 +27,8 @@
 
         render: function () {
             var nodeData = this.model.get("nodes"),
-                linkData = this.model.get("links");
+                linkData = this.model.get("links"),
+                drag;
 
             this.cola
                 .nodes(nodeData)
@@ -38,12 +39,23 @@
                 .selectAll("circle.node")
                 .data(nodeData, _.property("key"));
 
+            drag = this.cola.drag()
+                .on("drag", _.bind(function () {
+                    this.dragging = true;
+                }, this));
+
             this.nodes.enter()
                 .append("circle")
                 .classed("node", true)
                 .attr("r", 0)
                 .style("fill", "limegreen")
-                .call(this.cola.drag)
+                .on("click", _.bind(function (d) {
+                    if (!this.dragging) {
+                        console.log(d);
+                    }
+                    this.dragging = false;
+                }, this))
+                .call(drag)
                 .transition()
                 .duration(500)
                 .attr("r", this.nodeRadius);
