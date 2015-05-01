@@ -2,7 +2,7 @@
     "use strict";
 
     cf.view.Cola = Backbone.View.extend({
-        initialize: function () {
+        initialize: function (options) {
             if (!this.model) {
                 throw cf.error.required("model");
             }
@@ -11,10 +11,12 @@
                 throw cf.error.required("el");
             }
 
-            this.nodeRadius = 7.5;
+            options = options || {};
+
+            this.nodeRadius = options.nodeRadius || 7.5;
 
             this.cola = cola.d3adaptor()
-                .linkDistance(30)
+                .linkDistance(options.linkDistance || 100)
                 .avoidOverlaps(true)
                 .size([this.$el.width(), this.$el.height()])
                 .start();

@@ -1,37 +1,48 @@
 /*jshint browser: true, jquery: true */
-/*global cf */
+/*global cf, _ */
+
+function randomGraph(n, pct) {
+    "use strict";
+
+    var alphabet = "abcdefghijklmnopqrstuvwxyz",
+        nodes = [],
+        links = [];
+
+    _.each(_.range(n), function (i) {
+        nodes.push({
+            name: alphabet[i]
+        });
+    });
+
+    _.each(_.range(n), function (source, i) {
+        _.each(_.range(i + 1, n), function (target) {
+            if (Math.random() < pct) {
+                links.push({
+                    source: source,
+                    target: target
+                });
+            }
+        });
+    });
+
+    return {
+        nodes: nodes,
+        links: links
+    };
+}
 
 $(function () {
     "use strict";
 
-    var graph,
+    var graphData,
+        graph,
         view;
 
-    $("#content").html("<p>Hello</p>");
+    graphData = randomGraph(26, 0.20);
 
     window.graph = graph = new cf.Graph({
         adapter: cf.adapter.NodeLinkList,
-        options: {
-            nodes: [
-                {name: "a"},
-                {name: "b"},
-                {name: "c"},
-                {name: "d"},
-                {name: "e"},
-                {name: "f"}
-            ],
-            links: [
-                {source: 0, target: 2},
-                {source: 0, target: 4},
-                {source: 0, target: 5},
-                {source: 1, target: 4},
-                {source: 2, target: 3},
-                {source: 2, target: 4},
-                {source: 3, target: 0},
-                {source: 3, target: 5},
-                {source: 5, target: 4}
-            ]
-        }
+        options: graphData
     });
 
     $("#nbd-b").on("click", function () {
