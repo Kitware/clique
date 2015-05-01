@@ -1,8 +1,18 @@
-if (_.isUndefined(node))
-    em (Selection is empty)
-else
-    table.table.table-striped
-        for keyval in _.pairs(node)
-            tr
-                td.text-right: strong #{keyval[0]}
-                td #{keyval[1]}
+.container
+    if (_.isUndefined(node))
+        em (Selection is empty)
+    else
+        nav
+            ul.pagination
+                li.disabled.prev
+                    a(aria-label="Previous").prev
+                        span(aria-hidden="true"): &laquo;
+                li.disabled.next
+                    a(aria-label="Next").next
+                        span(aria-hidden="true"): &raquo;
+        .col-md-1
+            table.table.table-striped.table-bordered
+                for keyval in _.pairs(node)
+                    tr
+                        td.text-right: strong #{keyval[0]}
+                        td #{keyval[1]}
