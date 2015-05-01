@@ -36,7 +36,8 @@ $(function () {
 
     var graphData,
         graph,
-        view;
+        view,
+        info;
 
     graphData = randomGraph(26, 0.20);
 
@@ -67,9 +68,21 @@ $(function () {
         }
     });
 
-    view = new cf.view.Cola({
+    window.view = view = new cf.view.Cola({
         model: graph,
         el: "#content"
     });
     view.render();
+
+    window.info = info = new cf.view.SelectionInfo({
+        model: view.selection,
+        el: "#info",
+        graph: graph
+    });
+    info.render();
+
+    view.listenTo(info, "focus", function (key) {
+        view.focused = key;
+        view.render();
+    });
 });

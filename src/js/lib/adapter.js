@@ -40,6 +40,10 @@
                 return _.pluck(_.where(nodes, spec), "key");
             },
 
+            getNode: function (key) {
+                return nodeIndex[key];
+            },
+
             getNeighborhood: function (options) {
                 var center,
                     frontier,
