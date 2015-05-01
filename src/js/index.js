@@ -45,30 +45,26 @@ $(function () {
         options: graphData
     });
 
-    $("#nbd-b").on("click", function () {
-        var center = graph.findNodes({
-            name: "b"
-        });
+    $("#seed").on("click", function () {
+        var name = $("#name").val().trim(),
+            radiusText = $("#radius").val().trim(),
+            radius = Number(radiusText),
+            center;
 
-        graph.getNeighborhood({
-            center: center[0],
-            radius: 1
-        });
+        if (name === "" || radiusText === "" || isNaN(radius)) {
+            return;
+        }
 
-        $(this).attr("disabled", true);
-    });
+        center = graph.findNodes({
+            name: name
+        })[0];
 
-    $("#nbd-c").on("click", function () {
-        var center = graph.findNodes({
-            name: "c"
-        });
-
-        graph.getNeighborhood({
-            center: center[0],
-            radius: 1
-        });
-
-        $(this).attr("disabled", true);
+        if (center) {
+            graph.getNeighborhood({
+                center: center,
+                radius: radius
+            });
+        }
     });
 
     view = new cf.view.Cola({
