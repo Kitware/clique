@@ -1,0 +1,8 @@
+if (nodes.length === 0)
+    em (Selection is empty)
+else
+    table.table.table-striped
+        for keyval in _.pairs(nodes[0])
+            tr
+                td.text-right: strong #{keyval[0]}
+                td #{keyval[1]}

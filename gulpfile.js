@@ -47,7 +47,7 @@ gulp.task("jade-templates", function () {
         .pipe(job({
             namespace: "cf.template"
         }))
-        .pipe(rename("templates.js"))
+        .pipe(concat("templates.js"))
         .pipe(gulp.dest("./build/jade"));
 });
 

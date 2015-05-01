@@ -76,6 +76,8 @@ $(function () {
 
     window.info = info = new cf.view.SelectionInfo({
         model: view.selection,
-        el: "#info"
+        el: "#info",
+        graph: graph
     });
+    info.render();
 });
