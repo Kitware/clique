@@ -1,10 +1,10 @@
-(function (cf, Backbone, _, d3) {
+(function (clique, Backbone, _, d3) {
     "use strict";
 
-    cf.view.SelectionInfo = Backbone.View.extend({
+    clique.view.SelectionInfo = Backbone.View.extend({
         initialize: function (options) {
             if (!this.model) {
-                throw cf.error.required("model");
+                throw clique.error.required("model");
             }
 
             this.focalPoint = 0;
@@ -13,7 +13,7 @@
             this.graph = options.graph;
 
             if (!this.graph) {
-                throw cf.error.required("graph");
+                throw clique.error.required("graph");
             }
 
             this.listenTo(this.model, "change", this.render);
@@ -49,7 +49,7 @@
 
             this.trigger("focus", node && node.key || undefined);
 
-            this.$el.html(cf.template.selectionInfo({
+            this.$el.html(clique.template.selectionInfo({
                 node: node
             }));
 
@@ -72,4 +72,4 @@
                 });
         }
     });
-}(window.cf, window.Backbone, window._, window.d3));
+}(window.clique, window.Backbone, window._, window.d3));

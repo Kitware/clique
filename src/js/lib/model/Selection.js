@@ -1,7 +1,7 @@
-(function (cf, Backbone, _) {
+(function (clique, Backbone, _) {
     "use strict";
 
-    cf.model.Selection = Backbone.Model.extend({
+    clique.model.Selection = Backbone.Model.extend({
         add: function (key) {
             this.set(key, key);
         },
@@ -14,4 +14,4 @@
             return _.keys(this.attributes);
         }
     });
-}(window.cf, window.Backbone, window._));
+}(window.clique, window.Backbone, window._));

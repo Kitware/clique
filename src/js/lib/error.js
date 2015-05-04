@@ -1,9 +1,9 @@
-(function (cf) {
+(function (clique) {
     "use strict";
 
-    cf.error = {};
+    clique.error = {};
 
-    cf.error.required = function (what) {
+    clique.error.required = function (what) {
         return new Error("option '" + what + "' is required");
     };
-}(window.cf));
+}(window.clique));
