@@ -1,0 +1,22 @@
+mixin item(key, value)
+    tr
+        td.text-right: strong= key
+        td= value
+
+.container
+    if _.isUndefined(node)
+        em (Selection is empty)
+    else
+        nav
+            ul.pagination
+                li.disabled.prev
+                    a(aria-label="Previous").prev
+                        span(aria-hidden="true"): &laquo;
+                li.disabled.next
+                    a(aria-label="Next").next
+                        span(aria-hidden="true"): &raquo;
+        .col-md-1
+            table.table.table-striped.table-bordered
+                +item("key", node.key)
+                for prop in _.filter(_.keys(node), _.negate(_.partial(_.contains, ["key", "index", "x", "y", "variable", "bounds", "fixed", "px", "py"])))
+                    +item(prop, node[prop])

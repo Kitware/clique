@@ -11,6 +11,7 @@ var gulp = require("gulp"),
     plumber = require("gulp-plumber"),
     rename = require("gulp-rename"),
     rimraf = require("gulp-rimraf"),
+    stylus = require("gulp-stylus"),
     uglify = require("gulp-uglify"),
     stylishJshint = require("jshint-stylish"),
     _ = require("underscore");
@@ -46,8 +47,18 @@ gulp.task("jade-templates", function () {
         .pipe(job({
             namespace: "cf.template"
         }))
-        .pipe(rename("templates.js"))
+        .pipe(concat("templates.js"))
         .pipe(gulp.dest("./build/jade"));
+});
+
+gulp.task("stylus", function () {
+    "use strict";
+
+    return gulp.src("src/styl/**/*.styl")
+        .pipe(stylus({
+            compress: true
+        }))
+        .pipe(gulp.dest("./build/site"));
 });
 
 gulp.task("uglify-index", function () {
@@ -121,6 +132,7 @@ gulp.task("uglify", [
 gulp.task("default", [
     "lint",
     "style",
+    "stylus",
     "uglify",
     "jade"
 ]);

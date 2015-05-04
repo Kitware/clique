@@ -36,6 +36,14 @@
         });
 
         return {
+            findNodes: function (spec) {
+                return _.pluck(_.where(nodes, spec), "key");
+            },
+
+            getNode: function (key) {
+                return nodeIndex[key];
+            },
+
             getNeighborhood: function (options) {
                 var center,
                     frontier,
@@ -43,7 +51,7 @@
                     neighborLinks = new cf.util.Set();
 
                 if (!options.center) {
-                    throw cf.error.required("name");
+                    throw cf.error.required("center");
                 }
 
                 if (!options.radius) {
@@ -51,7 +59,7 @@
                 }
 
                 // center = nodeIndex[options.node];
-                center = _.findWhere(nodes, options.center);
+                center = nodeIndex[options.center];
 
                 if (center) {
                     neighborNodes.add(center.key);

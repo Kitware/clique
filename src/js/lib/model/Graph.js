@@ -13,6 +13,8 @@
 
             this.adapter = new options.adapter(options.options);
 
+            this.findNodes = _.bind(this.adapter.findNodes, this.adapter);
+
             this.nodes = new cf.util.Set();
             this.links = new cf.util.Set();
 

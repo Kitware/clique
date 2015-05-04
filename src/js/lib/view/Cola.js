@@ -2,7 +2,7 @@
     "use strict";
 
     cf.view.Cola = Backbone.View.extend({
-        initialize: function () {
+        initialize: function (options) {
             if (!this.model) {
                 throw cf.error.required("model");
             }
@@ -11,13 +11,17 @@
                 throw cf.error.required("el");
             }
 
-            this.nodeRadius = 7.5;
+            options = options || {};
+
+            this.nodeRadius = options.nodeRadius || 7.5;
 
             this.cola = cola.d3adaptor()
-                .linkDistance(30)
+                .linkDistance(options.linkDistance || 100)
                 .avoidOverlaps(true)
                 .size([this.$el.width(), this.$el.height()])
                 .start();
+
+            this.selection = new cf.model.Selection();
 
             this.$el.html(cf.template.cola());
             this.listenTo(this.model, "change", this.render);
@@ -25,7 +29,9 @@
 
         render: function () {
             var nodeData = this.model.get("nodes"),
-                linkData = this.model.get("links");
+                linkData = this.model.get("links"),
+                drag,
+                that = this;
 
             this.cola
                 .nodes(nodeData)
@@ -36,15 +42,40 @@
                 .selectAll("circle.node")
                 .data(nodeData, _.property("key"));
 
+            drag = this.cola.drag()
+                .on("drag", _.bind(function () {
+                    this.dragging = true;
+                }, this));
+
             this.nodes.enter()
                 .append("circle")
                 .classed("node", true)
                 .attr("r", 0)
                 .style("fill", "limegreen")
-                .call(this.cola.drag)
+                .on("click", function (d) {
+                    var me = d3.select(this),
+                        selected = !me.classed("selected");
+
+                    if (!that.dragging) {
+                        me.classed("selected", selected);
+
+                        if (selected) {
+                            that.selection.add(d.key);
+                        } else {
+                            that.selection.remove(d.key);
+                        }
+                    }
+                    that.dragging = false;
+                })
+                .call(drag)
                 .transition()
                 .duration(500)
                 .attr("r", this.nodeRadius);
+
+            this.nodes
+                .style("fill", _.bind(function (d) {
+                    return d.key === this.focused ? "crimson" : "limegreen";
+                }, this));
 
             this.links = d3.select(this.el)
                 .select("g.links")

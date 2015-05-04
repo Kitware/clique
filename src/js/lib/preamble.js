@@ -17,6 +17,7 @@
         return handle;
     };
 
-    // Namespace for views.
+    // Namespaces.
+    cf.model = {};
     cf.view = {};
 }());
