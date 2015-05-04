@@ -1,23 +1,23 @@
 (function () {
     "use strict";
 
-    var oldCf,
-        cf;
+    var oldClique,
+        clique;
 
-    // Save old value of cf, just in case.
-    oldCf = window.cf;
+    // Save old value of clique, just in case.
+    oldClique = window.clique;
 
-    // Establish a namespace for cliquefix.
-    cf = window.cf = {};
+    // Establish a namespace for Clique.
+    clique = window.clique = {};
 
     // Return the old value to the previous owner.
-    cf.noConflict = function () {
-        var handle = cf;
-        cf = oldCf;
+    clique.noConflict = function () {
+        var handle = clique;
+        clique = oldClique;
         return handle;
     };
 
     // Namespaces.
-    cf.model = {};
-    cf.view = {};
+    clique.model = {};
+    clique.view = {};
 }());

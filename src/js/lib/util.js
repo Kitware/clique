@@ -1,9 +1,9 @@
-(function (cf, Hashes, _) {
+(function (clique, Hashes, _) {
     "use strict";
 
-    cf.util = {};
+    clique.util = {};
 
-    cf.util.md5 = (function () {
+    clique.util.md5 = (function () {
         var md5 = new Hashes.MD5();
 
         return function (s) {
@@ -11,7 +11,7 @@
         };
     }());
 
-    cf.util.Set = function () {
+    clique.util.Set = function () {
         var items = {};
 
         return {
@@ -32,4 +32,4 @@
             }
         };
     };
-}(window.cf, window.Hashes, window._));
+}(window.clique, window.Hashes, window._));

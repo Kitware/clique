@@ -1,9 +1,9 @@
-(function (cf, _) {
+(function (clique, _) {
     "use strict";
 
-    cf.adapter = {};
+    clique.adapter = {};
 
-    cf.adapter.NodeLinkList = function (cfg) {
+    clique.adapter.NodeLinkList = function (cfg) {
         var nodes = cfg.nodes,
             links = cfg.links,
             nodeIndex = {},
@@ -11,15 +11,15 @@
             targetIndex = {};
 
         if (!nodes) {
-            throw cf.error.required("nodes");
+            throw clique.error.required("nodes");
         }
 
         if (!links) {
-            throw cf.error.required("links");
+            throw clique.error.required("links");
         }
 
         _.each(nodes, function (n) {
-            var hash = cf.util.md5(_.uniqueId() + JSON.stringify(n));
+            var hash = clique.util.md5(_.uniqueId() + JSON.stringify(n));
             n.key = hash;
             nodeIndex[hash] = n;
         });
@@ -47,15 +47,15 @@
             getNeighborhood: function (options) {
                 var center,
                     frontier,
-                    neighborNodes = new cf.util.Set(),
-                    neighborLinks = new cf.util.Set();
+                    neighborNodes = new clique.util.Set(),
+                    neighborLinks = new clique.util.Set();
 
                 if (!options.center) {
-                    throw cf.error.required("center");
+                    throw clique.error.required("center");
                 }
 
                 if (!options.radius) {
-                    throw cf.error.required("radius");
+                    throw clique.error.required("radius");
                 }
 
                 // center = nodeIndex[options.node];
@@ -64,12 +64,12 @@
                 if (center) {
                     neighborNodes.add(center.key);
 
-                    frontier = new cf.util.Set();
+                    frontier = new clique.util.Set();
                     frontier.add(center.key);
 
                     // Fan out from the center to reach the requested radius.
                     _.each(_.range(options.radius), function () {
-                        var newFrontier = new cf.util.Set();
+                        var newFrontier = new clique.util.Set();
 
                         // Find all links to and from the current frontier
                         // nodes.
@@ -117,4 +117,4 @@
             }
         };
     };
-}(window.cf, window._));
+}(window.clique, window._));

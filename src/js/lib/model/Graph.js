@@ -1,22 +1,22 @@
-(function (cf, Backbone, _) {
+(function (clique, Backbone, _) {
     "use strict";
 
-    cf.Graph = Backbone.Model.extend({
+    clique.Graph = Backbone.Model.extend({
         constructor: function (options) {
             Backbone.Model.call(this, {}, options || {});
         },
 
         initialize: function (attributes, options) {
             if (!options.adapter) {
-                throw cf.error.required("adapter");
+                throw clique.error.required("adapter");
             }
 
             this.adapter = new options.adapter(options.options);
 
             this.findNodes = _.bind(this.adapter.findNodes, this.adapter);
 
-            this.nodes = new cf.util.Set();
-            this.links = new cf.util.Set();
+            this.nodes = new clique.util.Set();
+            this.links = new clique.util.Set();
 
             this.set("nodes", []);
             this.set("links", []);
@@ -46,4 +46,4 @@
             this.set("links", this.get("links").concat(newLinks));
         }
     });
-}(window.cf, window.Backbone, window._));
+}(window.clique, window.Backbone, window._));

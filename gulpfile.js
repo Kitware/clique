@@ -45,7 +45,7 @@ gulp.task("jade-templates", function () {
             client: true
         }))
         .pipe(job({
-            namespace: "cf.template"
+            namespace: "clique.template"
         }))
         .pipe(concat("templates.js"))
         .pipe(gulp.dest("./build/jade"));
@@ -73,7 +73,7 @@ gulp.task("uglify-index", function () {
         .pipe(dest());
 });
 
-gulp.task("uglify-cliquefix", function () {
+gulp.task("uglify-clique", function () {
     "use strict";
 
     var dest = _.bind(gulp.dest, gulp, "build/site");
@@ -86,10 +86,10 @@ gulp.task("uglify-cliquefix", function () {
         "src/js/lib/error.js",
         "src/js/lib/**/*.js"
     ])
-        .pipe(concat("cliquefix.js"))
+        .pipe(concat("clique.js"))
         .pipe(dest())
         .pipe(uglify())
-        .pipe(rename("cliquefix.min.js"))
+        .pipe(rename("clique.min.js"))
         .pipe(dest());
 });
 
@@ -126,7 +126,7 @@ gulp.task("clean", function () {
 gulp.task("uglify", [
     "jade-templates",
     "uglify-index",
-    "uglify-cliquefix"
+    "uglify-clique"
 ]);
 
 gulp.task("default", [

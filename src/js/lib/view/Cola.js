@@ -1,14 +1,14 @@
-(function (cf, Backbone, _, d3, cola) {
+(function (clique, Backbone, _, d3, cola) {
     "use strict";
 
-    cf.view.Cola = Backbone.View.extend({
+    clique.view.Cola = Backbone.View.extend({
         initialize: function (options) {
             if (!this.model) {
-                throw cf.error.required("model");
+                throw clique.error.required("model");
             }
 
             if (!this.el) {
-                throw cf.error.required("el");
+                throw clique.error.required("el");
             }
 
             options = options || {};
@@ -21,9 +21,9 @@
                 .size([this.$el.width(), this.$el.height()])
                 .start();
 
-            this.selection = new cf.model.Selection();
+            this.selection = new clique.model.Selection();
 
-            this.$el.html(cf.template.cola());
+            this.$el.html(clique.template.cola());
             this.listenTo(this.model, "change", this.render);
         },
 
@@ -124,4 +124,4 @@
             this.cola.start();
         }
     });
-}(window.cf, window.Backbone, window._, window.d3, window.cola));
+}(window.clique, window.Backbone, window._, window.d3, window.cola));

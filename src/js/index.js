@@ -1,5 +1,5 @@
 /*jshint browser: true, jquery: true */
-/*global cf, _ */
+/*global clique, _ */
 
 function randomGraph(n, pct) {
     "use strict";
@@ -41,8 +41,8 @@ $(function () {
 
     graphData = randomGraph(26, 0.20);
 
-    window.graph = graph = new cf.Graph({
-        adapter: cf.adapter.NodeLinkList,
+    window.graph = graph = new clique.Graph({
+        adapter: clique.adapter.NodeLinkList,
         options: graphData
     });
 
@@ -68,13 +68,13 @@ $(function () {
         }
     });
 
-    window.view = view = new cf.view.Cola({
+    window.view = view = new clique.view.Cola({
         model: graph,
         el: "#content"
     });
     view.render();
 
-    window.info = info = new cf.view.SelectionInfo({
+    window.info = info = new clique.view.SelectionInfo({
         model: view.selection,
         el: "#info",
         graph: graph
