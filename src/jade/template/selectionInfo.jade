@@ -1,5 +1,10 @@
+mixin item(key, value)
+    tr
+        td.text-right: strong= key
+        td= value
+
 .container
-    if (_.isUndefined(node))
+    if _.isUndefined(node)
         em (Selection is empty)
     else
         nav
@@ -12,7 +17,6 @@
                         span(aria-hidden="true"): &raquo;
         .col-md-1
             table.table.table-striped.table-bordered
-                for keyval in _.pairs(node)
-                    tr
-                        td.text-right: strong #{keyval[0]}
-                        td #{keyval[1]}
+                +item("key", node.key)
+                for prop in _.filter(_.keys(node), _.negate(_.partial(_.contains, ["key", "index", "x", "y", "variable", "bounds", "fixed", "px", "py"])))
+                    +item(prop, node[prop])
