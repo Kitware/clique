@@ -11,10 +11,10 @@ mixin item(key, value)
             ul.pagination
                 li.disabled.prev
                     a(aria-label="Previous").prev
-                        span(aria-hidden="true"): &laquo;
+                        span(aria-hidden="true") &laquo;
                 li.disabled.next
                     a(aria-label="Next").next
-                        span(aria-hidden="true"): &raquo;
+                        span(aria-hidden="true") &raquo;
         .col-md-1
             table.table.table-striped.table-bordered
                 +item("key", node.key)
