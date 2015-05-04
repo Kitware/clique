@@ -58,8 +58,8 @@
                     throw clique.error.required("radius");
                 }
 
-                // center = nodeIndex[options.node];
                 center = nodeIndex[options.center];
+                center.root = true;
 
                 if (center) {
                     neighborNodes.add(center.key);

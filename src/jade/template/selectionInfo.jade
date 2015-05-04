@@ -18,5 +18,5 @@ mixin item(key, value)
         .col-md-1
             table.table.table-striped.table-bordered
                 +item("key", node.key)
-                for prop in _.filter(_.keys(node), _.negate(_.partial(_.contains, ["key", "index", "x", "y", "variable", "bounds", "fixed", "px", "py"])))
+                for prop in _.filter(_.keys(node), _.negate(_.partial(_.contains, ["key", "root", "index", "x", "y", "variable", "bounds", "fixed", "px", "py"])))
                     +item(prop, node[prop])

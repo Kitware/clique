@@ -74,7 +74,13 @@
 
             this.nodes
                 .style("fill", _.bind(function (d) {
-                    return d.key === this.focused ? "crimson" : "limegreen";
+                    if (d.key === this.focused) {
+                        return "crimson";
+                    } else if (d.root) {
+                        return "gold";
+                    } else {
+                        return "limegreen";
+                    }
                 }, this));
 
             this.links = d3.select(this.el)
