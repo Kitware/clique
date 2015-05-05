@@ -10,10 +10,10 @@ mixin item(key, value)
         nav
             ul.pagination
                 li.disabled.prev
-                    a(aria-label="Previous").prev
+                    a(aria-label="Previous").virtual-link.prev
                         span(aria-hidden="true") &laquo;
                 li.disabled.next
-                    a(aria-label="Next").next
+                    a(aria-label="Next").virtual-link.next
                         span(aria-hidden="true") &raquo;
         .col-md-1
             table.table.table-striped.table-bordered
