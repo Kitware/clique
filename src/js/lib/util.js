@@ -32,4 +32,10 @@
             }
         };
     };
+
+    clique.util.require = function (arg, name) {
+        if (_.isUndefined(arg)) {
+            throw new Error("argument '" + name + "' is required");
+        }
+    };
 }(window.clique, window.Hashes, window._));

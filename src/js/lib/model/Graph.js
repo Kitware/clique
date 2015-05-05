@@ -7,9 +7,7 @@
         },
 
         initialize: function (attributes, options) {
-            if (!options.adapter) {
-                throw clique.error.required("adapter");
-            }
+            clique.util.require(options.adapter, "adapter");
 
             this.adapter = new options.adapter(options.options);
 

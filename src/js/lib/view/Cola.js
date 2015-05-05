@@ -3,13 +3,8 @@
 
     clique.view.Cola = Backbone.View.extend({
         initialize: function (options) {
-            if (!this.model) {
-                throw clique.error.required("model");
-            }
-
-            if (!this.el) {
-                throw clique.error.required("el");
-            }
+            clique.util.require(this.model, "model");
+            clique.util.require(this.el, "el");
 
             options = options || {};
 

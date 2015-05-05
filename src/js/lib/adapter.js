@@ -10,13 +10,8 @@
             sourceIndex = {},
             targetIndex = {};
 
-        if (!nodes) {
-            throw clique.error.required("nodes");
-        }
-
-        if (!links) {
-            throw clique.error.required("links");
-        }
+        clique.util.require(nodes, "nodes");
+        clique.util.require(links, "links");
 
         _.each(nodes, function (n) {
             var hash = clique.util.md5(_.uniqueId() + JSON.stringify(n));
@@ -50,13 +45,8 @@
                     neighborNodes = new clique.util.Set(),
                     neighborLinks = new clique.util.Set();
 
-                if (!options.center) {
-                    throw clique.error.required("center");
-                }
-
-                if (_.isUndefined(options.radius)) {
-                    throw clique.error.required("radius");
-                }
+                clique.util.require(options.center, "center");
+                clique.util.require(options.radius, "radius");
 
                 center = nodeIndex[options.center];
                 center.root = true;

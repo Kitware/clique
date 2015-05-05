@@ -3,18 +3,13 @@
 
     clique.view.SelectionInfo = Backbone.View.extend({
         initialize: function (options) {
-            if (!this.model) {
-                throw clique.error.required("model");
-            }
+            clique.util.require(this.model, "model");
+            clique.util.require(options.graph, "graph");
 
             this.focalPoint = 0;
 
             options = options || {};
             this.graph = options.graph;
-
-            if (!this.graph) {
-                throw clique.error.required("graph");
-            }
 
             this.listenTo(this.model, "change", this.render);
             this.listenTo(this.graph, "change", this.render);
