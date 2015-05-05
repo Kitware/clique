@@ -41,7 +41,9 @@
                 this.focalPoint = Math.max(0, _.size(nodes) - 1);
             }
 
-            node = this.graph.adapter.getNode(this.model.items()[this.focalPoint]);
+            node = this.graph.adapter.findNode({
+                key: this.model.items()[this.focalPoint]
+            });
 
             this.trigger("focus", node && node.key || undefined);
 

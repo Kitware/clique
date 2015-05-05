@@ -39,10 +39,6 @@
                 return _.findWhere(nodes, spec);
             },
 
-            getNode: function (key) {
-                return nodeIndex[key];
-            },
-
             neighborhood: function (options) {
                 var frontier,
                     neighborNodes = new clique.util.Set(),
