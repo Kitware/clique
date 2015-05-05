@@ -61,7 +61,7 @@ $(function () {
         })[0];
 
         if (center) {
-            graph.getNeighborhood({
+            graph.addNeighborhood({
                 center: center,
                 radius: radius
             });

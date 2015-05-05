@@ -20,7 +20,7 @@
             this.set("links", []);
         },
 
-        getNeighborhood: function (options) {
+        addNeighborhood: function (options) {
             var nbd = this.adapter.neighborhood(options),
                 newNodes = [],
                 newLinks = [];
