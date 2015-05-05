@@ -54,7 +54,7 @@
                     throw clique.error.required("center");
                 }
 
-                if (!options.radius) {
+                if (_.isUndefined(options.radius)) {
                     throw clique.error.required("radius");
                 }
 
