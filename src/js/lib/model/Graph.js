@@ -15,7 +15,7 @@
 
             this.findNodes = _.bind(this.adapter.findNodes, this.adapter);
 
-            this.nodes = new clique.util.Set();
+            this.nodes = {};
             this.links = new clique.util.Set();
 
             this.set("nodes", []);
@@ -28,8 +28,8 @@
                 newLinks = [];
 
             _.each(nbd.nodes, _.bind(function (node) {
-                if (!this.nodes.has(node.key)) {
-                    this.nodes.add(node.key);
+                if (!_.has(this.nodes, node.key)) {
+                    this.nodes[node.key] = node;
                     newNodes.push(node);
                 }
             }, this));
