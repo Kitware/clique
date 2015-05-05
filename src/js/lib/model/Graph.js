@@ -11,8 +11,6 @@
 
             this.adapter = new options.adapter(options.options);
 
-            this.findNodes = _.bind(this.adapter.findNodes, this.adapter);
-
             this.nodes = {};
             this.links = new clique.util.Set();
 

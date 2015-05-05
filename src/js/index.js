@@ -56,9 +56,9 @@ $(function () {
             return;
         }
 
-        center = graph.findNodes({
+        center = graph.adapter.findNode({
             name: name
-        })[0];
+        });
 
         if (center) {
             graph.addNeighborhood({
