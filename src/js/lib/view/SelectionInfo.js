@@ -17,6 +17,7 @@
             }
 
             this.listenTo(this.model, "change", this.render);
+            this.listenTo(this.graph, "change", this.render);
         },
 
         focus: function (target) {
