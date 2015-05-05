@@ -32,66 +32,62 @@
 
         return {
             findNodes: function (spec) {
-                return _.pluck(_.where(nodes, spec), "key");
+                return _.where(nodes, spec);
             },
 
-            getNode: function (key) {
-                return nodeIndex[key];
+            findNode: function (spec) {
+                return _.findWhere(nodes, spec);
             },
 
-            getNeighborhood: function (options) {
-                var center,
-                    frontier,
+            neighborhood: function (options) {
+                var frontier,
                     neighborNodes = new clique.util.Set(),
                     neighborLinks = new clique.util.Set();
 
                 clique.util.require(options.center, "center");
                 clique.util.require(options.radius, "radius");
 
-                center = nodeIndex[options.center];
-                center.root = true;
+                options.center.root = true;
 
-                if (center) {
-                    neighborNodes.add(center.key);
+                neighborNodes.add(options.center.key);
 
-                    frontier = new clique.util.Set();
-                    frontier.add(center.key);
+                frontier = new clique.util.Set();
+                frontier.add(options.center.key);
 
-                    // Fan out from the center to reach the requested radius.
-                    _.each(_.range(options.radius), function () {
-                        var newFrontier = new clique.util.Set();
+                // Fan out from the center to reach the requested radius.
+                _.each(_.range(options.radius), function () {
+                    var newFrontier = new clique.util.Set();
 
-                        // Find all links to and from the current frontier
-                        // nodes.
-                        _.each(frontier.items(), function (nodeKey) {
-                            _.each(sourceIndex[nodeKey], function (neighborKey) {
-                                neighborLinks.add(JSON.stringify([nodeKey, neighborKey]));
-                            });
-
-                            _.each(targetIndex[nodeKey], function (neighborKey) {
-                                neighborLinks.add(JSON.stringify([neighborKey, nodeKey]));
-                            });
+                    // Find all links to and from the current frontier
+                    // nodes.
+                    _.each(frontier.items(), function (nodeKey) {
+                        _.each(sourceIndex[nodeKey], function (neighborKey) {
+                            neighborLinks.add(JSON.stringify([nodeKey, neighborKey]));
                         });
 
-                        // Collect the nodes named in the links.
-                        _.each(neighborLinks.items(), function (link) {
-                            link = JSON.parse(link);
-
-                            if (!neighborNodes.has(link[0])) {
-                                newFrontier.add(link[0]);
-                            }
-
-                            if (!neighborNodes.has(link[1])) {
-                                newFrontier.add(link[1]);
-                            }
-
-                            neighborNodes.add(link[0]);
-                            neighborNodes.add(link[1]);
+                        _.each(targetIndex[nodeKey], function (neighborKey) {
+                            neighborLinks.add(JSON.stringify([neighborKey, nodeKey]));
                         });
-
-                        frontier = newFrontier;
                     });
-                }
+
+                    // Collect the nodes named in the links.
+                    _.each(neighborLinks.items(), function (link) {
+                        link = JSON.parse(link);
+
+                        if (!neighborNodes.has(link[0])) {
+                            newFrontier.add(link[0]);
+                        }
+
+                        if (!neighborNodes.has(link[1])) {
+                            newFrontier.add(link[1]);
+                        }
+
+                        neighborNodes.add(link[0]);
+                        neighborNodes.add(link[1]);
+                    });
+
+                    frontier = newFrontier;
+                });
 
                 return {
                     nodes: _.map(neighborNodes.items(), _.propertyOf(nodeIndex)),
