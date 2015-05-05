@@ -21,7 +21,7 @@
         },
 
         getNeighborhood: function (options) {
-            var nbd = this.adapter.getNeighborhood(options),
+            var nbd = this.adapter.neighborhood(options),
                 newNodes = [],
                 newLinks = [];
 

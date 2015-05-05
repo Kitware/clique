@@ -39,7 +39,7 @@
                 return nodeIndex[key];
             },
 
-            getNeighborhood: function (options) {
+            neighborhood: function (options) {
                 var center,
                     frontier,
                     neighborNodes = new clique.util.Set(),
