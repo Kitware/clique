@@ -11,6 +11,7 @@ var gulp = require("gulp"),
     plumber = require("gulp-plumber"),
     rename = require("gulp-rename"),
     rimraf = require("gulp-rimraf"),
+    serve = require("gulp-serve"),
     stylus = require("gulp-stylus"),
     uglify = require("gulp-uglify"),
     stylishJshint = require("jshint-stylish"),
@@ -136,3 +137,5 @@ gulp.task("default", [
     "uglify",
     "jade"
 ]);
+
+gulp.task("serve", ["default"], serve("build/site"));
