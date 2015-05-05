@@ -66,6 +66,10 @@
                 .on("click", function () {
                     that.focusRight();
                 });
+
+            this.$("button.remove").on("click", _.bind(function () {
+                console.log("removing node " + node.key);
+            }, this));
         }
     });
 }(window.clique, window.Backbone, window._, window.d3));
