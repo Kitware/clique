@@ -32,6 +32,10 @@
             }
         },
 
+        focusNode: function () {
+            return this.model.items()[this.focalPoint];
+        },
+
         render: function () {
             var nodes = this.model.items(),
                 node,
@@ -42,7 +46,7 @@
             }
 
             node = this.graph.adapter.findNode({
-                key: this.model.items()[this.focalPoint]
+                key: this.focusNode()
             });
 
             this.trigger("focus", node && node.key || undefined);
