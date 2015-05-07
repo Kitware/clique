@@ -33,7 +33,9 @@
         },
 
         focusNode: function () {
-            return this.model.items()[this.focalPoint];
+            return this.graph.adapter.findNode({
+                key: this.model.items()[this.focalPoint]
+            });
         },
 
         render: function () {
@@ -45,9 +47,7 @@
                 this.focalPoint = Math.max(0, _.size(nodes) - 1);
             }
 
-            node = this.graph.adapter.findNode({
-                key: this.focusNode()
-            });
+            node = this.focusNode();
 
             this.trigger("focus", node && node.key || undefined);
 
@@ -74,7 +74,10 @@
                 });
 
             this.$("button.remove").on("click", _.bind(function () {
-                console.log("removing node " + node.key);
+                this.graph.removeNeighborhood({
+                    center: this.focusNode(),
+                    radius: 0
+                });
             }, this));
         }
     });
