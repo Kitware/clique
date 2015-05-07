@@ -79,6 +79,9 @@
                 }, this));
 
             this.nodes.exit()
+                .each(_.bind(function (d) {
+                    this.selection.remove(d.key);
+                }, this))
                 .transition()
                 .duration(1000)
                 .attr("r", 0)
