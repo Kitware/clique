@@ -79,6 +79,13 @@
                     radius: 0
                 });
             }, this));
+
+            this.$("button.expand").on("click", _.bind(function () {
+                this.graph.addNeighborhood({
+                    center: this.focusNode(),
+                    radius: 1
+                });
+            }, this));
         }
     });
 }(window.clique, window.Backbone, window._, window.d3));
