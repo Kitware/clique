@@ -15,8 +15,13 @@ mixin item(key, value)
                 li.disabled.next
                     a(aria-label="Next").virtual-link.next
                         span(aria-hidden="true") &raquo;
-        .col-md-1
-            table.table.table-striped.table-bordered
-                +item("key", node.key)
-                for prop in _.filter(_.keys(node), _.negate(_.partial(_.contains, ["key", "root", "index", "x", "y", "variable", "bounds", "fixed", "px", "py"])))
-                    +item(prop, node[prop])
+        .container
+            .row
+                .col-md-1
+                    table.table.table-striped.table-bordered
+                        +item("key", node.key)
+                        for prop in _.filter(_.keys(node), _.negate(_.partial(_.contains, ["key", "root", "index", "x", "y", "variable", "bounds", "fixed", "px", "py"])))
+                            +item(prop, node[prop])
+            .row
+                .col-md-1
+                    button(type="button").btn.btn-danger.btn-sm.remove Remove #[span.glyphicon.glyphicon-remove]

@@ -3,13 +3,8 @@
 
     clique.view.Cola = Backbone.View.extend({
         initialize: function (options) {
-            if (!this.model) {
-                throw clique.error.required("model");
-            }
-
-            if (!this.el) {
-                throw clique.error.required("el");
-            }
+            clique.util.require(this.model, "model");
+            clique.util.require(this.el, "el");
 
             options = options || {};
 
@@ -83,6 +78,16 @@
                     }
                 }, this));
 
+            this.nodes.exit()
+                .each(_.bind(function (d) {
+                    this.selection.remove(d.key);
+                }, this))
+                .transition()
+                .duration(1000)
+                .attr("r", 0)
+                .style("opacity", 0)
+                .remove();
+
             this.links = d3.select(this.el)
                 .select("g.links")
                 .selectAll("line.link")
@@ -98,6 +103,13 @@
                 .transition()
                 .duration(500)
                 .style("stroke-width", 1);
+
+            this.links.exit()
+                .transition()
+                .duration(1000)
+                .style("stroke-width", 0)
+                .style("opacity", 0)
+                .remove();
 
             this.cola.on("tick", _.bind(function () {
                 var width = this.$el.width(),
