@@ -4,8 +4,8 @@
     clique.adapter = {};
 
     clique.adapter.NodeLinkList = function (cfg) {
-        var nodes = cfg.nodes,
-            links = cfg.links,
+        var nodes = clique.util.deepCopy(cfg.nodes),
+            links = clique.util.deepCopy(cfg.links),
             nodeIndex = {},
             sourceIndex = {},
             targetIndex = {};
