@@ -17,12 +17,20 @@
                 .start();
 
             this.selection = new clique.model.Selection();
+            this.focused = {};
+
+            this.listenTo(this.selection, "nodefocus", function (focus) {
+                console.log("focused!", arguments);
+                this.focused = focus;
+            });
 
             this.$el.html(clique.template.cola());
             this.listenTo(this.model, "change", this.render);
         },
 
         render: function () {
+            console.log("render");
+
             var nodeData = this.model.get("nodes"),
                 linkData = this.model.get("links"),
                 drag,
@@ -69,7 +77,7 @@
 
             this.nodes
                 .style("fill", _.bind(function (d) {
-                    if (d.key === this.focused) {
+                    if (d.key === this.focused.key) {
                         return "crimson";
                     } else if (d.root) {
                         return "gold";

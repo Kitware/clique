@@ -18,6 +18,7 @@
         focus: function (target) {
             this.focalPoint = target;
             this.render();
+            this.trigger("nodefocus", this.focusNode());
         },
 
         focusRight: function () {
