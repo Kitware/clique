@@ -80,9 +80,4 @@ $(function () {
         graph: graph
     });
     info.render();
-
-    view.listenTo(info, "focus", function (key) {
-        view.focused = key;
-        view.render();
-    });
 });

@@ -49,8 +49,6 @@
 
             node = this.focusNode();
 
-            this.trigger("focus", node && node.key || undefined);
-
             this.$el.html(clique.template.selectionInfo({
                 node: node
             }));
