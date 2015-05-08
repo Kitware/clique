@@ -72,7 +72,6 @@ $(function () {
         model: graph,
         el: "#content"
     });
-    view.render();
 
     window.info = info = new clique.view.SelectionInfo({
         model: view.selection,
