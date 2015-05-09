@@ -72,7 +72,6 @@ $(function () {
         model: graph,
         el: "#content"
     });
-    view.render();
 
     window.info = info = new clique.view.SelectionInfo({
         model: view.selection,
@@ -80,9 +79,4 @@ $(function () {
         graph: graph
     });
     info.render();
-
-    view.listenTo(info, "focus", function (key) {
-        view.focused = key;
-        view.render();
-    });
 });

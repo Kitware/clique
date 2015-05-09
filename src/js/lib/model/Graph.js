@@ -21,8 +21,10 @@
             this.forward = new clique.util.MultiTable();
             this.back = new clique.util.MultiTable();
 
-            this.set("nodes", []);
-            this.set("links", []);
+            this.set({
+                nodes: [],
+                links: []
+            });
         },
 
         addNeighborhood: function (options) {
@@ -49,8 +51,10 @@
                 }
             }, this));
 
-            this.set("nodes", this.get("nodes").concat(newNodes));
-            this.set("links", this.get("links").concat(newLinks));
+            this.set({
+                nodes: this.get("nodes").concat(newNodes),
+                links: this.get("links").concat(newLinks)
+            });
         },
 
         removeNeighborhood: function (options) {

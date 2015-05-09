@@ -1,6 +1,16 @@
 (function (clique, Backbone, _, d3, cola) {
     "use strict";
 
+    var fill = function (d) {
+        if (d.key === this.focused) {
+            return "crimson";
+        } else if (d.root) {
+            return "gold";
+        } else {
+            return "limegreen";
+        }
+    };
+
     clique.view.Cola = Backbone.View.extend({
         initialize: function (options) {
             clique.util.require(this.model, "model");
@@ -10,6 +20,8 @@
 
             this.nodeRadius = options.nodeRadius || 7.5;
 
+            this.transitionTime = 500;
+
             this.cola = cola.d3adaptor()
                 .linkDistance(options.linkDistance || 100)
                 .avoidOverlaps(true)
@@ -18,8 +30,16 @@
 
             this.selection = new clique.model.Selection();
 
+            this.listenTo(this.selection, "nodefocus", function (focus) {
+                this.focused = focus;
+            });
+
             this.$el.html(clique.template.cola());
             this.listenTo(this.model, "change", this.render);
+            this.listenTo(this.selection, "focused", function (focused) {
+                this.focused = focused;
+                this.nodes.style("fill", _.bind(fill, this));
+            });
         },
 
         render: function () {
@@ -41,6 +61,11 @@
                 .on("drag", _.bind(function () {
                     this.dragging = true;
                 }, this));
+
+            this.nodes.datum(function (d) {
+                d.fixed = true;
+                return d;
+            });
 
             this.nodes.enter()
                 .append("circle")
@@ -64,26 +89,17 @@
                 })
                 .call(drag)
                 .transition()
-                .duration(500)
+                .duration(this.transitionTime)
                 .attr("r", this.nodeRadius);
 
-            this.nodes
-                .style("fill", _.bind(function (d) {
-                    if (d.key === this.focused) {
-                        return "crimson";
-                    } else if (d.root) {
-                        return "gold";
-                    } else {
-                        return "limegreen";
-                    }
-                }, this));
+            this.nodes.style("fill", _.bind(fill, this));
 
             this.nodes.exit()
                 .each(_.bind(function (d) {
                     this.selection.remove(d.key);
                 }, this))
                 .transition()
-                .duration(1000)
+                .duration(this.transitionTime)
                 .attr("r", 0)
                 .style("opacity", 0)
                 .remove();
@@ -101,12 +117,12 @@
                 .style("stroke-width", 0)
                 .style("stroke", "black")
                 .transition()
-                .duration(500)
+                .duration(this.transitionTime)
                 .style("stroke-width", 1);
 
             this.links.exit()
                 .transition()
-                .duration(1000)
+                .duration(this.transitionTime)
                 .style("stroke-width", 0)
                 .style("opacity", 0)
                 .remove();
@@ -140,6 +156,13 @@
             }, this));
 
             this.cola.start();
+
+            _.delay( _.bind(function () {
+                this.nodes.datum(function (d) {
+                    d.fixed = false;
+                    return d;
+                });
+            }, this), this.transitionTime + 5);
         }
     });
 }(window.clique, window.Backbone, window._, window.d3, window.cola));
