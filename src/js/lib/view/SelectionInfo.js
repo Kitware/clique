@@ -52,7 +52,9 @@
 
             this.$("button.expand").on("click", _.bind(function () {
                 this.graph.addNeighborhood({
-                    center: this.focusNode(),
+                    center: this.graph.adapter.findNode({
+                        key: this.model.focused()
+                    }),
                     radius: 1
                 });
             }, this));
