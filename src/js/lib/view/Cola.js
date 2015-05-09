@@ -20,7 +20,7 @@
 
             this.nodeRadius = options.nodeRadius || 7.5;
 
-            this.transitionTime = 1000;
+            this.transitionTime = 500;
 
             this.cola = cola.d3adaptor()
                 .linkDistance(options.linkDistance || 100)
