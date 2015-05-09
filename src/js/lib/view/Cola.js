@@ -41,8 +41,6 @@
         },
 
         render: function () {
-            console.log("render");
-
             var nodeData = this.model.get("nodes"),
                 linkData = this.model.get("links"),
                 drag,
