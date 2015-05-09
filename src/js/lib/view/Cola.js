@@ -62,6 +62,11 @@
                     this.dragging = true;
                 }, this));
 
+            this.nodes.datum(function (d) {
+                d.fixed = true;
+                return d;
+            });
+
             this.nodes.enter()
                 .append("circle")
                 .classed("node", true)
@@ -151,6 +156,13 @@
             }, this));
 
             this.cola.start();
+
+            _.delay( _.bind(function () {
+                this.nodes.datum(function (d) {
+                    d.fixed = false;
+                    return d;
+                });
+            }, this), this.transitionTime + 5);
         }
     });
 }(window.clique, window.Backbone, window._, window.d3, window.cola));
