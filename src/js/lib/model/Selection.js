@@ -8,13 +8,21 @@
 
         add: function (key) {
             this.set(key, key);
+            if (this.size()) {
+                this.trigger("focused", this.focused());
+            }
         },
 
         remove: function (key) {
+            var focused = this.focused() === key;
+
             this.unset(key);
 
             if (this.focalPoint >= this.size()) {
                 this.focalPoint = Math.max(0, this.size() - 1);
+                this.trigger("focused", this.focused());
+            } else if (focused) {
+                this.focusLeft();
             }
         },
 

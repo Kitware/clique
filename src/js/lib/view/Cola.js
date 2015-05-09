@@ -26,6 +26,11 @@
 
             this.$el.html(clique.template.cola());
             this.listenTo(this.model, "change", this.render);
+            this.listenTo(this.selection, "focused", function (focused) {
+                this.nodes.style("fill", function (d) {
+                    return d.key === focused ? "crimson" : "limegreen";
+                });
+            });
         },
 
         render: function () {
