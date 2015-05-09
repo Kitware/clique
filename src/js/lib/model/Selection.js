@@ -32,19 +32,22 @@
 
         focus: function (target) {
             this.focalPoint = target;
+            if (this.focalPoint < 0) {
+                this.focalPoint = 0;
+            }
+            if (this.focalPoint >= this.size()) {
+                this.focalPoint = this.size() - 1;
+            }
+
             this.trigger("focused", this.focused());
         },
 
         focusLeft: function () {
-            if (this.focalPoint > 0) {
-                this.focus(this.focalPoint - 1);
-            }
+            this.focus(this.focalPoint - 1);
         },
 
         focusRight: function () {
-            if (this.focalPoint < this.size() - 1) {
-                this.focus(this.focalPoint + 1);
-            }
+            this.focus(this.focalPoint + 1);
         },
 
         focused: function () {

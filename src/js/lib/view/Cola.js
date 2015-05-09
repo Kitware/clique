@@ -27,10 +27,8 @@
                 .start();
 
             this.selection = new clique.model.Selection();
-            this.focused = {};
 
             this.listenTo(this.selection, "nodefocus", function (focus) {
-                console.log("focused!", arguments);
                 this.focused = focus;
             });
 

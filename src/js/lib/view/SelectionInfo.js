@@ -43,7 +43,9 @@
 
             this.$("button.remove").on("click", _.bind(function () {
                 this.graph.removeNeighborhood({
-                    center: this.model.focusNode(),
+                    center: this.graph.adapter.findNode({
+                        key: this.model.focused()
+                    }),
                     radius: 0
                 });
             }, this));
