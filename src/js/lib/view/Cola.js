@@ -1,6 +1,16 @@
 (function (clique, Backbone, _, d3, cola) {
     "use strict";
 
+    var fill = function (d) {
+        if (d.key === this.focused) {
+            return "crimson";
+        } else if (d.root) {
+            return "gold";
+        } else {
+            return "limegreen";
+        }
+    };
+
     clique.view.Cola = Backbone.View.extend({
         initialize: function (options) {
             clique.util.require(this.model, "model");
@@ -27,9 +37,8 @@
             this.$el.html(clique.template.cola());
             this.listenTo(this.model, "change", this.render);
             this.listenTo(this.selection, "focused", function (focused) {
-                this.nodes.style("fill", function (d) {
-                    return d.key === focused ? "crimson" : "limegreen";
-                });
+                this.focused = focused;
+                this.nodes.style("fill", _.bind(fill, this));
             });
         },
 
@@ -80,16 +89,7 @@
                 .duration(500)
                 .attr("r", this.nodeRadius);
 
-            this.nodes
-                .style("fill", _.bind(function (d) {
-                    if (d.key === this.focused.key) {
-                        return "crimson";
-                    } else if (d.root) {
-                        return "gold";
-                    } else {
-                        return "limegreen";
-                    }
-                }, this));
+            this.nodes.style("fill", _.bind(fill, this));
 
             this.nodes.exit()
                 .each(_.bind(function (d) {
