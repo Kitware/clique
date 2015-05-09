@@ -20,6 +20,8 @@
 
             this.nodeRadius = options.nodeRadius || 7.5;
 
+            this.transitionTime = 1000;
+
             this.cola = cola.d3adaptor()
                 .linkDistance(options.linkDistance || 100)
                 .avoidOverlaps(true)
@@ -82,7 +84,7 @@
                 })
                 .call(drag)
                 .transition()
-                .duration(500)
+                .duration(this.transitionTime)
                 .attr("r", this.nodeRadius);
 
             this.nodes.style("fill", _.bind(fill, this));
@@ -92,7 +94,7 @@
                     this.selection.remove(d.key);
                 }, this))
                 .transition()
-                .duration(1000)
+                .duration(this.transitionTime)
                 .attr("r", 0)
                 .style("opacity", 0)
                 .remove();
@@ -110,12 +112,12 @@
                 .style("stroke-width", 0)
                 .style("stroke", "black")
                 .transition()
-                .duration(500)
+                .duration(this.transitionTime)
                 .style("stroke-width", 1);
 
             this.links.exit()
                 .transition()
-                .duration(1000)
+                .duration(this.transitionTime)
                 .style("stroke-width", 0)
                 .style("opacity", 0)
                 .remove();
