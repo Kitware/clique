@@ -34,10 +34,29 @@ any source of graph data into the format required by ``Graph`` to do its work.
   Any other properties of the ``options`` object are bound by the particular
   adapter associated with this ``Graph`` instance.
 
-- ``removeNeighborhood(options)``.  This method removes the neighborhood
+- ``removeNeighborhood(options)`` - This method removes the neighborhood
   specified by ``options.center`` and ``options.radius`` from the ``Graph``'s
   view of the graph.  This includes both the nodes and links making up the
   neighborhood itself, as well as any links connecting the outermost nodes of the
   neighborhood to the rest of the current view of the graph, if any.  Setting
   ``options.radius`` to ``0`` will cause just the center node to be removed in
   this manner.
+
+### Adapter API
+
+An adapter, in the context of Clique, is any JavaScript object that contains the
+following methods:
+
+- ``findNodes(spec)`` - returns a list of node objects matching the ``spec``,
+  which itself is an object of key-value pairs describing the sought pattern
+  from the set of nodes.
+
+- ``findNode(spec)`` - returns a single node matching ``spec``, or ``undefined``
+  if there is no such node.  This is a convenience function that can be
+  implemented in a general way simply by returning ``this.findNodes()[0]``, but if
+  there is a more efficient way to compute the result, this method can provide it.
+
+- ``neighborhood(options)`` - computes and returns a subgraph consisting of the
+  node ``options.center``, and all nodes lying within distance
+  ``options.radius`` of it.  Typically, ``options.center`` would be supplied via a
+  call to ``findNodes()`` or ``findNode()``.
