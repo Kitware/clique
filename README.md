@@ -20,13 +20,13 @@ any source of graph data into the format required by ``Graph`` to do its work.
 
 ``Graph`` is a JavaScript class with the following properties and methods:
 
-- ``new Graph(options)``.  Unlike an ordinary Backbone model, the ``Graph``
+- ``new Graph(options)`` - Unlike an ordinary Backbone model, the ``Graph``
   constructor does not take an object describing the initial model attributes,
   but only an ``options`` object containing the following properties:
 
   - ``adapter`` - a graph data adapter object.
 
-- ``addNeighborhood(options)``.  This method queries the adapter for the graph
+- ``addNeighborhood(options)`` - This method queries the adapter for the graph
   neighborhood described by ``options``, and blends that subgraph into the
   ``Graph``'s current view of the network.  The ``options`` object should contain
   at least a ``center`` property identifying a node in the graph, and the
