@@ -16,7 +16,7 @@ social network graph (implemented as a [Backbone](http://backbonejs.org/)
 model), and an ``Adapter`` API which can be implemented to provide a path from
 any source of graph data into the format required by ``Graph`` to do its work.
 
-### ``Graph``
+### ``Graph`` class
 
 ``Graph`` is a JavaScript class with the following properties and methods:
 
