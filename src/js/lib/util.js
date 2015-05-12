@@ -44,6 +44,11 @@
         };
     };
 
+    clique.ignore = new clique.util.Set();
+    _.each(["key", "root", "index", "x", "y", "variable", "bounds", "fixed", "px", "py"], function (val) {
+        clique.ignore.add(val);
+    });
+
     clique.util.MultiTable = function () {
         var table = {};
 
