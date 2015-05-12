@@ -68,6 +68,10 @@ $(function () {
         }
     });
 
+    $("#save").on("click", function () {
+        graph.adapter.write();
+    });
+
     window.view = view = new clique.view.Cola({
         model: graph,
         el: "#content"
