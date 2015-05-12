@@ -104,8 +104,16 @@
             },
 
             write: function () {
-                orig.nodes = clique.util.deepCopy(nodes);
-                orig.links = clique.util.deepCopy(links);
+                orig.nodes = _.map(nodes, function (n) {
+                    var node = {};
+                    _.map(n, function (value, key) {
+                        if (!clique.ignore.has(key)) {
+                            node[key] = clique.util.deepCopy(value);
+                        }
+                    });
+
+                    return node;
+                });
             }
         };
     };
