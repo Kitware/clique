@@ -21,6 +21,11 @@
             });
         },
 
+        deleteNode: function (node) {
+            node.deleted = true;
+            this.hideNode(node);
+        },
+
         expandNode: function (node) {
             this.graph.addNeighborhood({
                 center: node,
@@ -65,6 +70,20 @@
             this.$("button.remove-sel").on("click", _.bind(function () {
                 _.each(this.model.items(), _.bind(function (key) {
                     this.hideNode(this.graph.adapter.findNode({
+                        key: key
+                    }));
+                }, this));
+            }, this));
+
+            this.$("button.delete").on("click", _.bind(function () {
+                this.deleteNode(this.graph.adapter.findNode({
+                    key: this.model.focused()
+                }));
+            }, this));
+
+            this.$("button.delete-sel").on("click", _.bind(function () {
+                _.each(this.model.items(), _.bind(function (key) {
+                    this.deleteNode(this.graph.adapter.findNode({
                         key: key
                     }));
                 }, this));
