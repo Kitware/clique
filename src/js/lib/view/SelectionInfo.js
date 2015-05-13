@@ -14,13 +14,28 @@
             this.listenTo(this.graph, "change", this.render);
         },
 
+        hideNode: function (node) {
+            this.graph.removeNeighborhood({
+                center: node,
+                radius: 0
+            });
+        },
+
+        expandNode: function (node) {
+            this.graph.addNeighborhood({
+                center: node,
+                radius: 1
+            });
+        },
+
         render: function () {
             var node = this.graph.adapter.findNode({
                 key: this.model.focused()
             });
 
             this.$el.html(clique.template.selectionInfo({
-                node: node
+                node: node,
+                selectionSize: this.model.size()
             }));
 
             d3.select(this.el)
@@ -42,21 +57,31 @@
                 }, this));
 
             this.$("button.remove").on("click", _.bind(function () {
-                this.graph.removeNeighborhood({
-                    center: this.graph.adapter.findNode({
-                        key: this.model.focused()
-                    }),
-                    radius: 0
-                });
+                this.hideNode(this.graph.adapter.findNode({
+                    key: this.model.focused()
+                }));
+            }, this));
+
+            this.$("button.remove-sel").on("click", _.bind(function () {
+                _.each(this.model.items(), _.bind(function (key) {
+                    this.hideNode(this.graph.adapter.findNode({
+                        key: key
+                    }));
+                }, this));
             }, this));
 
             this.$("button.expand").on("click", _.bind(function () {
-                this.graph.addNeighborhood({
-                    center: this.graph.adapter.findNode({
-                        key: this.model.focused()
-                    }),
-                    radius: 1
-                });
+                this.expandNode(this.graph.adapter.findNode({
+                    key: this.model.focused()
+                }));
+            }, this));
+
+            this.$("button.expand-sel").on("click", _.bind(function () {
+                _.each(this.model.items(), _.bind(function (key) {
+                    this.expandNode(this.graph.adapter.findNode({
+                        key: key
+                    }));
+                }, this));
             }, this));
         }
     });
