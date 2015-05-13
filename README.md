@@ -60,3 +60,11 @@ following methods:
   node ``options.center``, and all nodes lying within distance
   ``options.radius`` of it.  Typically, ``options.center`` would be supplied via a
   call to ``findNodes()`` or ``findNode()``.
+
+- ``write()`` - causes the original source of the graph data to become
+  synchronized with any changes made to the graph since loading.  The following
+  node attributes are ignored for purposes of writeback: ``key``, ``root``,
+  ``index``, ``x``, ``y``, ``variable``, ``bounds``, ``fixed``, ``px``, ``py``.
+  Many of these attributes are used for runtime processing by
+  [Cola](http://marvl.infotech.monash.edu/webcola/), while others are used as
+  rendering metadata by the example application.
