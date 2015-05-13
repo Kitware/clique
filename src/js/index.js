@@ -50,7 +50,10 @@ $(function () {
         var name = $("#name").val().trim(),
             radiusText = $("#radius").val().trim(),
             radius = Number(radiusText),
+            delsearch = $("#delsearch").prop("checked"),
             center;
+
+        console.log("delsearch", delsearch);
 
         if (name === "" || radiusText === "" || isNaN(radius)) {
             return;
