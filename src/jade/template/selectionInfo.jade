@@ -20,10 +20,10 @@ mixin item(key, value)
                 .col-md-1
                     table.table.table-striped.table-bordered
                         +item("key", node.key)
-                        for prop in _.filter(_.keys(node), _.negate(_.partial(_.contains, ["key", "root", "index", "x", "y", "variable", "bounds", "fixed", "px", "py"])))
+                        for prop in _.filter(_.keys(node), _.negate(_.bind(clique.ignore.has, clique.ignore)))
                             +item(prop, node[prop])
             .row
                 .col-md-1
-                    button(type="button").btn.btn-danger.btn-sm.remove Remove #[span.glyphicon.glyphicon-remove]
+                    button(type="button").btn.btn-danger.btn-xs.remove Remove #[span.glyphicon.glyphicon-remove]
                 .col-md-1
-                    button(type="button").btn.btn-primary.btn-sm.expand Expand #[span.glyphicon.glyphicon-fullscreen]
+                    button(type="button").btn.btn-primary.btn-xs.expand Expand #[span.glyphicon.glyphicon-fullscreen]

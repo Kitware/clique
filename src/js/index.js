@@ -39,7 +39,7 @@ $(function () {
         view,
         info;
 
-    graphData = randomGraph(26, 0.20);
+    window.graphData = graphData = randomGraph(26, 0.20);
 
     window.graph = graph = new clique.Graph({
         adapter: clique.adapter.NodeLinkList,
@@ -66,6 +66,10 @@ $(function () {
                 radius: radius
             });
         }
+    });
+
+    $("#save").on("click", function () {
+        graph.adapter.write();
     });
 
     window.view = view = new clique.view.Cola({
