@@ -74,9 +74,27 @@
                 .style("fill", "limegreen")
                 .on("click", function (d) {
                     var me = d3.select(this),
-                        selected = !me.classed("selected");
+                        selected;
 
                     if (!that.dragging) {
+                        if (d3.event.shiftKey) {
+                            // If the shift key is pressed, then simply toggle
+                            // the presence of the clicked node in the current
+                            // selection.
+                            selected = !me.classed("selected");
+                        } else {
+                            // If the shift key isn't pressed, then clear the
+                            // selection before doing anything else.
+                            _.each(that.selection.items(), function (key) {
+                                that.selection.remove(key);
+                            });
+
+                            d3.select(that.el)
+                                .selectAll("circle.node")
+                                .classed("selected", false);
+                            selected = true;
+                        }
+
                         me.classed("selected", selected);
 
                         if (selected) {
