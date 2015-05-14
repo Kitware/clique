@@ -53,8 +53,6 @@ $(function () {
             delsearch = $("#delsearch").prop("checked"),
             center;
 
-        console.log("delsearch", delsearch);
-
         if (name === "" || radiusText === "" || isNaN(radius)) {
             return;
         }
@@ -66,7 +64,8 @@ $(function () {
         if (center) {
             graph.addNeighborhood({
                 center: center,
-                radius: radius
+                radius: radius,
+                deleted: delsearch
             });
         }
     });

@@ -50,10 +50,14 @@
 
                 options.center.root = true;
 
-                neighborNodes.add(options.center.key);
-
                 frontier = new clique.util.Set();
-                frontier.add(options.center.key);
+
+                // Don't start the process with a "deleted" node (unless deleted
+                // nodes are specifically allowed).
+                if (options.deleted || !options.center.deleted) {
+                    neighborNodes.add(options.center.key);
+                    frontier.add(options.center.key);
+                }
 
                 // Fan out from the center to reach the requested radius.
                 _.each(_.range(options.radius), function () {
@@ -62,12 +66,18 @@
                     // Find all links to and from the current frontier
                     // nodes.
                     _.each(frontier.items(), function (nodeKey) {
+                        // Do not add links to nodes that are deleted (unless
+                        // deleted nodes are specifically allowed).
                         _.each(sourceIndex[nodeKey], function (neighborKey) {
-                            neighborLinks.add(JSON.stringify([nodeKey, neighborKey]));
+                            if (options.deleted || !nodeIndex[neighborKey].deleted) {
+                                neighborLinks.add(JSON.stringify([nodeKey, neighborKey]));
+                            }
                         });
 
                         _.each(targetIndex[nodeKey], function (neighborKey) {
-                            neighborLinks.add(JSON.stringify([neighborKey, nodeKey]));
+                            if (options.deleted || !nodeIndex[neighborKey].deleted) {
+                                neighborLinks.add(JSON.stringify([neighborKey, nodeKey]));
+                            }
                         });
                     });
 
