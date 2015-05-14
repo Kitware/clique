@@ -21,9 +21,15 @@
             });
         },
 
-        deleteNode: function (node) {
-            node.deleted = true;
-            this.hideNode(node);
+        deleteNode: function (node, deleted) {
+            node.deleted = deleted;
+
+            if (node.deleted) {
+                this.hideNode(node);
+            } else {
+                delete node.deleted;
+                this.render();
+            }
         },
 
         expandNode: function (node) {
@@ -76,16 +82,17 @@
             }, this));
 
             this.$("button.delete").on("click", _.bind(function () {
-                this.deleteNode(this.graph.adapter.findNode({
+                var node = this.graph.adapter.findNode({
                     key: this.model.focused()
-                }));
+                });
+                this.deleteNode(node, !node.deleted);
             }, this));
 
             this.$("button.delete-sel").on("click", _.bind(function () {
                 _.each(this.model.items(), _.bind(function (key) {
                     this.deleteNode(this.graph.adapter.findNode({
                         key: key
-                    }));
+                    }), true);
                 }, this));
             }, this));
 
