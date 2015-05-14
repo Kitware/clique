@@ -58,8 +58,10 @@ following methods:
 
 - ``neighborhood(options)`` - computes and returns a subgraph consisting of the
   node ``options.center``, and all nodes lying within distance
-  ``options.radius`` of it.  Typically, ``options.center`` would be supplied via a
-  call to ``findNodes()`` or ``findNode()``.
+  ``options.radius`` of it.  Typically, ``options.center`` would be supplied via
+  a call to ``findNodes()`` or ``findNode()``.  This method, by default, will not
+  include any nodes with a ``deleted`` property set to true; to include these
+  nodes, ``options.deleted`` can be set to ``true``.
 
 - ``write()`` - causes the original source of the graph data to become
   synchronized with any changes made to the graph since loading.  The following
