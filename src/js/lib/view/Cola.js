@@ -35,7 +35,7 @@
             });
 
             this.$el.html(clique.template.cola());
-            this.listenTo(this.model, "change", this.render);
+            this.listenTo(this.model, "change", _.debounce(this.render, 100));
             this.listenTo(this.selection, "focused", function (focused) {
                 this.focused = focused;
                 this.nodes.style("fill", _.bind(fill, this));

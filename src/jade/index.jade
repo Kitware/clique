@@ -37,6 +37,9 @@ body
                             .col-md-1 Radius
                             .col-md-1 #[input#radius]
                         .row
+                            .col-md-12
+                                label #[input(type="checkbox")#delsearch] Include "deleted" nodes in search results
+                        .row
                             .col-md-1
                                 a.btn.btn-default#seed Query
             .row
@@ -48,5 +51,5 @@ body
                                 button(type="button")#save.btn.btn-info.btn-xs Save #[span.glyphicon.glyphicon-save]
             .row
                 .col-md-12
-                    h4 Node Info
+                    h4 Selection Operations
                     #info

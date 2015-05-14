@@ -50,6 +50,7 @@ $(function () {
         var name = $("#name").val().trim(),
             radiusText = $("#radius").val().trim(),
             radius = Number(radiusText),
+            delsearch = $("#delsearch").prop("checked"),
             center;
 
         if (name === "" || radiusText === "" || isNaN(radius)) {
@@ -63,7 +64,8 @@ $(function () {
         if (center) {
             graph.addNeighborhood({
                 center: center,
-                radius: radius
+                radius: radius,
+                deleted: delsearch
             });
         }
     });
