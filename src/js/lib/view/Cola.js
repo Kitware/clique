@@ -46,14 +46,14 @@
             var nodeData = this.model.get("nodes"),
                 linkData = this.model.get("links"),
                 drag,
+                me = d3.select(this.el),
                 that = this;
 
             this.cola
                 .nodes(nodeData)
                 .links(linkData);
 
-            this.nodes = d3.select(this.el)
-                .select("g.nodes")
+            this.nodes = me.select("g.nodes")
                 .selectAll("circle.node")
                 .data(nodeData, _.property("key"));
 
@@ -75,6 +75,8 @@
                 .on("click", function (d) {
                     var me = d3.select(this),
                         selected;
+
+                    d3.event.stopPropagation();
 
                     if (!that.dragging) {
                         if (d3.event.shiftKey) {
@@ -122,8 +124,7 @@
                 .style("opacity", 0)
                 .remove();
 
-            this.links = d3.select(this.el)
-                .select("g.links")
+            this.links = me.select("g.links")
                 .selectAll("line.link")
                 .data(linkData, function (d) {
                     return JSON.stringify([d.source.key, d.target.key]);
@@ -172,6 +173,106 @@
                         return d.target.y;
                     }));
             }, this));
+
+            // Attach some selection actions to the background.
+            (function () {
+                var dragging = false,
+                    active = false,
+                    origin,
+                    selector,
+                    start = {
+                        x: null,
+                        y: null
+                    },
+                    between = function (val, low, high) {
+                        var tmp;
+
+                        if (low > high) {
+                            tmp = high;
+                            high = low;
+                            low = tmp;
+                        }
+
+                        return low < val && val < high;
+                    };
+
+                me.on("mousedown", function () {
+                    active = true;
+                    dragging = false;
+
+                    origin = that.$el.offset();
+
+                    start.x = d3.event.pageX - origin.left;
+                    start.y = d3.event.pageY - origin.top;
+                });
+
+                me.on("mousemove", function () {
+                    var x,
+                        y;
+
+                    if (!active) {
+                        return;
+                    }
+
+                    if (!dragging) {
+                        dragging = true;
+
+                        // Instantiate an SVG rect to act as the selector range.
+                        selector = me.append("rect")
+                            .classed("selector", true)
+                            .attr("x", start.x)
+                            .attr("y", start.y)
+                            .attr("width", 0)
+                            .attr("height", 0)
+                            .style("opacity", 0.1)
+                            .style("fill", "black");
+                    }
+
+                    x = d3.event.pageX - origin.left;
+                    y = d3.event.pageY - origin.top;
+
+                    // Resize the rect to reflect the current mouse position
+                    selector.attr("width", x - start.x)
+                       .attr("height", y - start.y);
+
+                    // Compute which nodes are inside the rect
+                    _.each(that.model.get("nodes"), function (node) {
+                        node.selected = between(node.x, start.x, x) && between(node.y, start.y, y);
+
+                        if (node.selected) {
+                            that.selection.add(node.key);
+                        } else {
+                            that.selection.remove(node.key);
+                        }
+                    });
+
+                    // Update the view.
+                    that.nodes
+                        .classed("selected", _.property("selected"))
+                        .style("fill", fill);
+                });
+
+                me.on("mouseup", function () {
+                    if (dragging) {
+                        selector.remove();
+                        selector = null;
+                    } else if (active) {
+                        // If this was merely a click (no dragging), then also
+                        // unselect everything.
+                        _.each(that.model.get("nodes"), function (node) {
+                            that.selection.remove(node.key);
+                        });
+
+                        // Update the view.
+                        that.nodes
+                            .classed("selected", false)
+                            .style("fill", fill);
+                    }
+
+                    dragging = false;
+                    active = false;
+                });
+            }());
 
             this.cola.start();
 
