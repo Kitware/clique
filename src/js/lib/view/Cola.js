@@ -232,8 +232,19 @@
                     y = d3.event.pageY - origin.top;
 
                     // Resize the rect to reflect the current mouse position
-                    selector.attr("width", x - start.x)
-                       .attr("height", y - start.y);
+                    if (x > start.x) {
+                        selector.attr("width", x - start.x);
+                    } else {
+                        selector.attr("width", start.x - x)
+                            .attr("x", x);
+                    }
+
+                    if (y > start.y) {
+                        selector.attr("height", y - start.y);
+                    } else {
+                        selector.attr("height", start.y - y)
+                            .attr("y", y);
+                    }
 
                     // Compute which nodes are inside the rect
                     _.each(that.model.get("nodes"), function (node) {
