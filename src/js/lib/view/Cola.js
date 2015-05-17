@@ -258,7 +258,7 @@
                     // Update the view.
                     that.nodes
                         .classed("selected", _.property("selected"))
-                        .style("fill", fill);
+                        .style("fill", _.bind(fill, that));
                 });
 
                 endBrush = function () {
@@ -276,7 +276,7 @@
                         // Update the view.
                         that.nodes
                             .classed("selected", false)
-                            .style("fill", fill);
+                            .style("fill", _.bind(fill, that));
                     }
 
                     dragging = false;
