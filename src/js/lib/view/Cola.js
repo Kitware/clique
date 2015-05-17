@@ -185,6 +185,7 @@
                         x: null,
                         y: null
                     },
+                    endBrush,
                     between = function (val, low, high) {
                         var tmp;
 
@@ -264,9 +265,10 @@
                         .style("fill", fill);
                 });
 
-                me.on("mouseup", function () {
+                endBrush = function () {
                     if (dragging) {
-                        selector.remove();
+                        me.selectAll(".selector")
+                            .remove();
                         selector = null;
                     } else if (active) {
                         // If this was merely a click (no dragging), then also
@@ -283,7 +285,10 @@
 
                     dragging = false;
                     active = false;
-                });
+                };
+
+                me.on("mouseup", endBrush)
+                    .on("mouseleave", endBrush);
             }());
 
             this.cola.start();
