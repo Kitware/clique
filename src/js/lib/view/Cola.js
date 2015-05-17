@@ -72,11 +72,12 @@
                 .classed("node", true)
                 .attr("r", 0)
                 .style("fill", "limegreen")
+                .on("mousedown.signal", _.bind(function () {
+                    d3.event.stopPropagation();
+                }, this))
                 .on("click", function (d) {
                     var me = d3.select(this),
                         selected;
-
-                    d3.event.stopPropagation();
 
                     if (!that.dragging) {
                         if (d3.event.shiftKey) {
