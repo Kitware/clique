@@ -30,10 +30,6 @@
 
             this.selection = new clique.model.Selection();
 
-            this.listenTo(this.selection, "nodefocus", function (focus) {
-                this.focused = focus;
-            });
-
             this.$el.html(clique.template.cola());
             this.listenTo(this.model, "change", _.debounce(this.render, 100));
             this.listenTo(this.selection, "focused", function (focused) {
