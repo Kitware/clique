@@ -81,6 +81,17 @@
                             // the presence of the clicked node in the current
                             // selection.
                             selected = !me.classed("selected");
+                        } else if (d3.event.ctrlKey) {
+                            // If the control key is pressed, then move the
+                            // focus to the clicked node, adding it to the
+                            // selection first if necessary.
+                            if (!me.classed("selected")) {
+                                me.classed("selected", true);
+                                that.selection.add(d.key);
+                            }
+
+                            that.selection.focusKey(d.key);
+                            return;
                         } else {
                             // If the shift key isn't pressed, then clear the
                             // selection before doing anything else.
