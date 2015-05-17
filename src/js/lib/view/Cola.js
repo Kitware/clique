@@ -287,8 +287,12 @@
                     active = false;
                 };
 
-                me.on("mouseup", endBrush)
-                    .on("mouseleave", endBrush);
+                // On mouseup, regardless of where the mouse is (as taken care
+                // of by the second handler below), go ahead and terminate the
+                // brushing movement.
+                me.on("mouseup", endBrush);
+                d3.select(document)
+                    .on("mouseup", endBrush);
             }());
 
             this.cola.start();
