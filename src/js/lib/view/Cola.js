@@ -186,6 +186,7 @@
             (function () {
                 var dragging = false,
                     active = false,
+                    shift = false,
                     origin,
                     selector,
                     start = {
@@ -209,10 +210,20 @@
                     active = true;
                     dragging = false;
 
+                    shift = d3.event.shiftKey;
+
                     origin = that.$el.offset();
 
                     start.x = d3.event.pageX - origin.left;
                     start.y = d3.event.pageY - origin.top;
+
+                    // Record whether the nodes were selected or not at the time
+                    // of the action (if shift is pressed) - this allows for the
+                    // current selection to be "sticky" for this operation.
+                    that.nodes.datum(function (d) {
+                        d.keep = shift && d3.select(this).classed("selected");
+                        return d;
+                    });
                 });
 
                 me.on("mousemove", function () {
@@ -257,11 +268,11 @@
 
                     // Compute which nodes are inside the rect
                     _.each(that.model.get("nodes"), function (node) {
-                        node.selected = between(node.x, start.x, x) && between(node.y, start.y, y);
+                        node.selected = node.keep || between(node.x, start.x, x) && between(node.y, start.y, y);
 
                         if (node.selected) {
                             that.selection.add(node.key);
-                        } else {
+                        } else if (!shift) {
                             that.selection.remove(node.key);
                         }
                     });
@@ -286,7 +297,9 @@
 
                         // Update the view.
                         that.nodes
-                            .classed("selected", false)
+                            .classed("selected", function () {
+                                return shift ? d3.select(this).classed("selected") : false;
+                            })
                             .style("fill", _.bind(fill, that));
                     }
 
