@@ -37,14 +37,36 @@ $(function () {
     var graphData,
         graph,
         view,
-        info;
+        info,
+        mode = "mongo";
 
-    window.graphData = graphData = randomGraph(26, 0.20);
+    switch (mode) {
+    case "demo": {
+        graphData = randomGraph(26, 0.20);
 
-    window.graph = graph = new clique.Graph({
-        adapter: clique.adapter.NodeLinkList,
-        options: graphData
-    });
+        window.graph = graph = new clique.Graph({
+            adapter: clique.adapter.NodeLinkList,
+            options: graphData
+        });
+        break;
+    }
+
+    case "mongo": {
+        window.graph = graph = new clique.Graph({
+            adapter: clique.adapter.Mongo,
+            options: {
+                host: "localhost",
+                database: "year3_graphs",
+                collection: "mentions_monica_nino_2hop_mar12"
+            }
+        });
+        break;
+    }
+
+    default: {
+        throw new Error("illegal mode '" + mode + "'");
+    }
+    }
 
     $("#seed").on("click", function () {
         var name = $("#name").val().trim(),
