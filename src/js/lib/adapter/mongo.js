@@ -33,7 +33,29 @@
                 });
             },
 
-            findNode: function (spec, callback) { },
+            findNode: function (spec, callback) {
+                var data = {
+                    host: host,
+                    db: db,
+                    coll: coll,
+                    spec: JSON.stringify(spec),
+                    singleton: JSON.stringify(true)
+                };
+
+                $.getJSON("/plugin/mongo/findNodes", data, function (result) {
+                    var trec;
+
+                    if (result) {
+                        trec = {};
+                        trec.key = result._id.$oid;
+                        _.each(result.data, function (value, key) {
+                            trec[key] = value;
+                        });
+                    }
+
+                    callback(trec);
+                });
+            },
 
             neighborhood: function (options, callback) { },
 
