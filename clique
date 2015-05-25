@@ -12,7 +12,7 @@
 if [ -z "${TANGELO}" ]; then
     TANGELO=`command -v tangelo`
     if [ -z "${TANGELO}" ]; then
-        echo "error: tangelo not found on path (set TANGELO, or add tangelo to path)" >/dev/stderr
+        echo "error: tangelo not found on path (set TANGELO, or add tangelo to path)" 1>&2
         exit 1
     fi
 fi
