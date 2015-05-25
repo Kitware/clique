@@ -28,33 +28,34 @@
         },
 
         addNeighborhood: function (options) {
-            var nbd = this.adapter.neighborhood(options),
-                newNodes = [],
-                newLinks = [];
+            this.adapter.neighborhood(options, _.bind(function (nbd) {
+                var newNodes = [],
+                    newLinks = [];
 
-            _.each(nbd.nodes, _.bind(function (node) {
-                if (!_.has(this.nodes, node.key)) {
-                    this.nodes[node.key] = node;
-                    newNodes.push(node);
-                }
+                _.each(nbd.nodes, _.bind(function (node) {
+                    if (!_.has(this.nodes, node.key)) {
+                        this.nodes[node.key] = node;
+                        newNodes.push(node);
+                    }
+                }, this));
+
+                _.each(nbd.links, _.bind(function (link) {
+                    var linkKey = linkHash(link);
+                    if (!this.links.has(linkKey)) {
+                        this.links.add(linkKey);
+
+                        this.forward.add(link.source.key, link.target.key);
+                        this.back.add(link.target.key, link.source.key);
+
+                        newLinks.push(link);
+                    }
+                }, this));
+
+                this.set({
+                    nodes: this.get("nodes").concat(newNodes),
+                    links: this.get("links").concat(newLinks)
+                });
             }, this));
-
-            _.each(nbd.links, _.bind(function (link) {
-                var linkKey = linkHash(link);
-                if (!this.links.has(linkKey)) {
-                    this.links.add(linkKey);
-
-                    this.forward.add(link.source.key, link.target.key);
-                    this.back.add(link.target.key, link.source.key);
-
-                    newLinks.push(link);
-                }
-            }, this));
-
-            this.set({
-                nodes: this.get("nodes").concat(newNodes),
-                links: this.get("links").concat(newLinks)
-            });
         },
 
         removeNeighborhood: function (options) {

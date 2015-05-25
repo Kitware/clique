@@ -32,15 +32,15 @@
         });
 
         return {
-            findNodes: function (spec) {
-                return _.where(nodes, spec);
+            findNodes: function (spec, callback) {
+                callback(_.where(nodes, spec));
             },
 
-            findNode: function (spec) {
-                return _.findWhere(nodes, spec);
+            findNode: function (spec, callback) {
+                callback(_.findWhere(nodes, spec));
             },
 
-            neighborhood: function (options) {
+            neighborhood: function (options, callback) {
                 var frontier,
                     neighborNodes = new clique.util.Set(),
                     neighborLinks = new clique.util.Set();
@@ -100,7 +100,7 @@
                     frontier = newFrontier;
                 });
 
-                return {
+                callback({
                     nodes: _.map(neighborNodes.items(), _.propertyOf(nodeIndex)),
                     links: _.map(neighborLinks.items(), function (link) {
                         link = JSON.parse(link);
@@ -110,10 +110,10 @@
                             target: nodeIndex[link[1]]
                         };
                     })
-                };
+                });
             },
 
-            write: function () {
+            write: function (callback) {
                 orig.nodes = _.map(nodes, function (n) {
                     var node = {};
                     _.map(n, function (value, key) {
@@ -124,6 +124,8 @@
 
                     return node;
                 });
+
+                callback();
             }
         };
     };

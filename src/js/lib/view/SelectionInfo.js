@@ -42,65 +42,72 @@
         },
 
         render: function () {
-            var node = this.graph.adapter.findNode({
+            this.graph.adapter.findNode({
                 key: this.model.focused()
-            });
-
-            this.$el.html(clique.template.selectionInfo({
-                node: node,
-                selectionSize: this.model.size()
-            }));
-
-            this.$("a.prev")
-                .on("click", _.bind(function () {
-                    this.model.focusLeft();
-                }, this));
-
-            this.$("a.next")
-                .on("click", _.bind(function () {
-                    this.model.focusRight();
-                }, this));
-
-            this.$("button.remove").on("click", _.bind(function () {
-                this.hideNode(this.graph.adapter.findNode({
-                    key: this.model.focused()
+            }, _.bind(function (node) {
+                this.$el.html(clique.template.selectionInfo({
+                    node: node,
+                    selectionSize: this.model.size()
                 }));
-            }, this));
 
-            this.$("button.remove-sel").on("click", _.bind(function () {
-                _.each(this.model.items(), _.bind(function (key) {
-                    this.hideNode(this.graph.adapter.findNode({
-                        key: key
-                    }));
+                this.$("a.prev")
+                    .on("click", _.bind(function () {
+                        this.model.focusLeft();
+                    }, this));
+
+                this.$("a.next")
+                    .on("click", _.bind(function () {
+                        this.model.focusRight();
+                    }, this));
+
+                this.$("button.remove").on("click", _.bind(function () {
+                    this.graph.adapter.findNode({
+                        key: this.model.focused()
+                    }, _.bind(this.hideNode, this));
                 }, this));
-            }, this));
 
-            this.$("button.delete").on("click", _.bind(function () {
-                var node = this.graph.adapter.findNode({
-                    key: this.model.focused()
-                });
-                this.deleteNode(node, !node.deleted);
-            }, this));
-
-            this.$("button.delete-sel").on("click", _.bind(function () {
-                _.each(this.model.items(), _.bind(function (key) {
-                    this.deleteNode(this.graph.adapter.findNode({
-                        key: key
-                    }), true);
+                this.$("button.remove-sel").on("click", _.bind(function () {
+                    _.each(this.model.items(), _.bind(function (key) {
+                        this.graph.adapter.findNode({
+                            key: key
+                        }, _.bind(this.hideNode, this));
+                    }, this));
                 }, this));
-            }, this));
 
-            this.$("button.expand").on("click", _.bind(function () {
-                this.expandNode(this.graph.adapter.findNode({
-                    key: this.model.focused()
-                }));
-            }, this));
+                this.$("button.delete").on("click", _.bind(function () {
+                    this.graph.adapter.findNode({
+                        key: this.model.focused()
+                    }, _.bind(function (node) {
+                        this.deleteNode(node, !node.deleted);
+                    }, this));
+                }, this));
 
-            this.$("button.expand-sel").on("click", _.bind(function () {
-                _.each(this.model.items(), _.bind(function (key) {
-                    this.expandNode(this.graph.adapter.findNode({
-                        key: key
-                    }));
+                this.$("button.delete-sel").on("click", _.bind(function () {
+                    _.each(this.model.items(), _.bind(function (key) {
+                        this.graph.adapter.findNode({
+                            key: key
+                        }, _.bind(function (node) {
+                            this.deleteNode(node, true);
+                        }, this));
+                    }, this));
+                }, this));
+
+                this.$("button.expand").on("click", _.bind(function () {
+                    this.graph.adapter.findNode({
+                        key: this.model.focused()
+                    }, _.bind(function (node) {
+                        this.expandNode(node);
+                    }, this));
+                }, this));
+
+                this.$("button.expand-sel").on("click", _.bind(function () {
+                    _.each(this.model.items(), _.bind(function (key) {
+                        this.graph.adapter.findNode({
+                            key: key
+                        }, _.bind(function (node) {
+                            this.expandNode(node);
+                        }, this));
+                    }, this));
                 }, this));
             }, this));
         }

@@ -50,24 +50,23 @@ $(function () {
         var name = $("#name").val().trim(),
             radiusText = $("#radius").val().trim(),
             radius = Number(radiusText),
-            delsearch = $("#delsearch").prop("checked"),
-            center;
+            delsearch = $("#delsearch").prop("checked");
 
         if (name === "" || radiusText === "" || isNaN(radius)) {
             return;
         }
 
-        center = graph.adapter.findNode({
+        graph.adapter.findNode({
             name: name
+        }, function (center) {
+            if (center) {
+                graph.addNeighborhood({
+                    center: center,
+                    radius: radius,
+                    deleted: delsearch
+                });
+            }
         });
-
-        if (center) {
-            graph.addNeighborhood({
-                center: center,
-                radius: radius,
-                deleted: delsearch
-            });
-        }
     });
 
     $("#save").on("click", function () {
