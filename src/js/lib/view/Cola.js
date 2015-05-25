@@ -285,7 +285,7 @@
 
                         if (node.selected) {
                             that.selection.add(node.key);
-                        } else if (!shift) {
+                        } else {
                             that.selection.remove(node.key);
                         }
                     });
