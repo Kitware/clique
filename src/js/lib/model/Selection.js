@@ -43,10 +43,11 @@
         focus: function (target) {
             this.focalPoint = target;
             if (this.focalPoint < 0) {
-                this.focalPoint = 0;
-            }
-            if (this.focalPoint >= this.size()) {
-                this.focalPoint = this.size() - 1;
+                while (this.focalPoint < 0) {
+                    this.focalPoint += this.size();
+                }
+            } else if (this.focalPoint >= this.size()) {
+                this.focalPoint = this.focalPoint % this.size();
             }
 
             this.trigger("focused", this.focused());
