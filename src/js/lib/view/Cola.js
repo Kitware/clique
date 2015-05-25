@@ -220,10 +220,12 @@
                     // Record whether the nodes were selected or not at the time
                     // of the action (if shift is pressed) - this allows for the
                     // current selection to be "sticky" for this operation.
-                    that.nodes.datum(function (d) {
-                        d.keep = shift && d3.select(this).classed("selected");
-                        return d;
-                    });
+                    if (shift) {
+                        that.nodes.datum(function (d) {
+                            d.orig = d3.select(this).classed("selected");
+                            return d;
+                        });
+                    }
                 });
 
                 me.on("mousemove", function () {
@@ -268,7 +270,18 @@
 
                     // Compute which nodes are inside the rect
                     _.each(that.model.get("nodes"), function (node) {
-                        node.selected = node.keep || between(node.x, start.x, x) && between(node.y, start.y, y);
+                        var inside = between(node.x, start.x, x) && between(node.y, start.y, y);
+
+                        if (shift) {
+                            // If shift-brushing, then invert the selection
+                            // state from the original.
+                            node.selected = inside ? !node.orig : node.orig;
+                        } else {
+                            // If brushing (no shift pressed), then select
+                            // everything inside the box and deselect everything
+                            // outside.
+                            node.selected = inside;
+                        }
 
                         if (node.selected) {
                             that.selection.add(node.key);
