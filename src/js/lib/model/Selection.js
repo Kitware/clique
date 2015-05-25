@@ -30,6 +30,16 @@
             return _.keys(this.attributes);
         },
 
+        focusKey: function (target) {
+            var index = _.indexOf(this.items(), target);
+            if (index === -1) {
+                return false;
+            }
+
+            this.focus(index);
+            return true;
+        },
+
         focus: function (target) {
             this.focalPoint = target;
             if (this.focalPoint < 0) {

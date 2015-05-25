@@ -30,10 +30,6 @@
 
             this.selection = new clique.model.Selection();
 
-            this.listenTo(this.selection, "nodefocus", function (focus) {
-                this.focused = focus;
-            });
-
             this.$el.html(clique.template.cola());
             this.listenTo(this.model, "change", _.debounce(this.render, 100));
             this.listenTo(this.selection, "focused", function (focused) {
@@ -46,14 +42,14 @@
             var nodeData = this.model.get("nodes"),
                 linkData = this.model.get("links"),
                 drag,
+                me = d3.select(this.el),
                 that = this;
 
             this.cola
                 .nodes(nodeData)
                 .links(linkData);
 
-            this.nodes = d3.select(this.el)
-                .select("g.nodes")
+            this.nodes = me.select("g.nodes")
                 .selectAll("circle.node")
                 .data(nodeData, _.property("key"));
 
@@ -72,11 +68,43 @@
                 .classed("node", true)
                 .attr("r", 0)
                 .style("fill", "limegreen")
+                .on("mousedown.signal", _.bind(function () {
+                    d3.event.stopPropagation();
+                }, this))
                 .on("click", function (d) {
                     var me = d3.select(this),
-                        selected = !me.classed("selected");
+                        selected;
 
                     if (!that.dragging) {
+                        if (d3.event.shiftKey) {
+                            // If the shift key is pressed, then simply toggle
+                            // the presence of the clicked node in the current
+                            // selection.
+                            selected = !me.classed("selected");
+                        } else if (d3.event.ctrlKey) {
+                            // If the control key is pressed, then move the
+                            // focus to the clicked node, adding it to the
+                            // selection first if necessary.
+                            if (!me.classed("selected")) {
+                                me.classed("selected", true);
+                                that.selection.add(d.key);
+                            }
+
+                            that.selection.focusKey(d.key);
+                            return;
+                        } else {
+                            // If the shift key isn't pressed, then clear the
+                            // selection before doing anything else.
+                            _.each(that.selection.items(), function (key) {
+                                that.selection.remove(key);
+                            });
+
+                            d3.select(that.el)
+                                .selectAll("circle.node")
+                                .classed("selected", false);
+                            selected = true;
+                        }
+
                         me.classed("selected", selected);
 
                         if (selected) {
@@ -104,8 +132,7 @@
                 .style("opacity", 0)
                 .remove();
 
-            this.links = d3.select(this.el)
-                .select("g.links")
+            this.links = me.select("g.links")
                 .selectAll("line.link")
                 .data(linkData, function (d) {
                     return JSON.stringify([d.source.key, d.target.key]);
@@ -154,6 +181,152 @@
                         return d.target.y;
                     }));
             }, this));
+
+            // Attach some selection actions to the background.
+            (function () {
+                var dragging = false,
+                    active = false,
+                    shift = false,
+                    origin,
+                    selector,
+                    start = {
+                        x: null,
+                        y: null
+                    },
+                    endBrush,
+                    between = function (val, low, high) {
+                        var tmp;
+
+                        if (low > high) {
+                            tmp = high;
+                            high = low;
+                            low = tmp;
+                        }
+
+                        return low < val && val < high;
+                    };
+
+                me.on("mousedown", function () {
+                    active = true;
+                    dragging = false;
+
+                    shift = d3.event.shiftKey;
+
+                    origin = that.$el.offset();
+
+                    start.x = d3.event.pageX - origin.left;
+                    start.y = d3.event.pageY - origin.top;
+
+                    // Record whether the nodes were selected or not at the time
+                    // of the action (if shift is pressed) - this allows for the
+                    // current selection to be "sticky" for this operation.
+                    if (shift) {
+                        that.nodes.datum(function (d) {
+                            d.orig = d3.select(this).classed("selected");
+                            return d;
+                        });
+                    }
+                });
+
+                me.on("mousemove", function () {
+                    var x,
+                        y;
+
+                    if (!active) {
+                        return;
+                    }
+
+                    if (!dragging) {
+                        dragging = true;
+
+                        // Instantiate an SVG rect to act as the selector range.
+                        selector = me.append("rect")
+                            .classed("selector", true)
+                            .attr("x", start.x)
+                            .attr("y", start.y)
+                            .attr("width", 0)
+                            .attr("height", 0)
+                            .style("opacity", 0.1)
+                            .style("fill", "black");
+                    }
+
+                    x = d3.event.pageX - origin.left;
+                    y = d3.event.pageY - origin.top;
+
+                    // Resize the rect to reflect the current mouse position
+                    if (x > start.x) {
+                        selector.attr("width", x - start.x);
+                    } else {
+                        selector.attr("width", start.x - x)
+                            .attr("x", x);
+                    }
+
+                    if (y > start.y) {
+                        selector.attr("height", y - start.y);
+                    } else {
+                        selector.attr("height", start.y - y)
+                            .attr("y", y);
+                    }
+
+                    // Compute which nodes are inside the rect
+                    _.each(that.model.get("nodes"), function (node) {
+                        var inside = between(node.x, start.x, x) && between(node.y, start.y, y);
+
+                        if (shift) {
+                            // If shift-brushing, then invert the selection
+                            // state from the original.
+                            node.selected = inside ? !node.orig : node.orig;
+                        } else {
+                            // If brushing (no shift pressed), then select
+                            // everything inside the box and deselect everything
+                            // outside.
+                            node.selected = inside;
+                        }
+
+                        if (node.selected) {
+                            that.selection.add(node.key);
+                        } else if (!shift) {
+                            that.selection.remove(node.key);
+                        }
+                    });
+
+                    // Update the view.
+                    that.nodes
+                        .classed("selected", _.property("selected"))
+                        .style("fill", _.bind(fill, that));
+                });
+
+                endBrush = function () {
+                    if (dragging) {
+                        me.selectAll(".selector")
+                            .remove();
+                        selector = null;
+                    } else if (active) {
+                        // If this was merely a click (no dragging), then also
+                        // unselect everything.
+                        _.each(that.model.get("nodes"), function (node) {
+                            that.selection.remove(node.key);
+                        });
+
+                        // Update the view.
+                        that.nodes
+                            .classed("selected", function () {
+                                return shift ? d3.select(this).classed("selected") : false;
+                            })
+                            .style("fill", _.bind(fill, that));
+                    }
+
+                    dragging = false;
+                    active = false;
+                };
+
+                // On mouseup, regardless of where the mouse is (as taken care
+                // of by the second handler below), go ahead and terminate the
+                // brushing movement.
+                me.on("mouseup", endBrush);
+                d3.select(document)
+                    .on("mouseup", endBrush);
+            }());
 
             this.cola.start();
 
