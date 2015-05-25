@@ -301,17 +301,18 @@
                         me.selectAll(".selector")
                             .remove();
                         selector = null;
-                    } else if (active) {
-                        // If this was merely a click (no dragging), then also
-                        // unselect everything.
+                    } else if (active && !shift) {
+                        // If this was merely a click (no dragging and no shift
+                        // key), then also unselect everything.
                         _.each(that.model.get("nodes"), function (node) {
                             that.selection.remove(node.key);
+                            node.selected = false;
                         });
 
                         // Update the view.
                         that.nodes
-                            .classed("selected", function () {
-                                return shift ? d3.select(this).classed("selected") : false;
+                            .classed("selected", function (d) {
+                                return d.selected;
                             })
                             .style("fill", _.bind(fill, that));
                     }
