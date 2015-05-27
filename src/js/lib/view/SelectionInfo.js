@@ -1,4 +1,4 @@
-(function (clique, Backbone, _, d3) {
+(function (clique, Backbone, _) {
     "use strict";
 
     clique.view.SelectionInfo = Backbone.View.extend({
@@ -49,18 +49,10 @@
                 selectionSize: this.model.size()
             }));
 
-            d3.select(this.el)
-                .select("li.prev")
-                .classed("disabled", this.model.focalPoint === 0);
-
             this.$("a.prev")
                 .on("click", _.bind(function () {
                     this.model.focusLeft();
                 }, this));
-
-            d3.select(this.el)
-                .select("li.next")
-                .classed("disabled", this.model.focalPoint === _.size(this.model.attributes) - 1);
 
             this.$("a.next")
                 .on("click", _.bind(function () {
@@ -111,4 +103,4 @@
             }, this));
         }
     });
-}(window.clique, window.Backbone, window._, window.d3));
+}(window.clique, window.Backbone, window._));
