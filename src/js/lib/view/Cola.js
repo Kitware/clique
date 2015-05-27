@@ -81,12 +81,25 @@
                             // the presence of the clicked node in the current
                             // selection.
                             selected = !me.classed("selected");
+                            me.datum(function (d) {
+                                if (selected) {
+                                    d.selected = true;
+                                } else {
+                                    delete d.selected;
+                                }
+
+                                return d;
+                            });
                         } else if (d3.event.ctrlKey) {
                             // If the control key is pressed, then move the
                             // focus to the clicked node, adding it to the
                             // selection first if necessary.
                             if (!me.classed("selected")) {
                                 me.classed("selected", true);
+                                me.datum(function (d) {
+                                    d.selected = true;
+                                    return d;
+                                });
                                 that.selection.add(d.key);
                             }
 
@@ -101,7 +114,11 @@
 
                             d3.select(that.el)
                                 .selectAll("circle.node")
-                                .classed("selected", false);
+                                .classed("selected", false)
+                                .datum(function (d) {
+                                    delete d.selected;
+                                    return d;
+                                });
                             selected = true;
                         }
 
@@ -186,10 +203,13 @@
             (function () {
                 var dragging = false,
                     active = false,
-                    shift = false,
                     origin,
                     selector,
                     start = {
+                        x: null,
+                        y: null
+                    },
+                    end = {
                         x: null,
                         y: null
                     },
@@ -204,28 +224,32 @@
                         }
 
                         return low < val && val < high;
+                    },
+                    update = function () {
+                        that.nodes
+                            .classed("selected", _.property("selected"))
+                            .style("fill", _.bind(fill, that));
                     };
 
                 me.on("mousedown", function () {
                     active = true;
                     dragging = false;
 
-                    shift = d3.event.shiftKey;
+                    // If shift is not held at the beginning of the operation,
+                    // then remove the current selection.
+                    if (!d3.event.shiftKey) {
+                        _.each(that.model.get("nodes"), function (node) {
+                            delete node.selected;
+                            that.selection.remove(node.key);
+                        });
+
+                        update();
+                    }
 
                     origin = that.$el.offset();
 
-                    start.x = d3.event.pageX - origin.left;
-                    start.y = d3.event.pageY - origin.top;
-
-                    // Record whether the nodes were selected or not at the time
-                    // of the action (if shift is pressed) - this allows for the
-                    // current selection to be "sticky" for this operation.
-                    if (shift) {
-                        that.nodes.datum(function (d) {
-                            d.orig = d3.select(this).classed("selected");
-                            return d;
-                        });
-                    }
+                    start.x = end.x = d3.event.pageX - origin.left;
+                    start.y = end.y = d3.event.pageY - origin.top;
                 });
 
                 me.on("mousemove", function () {
@@ -250,8 +274,8 @@
                             .style("fill", "black");
                     }
 
-                    x = d3.event.pageX - origin.left;
-                    y = d3.event.pageY - origin.top;
+                    end.x = x = d3.event.pageX - origin.left;
+                    end.y = y = d3.event.pageY - origin.top;
 
                     // Resize the rect to reflect the current mouse position
                     if (x > start.x) {
@@ -268,32 +292,8 @@
                             .attr("y", y);
                     }
 
-                    // Compute which nodes are inside the rect
-                    _.each(that.model.get("nodes"), function (node) {
-                        var inside = between(node.x, start.x, x) && between(node.y, start.y, y);
-
-                        if (shift) {
-                            // If shift-brushing, then invert the selection
-                            // state from the original.
-                            node.selected = inside ? !node.orig : node.orig;
-                        } else {
-                            // If brushing (no shift pressed), then select
-                            // everything inside the box and deselect everything
-                            // outside.
-                            node.selected = inside;
-                        }
-
-                        if (node.selected) {
-                            that.selection.add(node.key);
-                        } else {
-                            that.selection.remove(node.key);
-                        }
-                    });
-
                     // Update the view.
-                    that.nodes
-                        .classed("selected", _.property("selected"))
-                        .style("fill", _.bind(fill, that));
+                    update();
                 });
 
                 endBrush = function () {
@@ -301,21 +301,17 @@
                         me.selectAll(".selector")
                             .remove();
                         selector = null;
-                    } else if (active && !shift) {
-                        // If this was merely a click (no dragging and no shift
-                        // key), then also unselect everything.
-                        _.each(that.model.get("nodes"), function (node) {
-                            that.selection.remove(node.key);
-                            node.selected = false;
-                        });
-
-                        // Update the view.
-                        that.nodes
-                            .classed("selected", function (d) {
-                                return d.selected;
-                            })
-                            .style("fill", _.bind(fill, that));
                     }
+
+                    _.each(that.model.get("nodes"), function (node) {
+                        if (between(node.x, start.x, end.x) && between(node.y, start.y, end.y)) {
+                            node.selected = true;
+                            that.selection.add(node.key);
+                        }
+                    });
+
+                    // Update the view.
+                    update();
 
                     dragging = false;
                     active = false;
