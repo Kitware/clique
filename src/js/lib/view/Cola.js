@@ -1,7 +1,10 @@
 (function (clique, Backbone, _, d3, cola) {
     "use strict";
 
-    var fill = function (d) {
+    var fill,
+        strokeWidth;
+
+    fill = function (d) {
         if (d.key === this.focused) {
             return "crimson";
         } else if (d.root) {
@@ -9,6 +12,10 @@
         } else {
             return "limegreen";
         }
+    };
+
+    strokeWidth = function (d) {
+        return d.selected ? "2px" : "0px";
     };
 
     clique.view.Cola = Backbone.View.extend({
@@ -34,8 +41,15 @@
             this.listenTo(this.model, "change", _.debounce(this.render, 100));
             this.listenTo(this.selection, "focused", function (focused) {
                 this.focused = focused;
-                this.nodes.style("fill", _.bind(fill, this));
+                this.renderNodes();
             });
+        },
+
+        renderNodes: function () {
+            this.nodes
+                .style("fill", _.bind(fill, this))
+                .style("stroke", "blue")
+                .style("stroke-width", _.bind(strokeWidth, this));
         },
 
         render: function () {
@@ -72,46 +86,43 @@
                     d3.event.stopPropagation();
                 }, this))
                 .on("click", function (d) {
-                    var me = d3.select(this),
-                        selected;
-
                     if (!that.dragging) {
                         if (d3.event.shiftKey) {
                             // If the shift key is pressed, then simply toggle
                             // the presence of the clicked node in the current
                             // selection.
-                            selected = !me.classed("selected");
+                            d.selected = !d.selected;
                         } else if (d3.event.ctrlKey) {
                             // If the control key is pressed, then move the
                             // focus to the clicked node, adding it to the
                             // selection first if necessary.
-                            if (!me.classed("selected")) {
-                                me.classed("selected", true);
-                                that.selection.add(d.key);
-                            }
-
+                            d.selected = true;
+                            that.selection.add(d.key);
                             that.selection.focusKey(d.key);
-                            return;
                         } else {
                             // If the shift key isn't pressed, then clear the
-                            // selection before doing anything else.
+                            // selection before selecting the clicked node.
                             _.each(that.selection.items(), function (key) {
                                 that.selection.remove(key);
                             });
 
                             d3.select(that.el)
                                 .selectAll("circle.node")
-                                .classed("selected", false);
-                            selected = true;
+                                .datum(function (d) {
+                                    d.selected = false;
+                                    return d;
+                                });
+
+                            d.selected = true;
                         }
 
-                        me.classed("selected", selected);
-
-                        if (selected) {
+                        if (d.selected) {
                             that.selection.add(d.key);
                         } else {
                             that.selection.remove(d.key);
                         }
+
+                        that.renderNodes();
                     }
                     that.dragging = false;
                 })
@@ -120,7 +131,7 @@
                 .duration(this.transitionTime)
                 .attr("r", this.nodeRadius);
 
-            this.nodes.style("fill", _.bind(fill, this));
+            this.renderNodes();
 
             this.nodes.exit()
                 .each(_.bind(function (d) {
@@ -186,10 +197,13 @@
             (function () {
                 var dragging = false,
                     active = false,
-                    shift = false,
                     origin,
                     selector,
                     start = {
+                        x: null,
+                        y: null
+                    },
+                    end = {
                         x: null,
                         y: null
                     },
@@ -210,22 +224,21 @@
                     active = true;
                     dragging = false;
 
-                    shift = d3.event.shiftKey;
+                    // If shift is not held at the beginning of the operation,
+                    // then remove the current selection.
+                    if (!d3.event.shiftKey) {
+                        _.each(that.model.get("nodes"), function (node) {
+                            node.selected = false;
+                            that.selection.remove(node.key);
+                        });
+
+                        that.renderNodes();
+                    }
 
                     origin = that.$el.offset();
 
-                    start.x = d3.event.pageX - origin.left;
-                    start.y = d3.event.pageY - origin.top;
-
-                    // Record whether the nodes were selected or not at the time
-                    // of the action (if shift is pressed) - this allows for the
-                    // current selection to be "sticky" for this operation.
-                    if (shift) {
-                        that.nodes.datum(function (d) {
-                            d.orig = d3.select(this).classed("selected");
-                            return d;
-                        });
-                    }
+                    start.x = end.x = d3.event.pageX - origin.left;
+                    start.y = end.y = d3.event.pageY - origin.top;
                 });
 
                 me.on("mousemove", function () {
@@ -250,8 +263,8 @@
                             .style("fill", "black");
                     }
 
-                    x = d3.event.pageX - origin.left;
-                    y = d3.event.pageY - origin.top;
+                    end.x = x = d3.event.pageX - origin.left;
+                    end.y = y = d3.event.pageY - origin.top;
 
                     // Resize the rect to reflect the current mouse position
                     if (x > start.x) {
@@ -268,53 +281,30 @@
                             .attr("y", y);
                     }
 
-                    // Compute which nodes are inside the rect
-                    _.each(that.model.get("nodes"), function (node) {
-                        var inside = between(node.x, start.x, x) && between(node.y, start.y, y);
-
-                        if (shift) {
-                            // If shift-brushing, then invert the selection
-                            // state from the original.
-                            node.selected = inside ? !node.orig : node.orig;
-                        } else {
-                            // If brushing (no shift pressed), then select
-                            // everything inside the box and deselect everything
-                            // outside.
-                            node.selected = inside;
-                        }
-
-                        if (node.selected) {
-                            that.selection.add(node.key);
-                        } else if (!shift) {
-                            that.selection.remove(node.key);
-                        }
-                    });
-
                     // Update the view.
-                    that.nodes
-                        .classed("selected", _.property("selected"))
-                        .style("fill", _.bind(fill, that));
+                    that.renderNodes();
                 });
 
                 endBrush = function () {
+                    if (!active) {
+                        return;
+                    }
+
                     if (dragging) {
                         me.selectAll(".selector")
                             .remove();
                         selector = null;
-                    } else if (active) {
-                        // If this was merely a click (no dragging), then also
-                        // unselect everything.
-                        _.each(that.model.get("nodes"), function (node) {
-                            that.selection.remove(node.key);
-                        });
-
-                        // Update the view.
-                        that.nodes
-                            .classed("selected", function () {
-                                return shift ? d3.select(this).classed("selected") : false;
-                            })
-                            .style("fill", _.bind(fill, that));
                     }
+
+                    _.each(that.model.get("nodes"), function (node) {
+                        if (between(node.x, start.x, end.x) && between(node.y, start.y, end.y)) {
+                            node.selected = true;
+                            that.selection.add(node.key);
+                        }
+                    });
+
+                    // Update the view.
+                    that.renderNodes();
 
                     dragging = false;
                     active = false;

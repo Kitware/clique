@@ -15,6 +15,8 @@
         },
 
         hideNode: function (node) {
+            node.selected = false;
+            delete node.root;
             this.graph.removeNeighborhood({
                 center: node,
                 radius: 0
