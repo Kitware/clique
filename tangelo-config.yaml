@@ -1,3 +1,4 @@
 plugins:
     - name: mongo
       path: src/tangelo/mongo
+    - name: tangelo

@@ -1,5 +1,5 @@
 /*jshint browser: true, jquery: true */
-/*global clique, _ */
+/*global clique, _, tangelo */
 
 function randomGraph(n, pct) {
     "use strict";
@@ -38,19 +38,11 @@ $(function () {
         graph,
         view,
         info,
-        mode = "mongo";
+        mode;
+
+    mode = tangelo.queryArguments().mode || "mongo";
 
     switch (mode) {
-    case "demo": {
-        graphData = randomGraph(26, 0.20);
-
-        window.graph = graph = new clique.Graph({
-            adapter: clique.adapter.NodeLinkList,
-            options: graphData
-        });
-        break;
-    }
-
     case "mongo": {
         window.graph = graph = new clique.Graph({
             adapter: clique.adapter.Mongo,
@@ -64,7 +56,13 @@ $(function () {
     }
 
     default: {
-        throw new Error("illegal mode '" + mode + "'");
+        graphData = randomGraph(26, 0.20);
+
+        window.graph = graph = new clique.Graph({
+            adapter: clique.adapter.NodeLinkList,
+            options: graphData
+        });
+        break;
     }
     }
 
