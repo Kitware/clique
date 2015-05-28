@@ -117,6 +117,13 @@ gulp.task("style", function () {
         .pipe(stylishJscs());
 });
 
+gulp.task("assets", function () {
+    "use strict";
+
+    gulp.src("src/assets/**/*")
+        .pipe(gulp.dest("./build/site/assets"));
+});
+
 gulp.task("clean", function () {
     "use strict";
 
@@ -135,7 +142,8 @@ gulp.task("default", [
     "style",
     "stylus",
     "uglify",
-    "jade"
+    "jade",
+    "assets"
 ]);
 
 gulp.task("serve", ["default"], serve("build/site"));
