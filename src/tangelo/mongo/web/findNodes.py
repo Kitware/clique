@@ -1,7 +1,8 @@
 import bson.json_util
+from bson.objectid import ObjectId
 import json
 from pymongo import MongoClient
-import tangelo
+
 
 def run(host=None, db=None, coll=None, spec=None, singleton=json.dumps(False)):
     # Connect to the mongo collection.
@@ -14,7 +15,10 @@ def run(host=None, db=None, coll=None, spec=None, singleton=json.dumps(False)):
 
     matcher = {"type": "node"}
     for field, value in spec.iteritems():
-        matcher["data.%s" % (field)] = value
+        if field == "key":
+            matcher["_id"] = ObjectId(value)
+        else:
+            matcher["data.%s" % (field)] = value
 
     it = graph.find(matcher)
     try:
