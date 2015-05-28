@@ -37,7 +37,7 @@ ENV KWDEMO_NAME Clique Demo
 ENV KWDEMO_KEY clique
 ENV KWDEMO_SRCURL https://github.com/XDATA-Year-3/clique
 ENV KWDEMO_DESC XDATA Clique graph exploration framework
-ENV KWDEMO_IMG /clique.png
+ENV KWDEMO_IMG /clique/assets/clique.svg
 ENV KWDEMO_READY TRUE
 
 # Start the clique application when this image is run.
