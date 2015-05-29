@@ -57,7 +57,20 @@
                 });
             },
 
-            neighborhood: function (options, callback) { },
+            neighborhood: function (options, callback) {
+                clique.util.require(options.center, "center");
+                clique.util.require(options.radius, "radius");
+
+                options = clique.util.deepCopy(options);
+                options.center = JSON.stringify(options.center);
+                options = _.extend(options, {
+                    host: host,
+                    db: db,
+                    coll: coll
+                });
+
+                $.getJSON("/plugin/mongo/neighborhood", options, callback);
+            },
 
             write: function (callback) { }
         };
