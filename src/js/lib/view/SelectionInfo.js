@@ -42,9 +42,10 @@
         },
 
         render: function () {
-            this.graph.adapter.findNode({
-                key: this.model.focused()
-            }, _.bind(function (node) {
+            var focused,
+                renderTemplate;
+
+            renderTemplate = _.bind(function (node) {
                 this.$el.html(clique.template.selectionInfo({
                     node: node,
                     selectionSize: this.model.size()
@@ -109,7 +110,15 @@
                         }, this));
                     }, this));
                 }, this));
-            }, this));
+            }, this);
+
+            focused = this.model.focused();
+
+            if (!focused) {
+                renderTemplate(focused);
+            } else {
+                this.graph.adapter.findNode({key: focused}, renderTemplate);
+            }
         }
     });
 }(window.clique, window.Backbone, window._));
