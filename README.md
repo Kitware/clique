@@ -61,8 +61,12 @@ following methods:
   a subgraph consisting of the node ``options.center``, and all nodes lying
   within distance ``options.radius`` of it.  Typically, ``options.center`` would
   be supplied via a call to ``findNodes()`` or ``findNode()``.  This method, by
-  default, will not include any nodes with a ``deleted`` property set to true; to
-  include these nodes, ``options.deleted`` can be set to ``true``.
+  default, will not include any nodes with a ``deleted`` property set to true;
+  to include these nodes, ``options.deleted`` can be set to ``true``.  The
+  subgraph should be an object with two properties: ``nodes``, containing a list
+  of nodal data objects (which must contain at least a unique ``key`` property);
+  and ``links``, containing a list of objects with a ``source`` and ``target``
+  property, each of which contains a key identifying one of the nodes.
 
 - ``write(callback)`` - causes the original source of the graph data to become
   synchronized with any changes made to the graph since loading.  The following

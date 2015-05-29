@@ -2,7 +2,20 @@
     "use strict";
 
     var linkHash = function (link) {
-        return JSON.stringify([link.source.key, link.target.key]);
+        var source,
+            target;
+
+        source = link.source;
+        if (!_.isString(source)) {
+            source = source.key;
+        }
+
+        target = link.target;
+        if (!_.isString(target)) {
+            target = target.key;
+        }
+
+        return JSON.stringify([source, target]);
     };
 
     clique.Graph = Backbone.Model.extend({
@@ -44,8 +57,11 @@
                     if (!this.links.has(linkKey)) {
                         this.links.add(linkKey);
 
-                        this.forward.add(link.source.key, link.target.key);
-                        this.back.add(link.target.key, link.source.key);
+                        this.forward.add(link.source, link.target);
+                        this.back.add(link.target, link.source);
+
+                        link.source = this.nodes[link.source];
+                        link.target = this.nodes[link.target];
 
                         newLinks.push(link);
                     }

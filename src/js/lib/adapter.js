@@ -106,8 +106,8 @@
                         link = JSON.parse(link);
 
                         return {
-                            source: nodeIndex[link[0]],
-                            target: nodeIndex[link[1]]
+                            source: link[0],
+                            target: link[1]
                         };
                     })
                 });
