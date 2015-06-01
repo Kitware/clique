@@ -9,14 +9,71 @@
             orig = cfg,
             nodeIndex = {},
             sourceIndex = {},
-            targetIndex = {};
+            targetIndex = {},
+            matchmaker;
 
         clique.util.require(nodes, "nodes");
         clique.util.require(links, "links");
 
+        window.matchmaker = matchmaker = function (spec) {
+            var key,
+                m,
+                matcher,
+                spec2;
+
+            if (_.has(spec, "key")) {
+                key = spec.key;
+
+                spec2 = clique.util.deepCopy(spec);
+                delete spec2.key;
+
+                m = _.matcher(spec2);
+
+                matcher = function (obj) {
+                    return m(obj.data) && obj.key === key;
+                };
+            } else {
+                matcher = _.compose(_.matcher(spec), _.property("data"));
+            }
+
+            return matcher;
+        };
+
         _.each(nodes, function (n) {
-            var hash = clique.util.md5(_.uniqueId() + JSON.stringify(n));
+            var hash,
+                ns,
+                tmpNs = "data";
+
+            // Promote the data elements into a dedicated namespace.
+            //
+            // First figure out a suitable temporary name to use for the
+            // namespace.
+            while (_.has(n, tmpNs)) {
+                tmpNs += "x";
+            }
+
+            // Create the namespace.
+            ns = n[tmpNs] = {};
+
+            // Move all top-level properties into the namespace.
+            _.each(n, function (v, k) {
+                if (k !== tmpNs) {
+                    ns[k] = v;
+                    delete n[k];
+                }
+            });
+
+            // Rename the temporary namespace as "data".
+            if (tmpNs !== "data") {
+                n.data = ns;
+                delete n[tmpNs];
+            }
+
+            // Install a unique key in the node.
+            hash = clique.util.md5(_.uniqueId() + JSON.stringify(n));
             n.key = hash;
+
+            // Store the node in the hash table.
             nodeIndex[hash] = n;
         });
 
@@ -33,11 +90,11 @@
 
         return {
             findNodes: function (spec, callback) {
-                callback(_.where(nodes, spec));
+                callback(_.filter(nodes, matchmaker(spec)));
             },
 
             findNode: function (spec, callback) {
-                callback(_.findWhere(nodes, spec));
+                callback(_.find(nodes, matchmaker(spec)));
             },
 
             neighborhood: function (options, callback) {
@@ -54,7 +111,7 @@
 
                 // Don't start the process with a "deleted" node (unless deleted
                 // nodes are specifically allowed).
-                if (options.deleted || !options.center.deleted) {
+                if (options.deleted || !options.center.data.deleted) {
                     neighborNodes.add(options.center.key);
                     frontier.add(options.center.key);
                 }
@@ -69,13 +126,13 @@
                         // Do not add links to nodes that are deleted (unless
                         // deleted nodes are specifically allowed).
                         _.each(sourceIndex[nodeKey], function (neighborKey) {
-                            if (options.deleted || !nodeIndex[neighborKey].deleted) {
+                            if (options.deleted || !nodeIndex[neighborKey].data.deleted) {
                                 neighborLinks.add(JSON.stringify([nodeKey, neighborKey]));
                             }
                         });
 
                         _.each(targetIndex[nodeKey], function (neighborKey) {
-                            if (options.deleted || !nodeIndex[neighborKey].deleted) {
+                            if (options.deleted || !nodeIndex[neighborKey].data.deleted) {
                                 neighborLinks.add(JSON.stringify([neighborKey, nodeKey]));
                             }
                         });
@@ -114,18 +171,8 @@
             },
 
             write: function (callback) {
-                orig.nodes = _.map(nodes, function (n) {
-                    var node = {};
-                    _.map(n, function (value, key) {
-                        if (!clique.ignore.has(key)) {
-                            node[key] = clique.util.deepCopy(value);
-                        }
-                    });
-
-                    return node;
-                });
-
-                callback();
+                orig.nodes = clique.util.deepCopy(_.pluck(nodes, "data"));
+                (callback || _.noop)();
             }
         };
     };

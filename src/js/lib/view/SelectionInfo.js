@@ -24,12 +24,12 @@
         },
 
         deleteNode: function (node, deleted) {
-            node.deleted = deleted;
+            node.data.deleted = deleted;
 
-            if (node.deleted) {
+            if (node.data.deleted) {
                 this.hideNode(node);
             } else {
-                delete node.deleted;
+                delete node.data.deleted;
                 this.render();
             }
         },
