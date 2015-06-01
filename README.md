@@ -69,10 +69,10 @@ following methods:
   property, each of which contains a key identifying one of the nodes.
 
 - ``write(callback)`` - causes the original source of the graph data to become
-  synchronized with any changes made to the graph since loading.  The following
-  node attributes are ignored for purposes of writeback: ``key``, ``root``,
-  ``index``, ``x``, ``y``, ``variable``, ``bounds``, ``fixed``, ``px``, ``py``.
-  Many of these attributes are used for runtime processing by
-  [Cola](http://marvl.infotech.monash.edu/webcola/), while others are used as
-  rendering metadata by the example application.  After the operation is
-  completed, ``callback`` will be invoked with no arguments.
+  synchronized with any changes made to the graph since loading.  Only changes
+  made to the ``data`` property of the nodes will be written back to the store.
+  For example, the ``x`` and ``y`` properties used by
+  [Cola](http://marvl.infotech.monash.edu/webcola/) would not be written back, nor
+  any properties installed by the view to the node's top-level for purposes of
+  controlling rendering, etc.  After the operation is completed, ``callback`` will
+  be invoked with no arguments.
