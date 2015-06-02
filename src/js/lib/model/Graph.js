@@ -93,10 +93,10 @@
             // Compute the set of nodes that lie within the requested
             // neighborhood of the central node.
             neighborhood = new clique.util.Set();
-            neighborhood.add(center.key);
+            neighborhood.add(center.key());
 
             frontier = new clique.util.Set();
-            frontier.add(center.key);
+            frontier.add(center.key());
 
             _.each(_.range(radius), _.bind(function () {
                 var newFrontier = new clique.util.Set();

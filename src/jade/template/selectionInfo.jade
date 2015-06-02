@@ -19,9 +19,9 @@ mixin item(key, value)
             .row
                 .col-md-1
                     table.table.table-striped.table-bordered
-                        +item("key", node.key)
-                        for prop in _.keys(node.data)
-                            +item(prop, node.data[prop])
+                        +item("key", node.key())
+                        for item in node.getAllData()
+                            +item(item[0], item[1])
             .row
                 h5 Node
                 button(type="button").space-right.btn.btn-info.btn-xs.remove Hide #[span.glyphicon.glyphicon-eye-close]

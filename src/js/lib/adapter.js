@@ -10,10 +10,26 @@
             nodeIndex = {},
             sourceIndex = {},
             targetIndex = {},
+            mutators = {},
+            getMutator,
             matchmaker;
 
         clique.util.require(nodes, "nodes");
         clique.util.require(links, "links");
+
+        getMutator = function (key) {
+            if (!_.has(nodeIndex, key)) {
+                return undefined;
+            }
+
+            if (!_.has(mutators, key)) {
+                mutators[key] = new clique.util.Mutator({
+                    target: nodeIndex[key]
+                });
+            }
+
+            return mutators[key];
+        };
 
         window.matchmaker = matchmaker = function (spec) {
             var key,
@@ -90,11 +106,17 @@
 
         return {
             findNodes: function (spec, callback) {
-                callback(_.filter(nodes, matchmaker(spec)));
+                callback(_.map(_.pluck(_.filter(nodes, matchmaker(spec)), "key"), getMutator));
             },
 
             findNode: function (spec, callback) {
-                callback(_.find(nodes, matchmaker(spec)));
+                var node = _.find(nodes, matchmaker(spec));
+
+                if (node) {
+                    node = getMutator(node.key);
+                }
+
+                callback(node);
             },
 
             neighborhood: function (options, callback) {
@@ -105,15 +127,15 @@
                 clique.util.require(options.center, "center");
                 clique.util.require(options.radius, "radius");
 
-                options.center.root = true;
+                options.center.setTransient("root", true);
 
                 frontier = new clique.util.Set();
 
                 // Don't start the process with a "deleted" node (unless deleted
                 // nodes are specifically allowed).
-                if (options.deleted || !options.center.data.deleted) {
-                    neighborNodes.add(options.center.key);
-                    frontier.add(options.center.key);
+                if (options.deleted || !options.center.getData("deleted")) {
+                    neighborNodes.add(options.center.key());
+                    frontier.add(options.center.key());
                 }
 
                 // Fan out from the center to reach the requested radius.
