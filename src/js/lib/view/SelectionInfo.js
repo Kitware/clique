@@ -15,8 +15,8 @@
         },
 
         hideNode: function (node) {
-            node.selected = false;
-            delete node.root;
+            node.setTransient("selected", false);
+            node.clearTransient("root");
             this.graph.removeNeighborhood({
                 center: node,
                 radius: 0
@@ -24,12 +24,11 @@
         },
 
         deleteNode: function (node, deleted) {
-            node.data.deleted = deleted;
-
-            if (node.data.deleted) {
+            if (deleted) {
+                node.setData("deleted", true);
                 this.hideNode(node);
             } else {
-                delete node.data.deleted;
+                node.clearData("deleted");
                 this.render();
             }
         },

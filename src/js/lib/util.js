@@ -83,4 +83,67 @@
             throw new Error("argument '" + name + "' is required");
         }
     };
+
+    clique.util.Mutator = function (cfg) {
+        var target = cfg.target,
+            disallowed = cfg.disallowed || [],
+            changes = {};
+
+        clique.util.require(target, "target");
+
+        (function () {
+            var disallowedList = disallowed;
+
+            disallowed = new clique.util.Set();
+            _.each(disallowedList, function (d) {
+                disallowed.add(d);
+            });
+        }());
+
+        return {
+            key: function () {
+                return target.key;
+            },
+
+            getTransient: function (prop) {
+                return target[prop];
+            },
+
+            setTransient: function (prop, value) {
+                if (prop === "key" || disallowed.has(prop)) {
+                    return false;
+                }
+
+                target[prop] = value;
+                return true;
+            },
+
+            clearTransient: function (prop) {
+                if (disallowed.has(prop)) {
+                    return false;
+                }
+
+                delete target[prop];
+                return true;
+            },
+
+            getAllData: function () {
+                return _.pairs(target.data);
+            },
+
+            getData: function (prop) {
+                return target.data[prop];
+            },
+
+            setData: function (prop, value) {
+                target.data[prop] = value;
+                changes[prop] = value;
+            },
+
+            clearData: function (prop) {
+                delete target.data[prop];
+                changes[prop] = undefined;
+            }
+        };
+    };
 }(window.clique, window.Hashes, window._));
