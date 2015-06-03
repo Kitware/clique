@@ -40,6 +40,10 @@
                     stuff = _.map(stuff, mapper);
                 }
                 return stuff;
+            },
+
+            size: function () {
+                return _.size(items);
             }
         };
     };
@@ -143,6 +147,26 @@
             clearData: function (prop) {
                 delete target.data[prop];
                 changes[prop] = undefined;
+            },
+
+            matches: function (spec) {
+                var spec2,
+                    dataMatch,
+                    key;
+
+                // Make a copy of the spec without the "key"
+                spec2 = _.clone(spec);
+                key = spec2.key || target.key;
+                delete spec2.key;
+
+                // Check if the data table matches the spec.
+                dataMatch = _.isMatch(target.data, spec2);
+
+                return dataMatch && key === target.key;
+            },
+
+            getTarget: function () {
+                return target;
             }
         };
     };
