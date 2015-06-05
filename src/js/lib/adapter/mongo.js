@@ -1,16 +1,37 @@
-(function (clique, $, _) {
+(function (clique, $, _, Backbone) {
     "use strict";
 
     clique.adapter.Mongo = function (cfg) {
         var host = cfg.host || "localhost",
             db = cfg.database,
             coll = cfg.collection,
+            findNodesService = "/plugin/mongo/findNodes",
+            getMutator,
             mutators = {};
 
         clique.util.require(cfg.database, "database");
         clique.util.require(cfg.collection, "collection");
 
-        return {
+        getMutator = _.bind(function (mongoRec, that) {
+            var key = mongoRec._id.$oid;
+
+            if (!_.has(mutators, key)) {
+                mutators[key] = new clique.util.Mutator({
+                    target: {
+                        key: key,
+                        data: mongoRec.data
+                    }
+                });
+
+                that.listenTo(mutators[key], "changed", function (mutator, prop, value) {
+                    console.log("mutator for " + mutator.key() + ": " + prop + " -> " + value);
+                });
+            }
+
+            return mutators[key];
+        }, this);
+
+        return _.extend({
             findNodes: function (spec, callback) {
                 var data = {
                     host: host,
@@ -19,103 +40,25 @@
                     spec: JSON.stringify(spec)
                 };
 
-                $.getJSON("/plugin/mongo/findNodes", data, function (results) {
-                    var transformedResults = _.map(results, function (rec) {
-                        var trec = {};
-                        trec.key = rec._id.$oid;
-                        _.each(rec.data, function (value, key) {
-                            trec[key] = value;
-                        });
-
-                        return trec;
-                    });
-
-                    callback(transformedResults);
-                });
+                $.getJSON(findNodesService, data, _.compose(callback, _.map, _.partial(getMutator, _, this)));
             },
 
             findNode: function (spec, callback) {
-                var data,
-                    service = "/plugin/mongo/findNodes",
-                    key,
-                    mut;
+                var data = {
+                    host: host,
+                    db: db,
+                    coll: coll,
+                    spec: JSON.stringify(spec),
+                    singleton: JSON.stringify(true)
+                };
 
-                if (_.has(spec, "key")) {
-                    if (_.has(mutators, spec.key)) {
-                        // The spec mentions a key, and we already have a
-                        // mutator for that key - just make sure the mutator
-                        // matches the rest of the spec, and react accordingly.
-                        mut = mutators[spec.key];
-                        callback(mut.matches(spec) ? mut : undefined);
-                    } else {
-                        data = {
-                            host: host,
-                            db: db,
-                            coll: coll,
-                            spec: JSON.stringify(spec),
-                            singleton: JSON.stringify(true)
-                        };
-
-                        $.getJSON(service, data, function (result) {
-                            var key,
-                                rec;
-
-                            if (result) {
-                                key = result._id.$oid;
-
-                                rec = {
-                                    key: key,
-                                    data: result.data
-                                };
-
-                                result = mutators[key] = new clique.util.Mutator({
-                                    target: rec
-                                });
-                            }
-
-                            callback(result);
-                        });
+                $.getJSON(findNodesService, data, _.bind(function (result) {
+                    if (result) {
+                        result = getMutator(result, this);
                     }
-                } else {
-                    // First look through the mutators for a matching record.
-                    key = _.findKey(mutators, function (m) {
-                        return m.matches(spec);
-                    });
 
-                    if (key) {
-                        callback(mutators[key]);
-                    } else {
-                        // Now go to the database to see if a record can be
-                        // found there.
-                        data = {
-                            host: host,
-                            db: db,
-                            coll: coll,
-                            spec: JSON.stringify(spec),
-                            singleton: JSON.stringify(true)
-                        };
-
-                        $.getJSON(service, data, function (result) {
-                            var key,
-                                rec;
-
-                            if (result) {
-                                key = result._id.$oid;
-
-                                rec = {
-                                    key: key,
-                                    data: result.data
-                                };
-
-                                result = mutators[key] = new clique.util.Mutator({
-                                    target: rec
-                                });
-                            }
-
-                            callback(result);
-                        });
-                    }
-                }
+                    callback(result);
+                }, this));
             },
 
             neighborhood: function (options, callback) {
@@ -219,6 +162,6 @@
             write: function (callback) {
                 console.log(callback);
             }
-        };
+        }, Backbone.Events);
     };
-}(window.clique, window.jQuery, window._));
+}(window.clique, window.jQuery, window._, window.Backbone));

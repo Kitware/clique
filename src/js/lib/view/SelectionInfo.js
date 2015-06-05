@@ -3,15 +3,19 @@
 
     clique.view.SelectionInfo = Backbone.View.extend({
         initialize: function (options) {
+            var debRender;
+
             clique.util.require(this.model, "model");
             clique.util.require(options.graph, "graph");
 
             options = options || {};
             this.graph = options.graph;
 
-            this.listenTo(this.model, "change", this.render);
-            this.listenTo(this.model, "focused", this.render);
-            this.listenTo(this.graph, "change", this.render);
+            debRender = _.debounce(this.render, 100);
+
+            this.listenTo(this.model, "change", debRender);
+            this.listenTo(this.model, "focused", debRender);
+            this.listenTo(this.graph, "change", debRender);
         },
 
         hideNode: function (node) {

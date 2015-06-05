@@ -1,4 +1,4 @@
-(function (clique, Hashes, _) {
+(function (clique, Hashes, _, Backbone) {
     "use strict";
 
     clique.util = {};
@@ -90,8 +90,7 @@
 
     clique.util.Mutator = function (cfg) {
         var target = cfg.target,
-            disallowed = cfg.disallowed || [],
-            changes = {};
+            disallowed = cfg.disallowed || [];
 
         clique.util.require(target, "target");
 
@@ -104,7 +103,7 @@
             });
         }());
 
-        return {
+        return _.extend({
             key: function () {
                 return target.key;
             },
@@ -141,33 +140,17 @@
 
             setData: function (prop, value) {
                 target.data[prop] = value;
-                changes[prop] = value;
+                this.trigger("changed", this, prop, value);
             },
 
             clearData: function (prop) {
                 delete target.data[prop];
-                changes[prop] = undefined;
-            },
-
-            matches: function (spec) {
-                var spec2,
-                    dataMatch,
-                    key;
-
-                // Make a copy of the spec without the "key"
-                spec2 = _.clone(spec);
-                key = spec2.key || target.key;
-                delete spec2.key;
-
-                // Check if the data table matches the spec.
-                dataMatch = _.isMatch(target.data, spec2);
-
-                return dataMatch && key === target.key;
+                this.trigger("cleared", this, prop);
             },
 
             getTarget: function () {
                 return target;
             }
-        };
+        }, Backbone.Events);
     };
-}(window.clique, window.Hashes, window._));
+}(window.clique, window.Hashes, window._, window.Backbone));
