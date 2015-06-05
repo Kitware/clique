@@ -2,35 +2,31 @@
     "use strict";
 
     clique.adapter.Mongo = function (cfg) {
-        var host = cfg.host || "localhost",
-            db = cfg.database,
-            coll = cfg.collection,
-            findNodesService = "/plugin/mongo/findNodes",
-            mutators = {};
+        var findNodesService = "/plugin/mongo/findNodes",
+            mutators = {},
+            mongoStore = {
+                host: cfg.host || "localhost",
+                db: cfg.database,
+                coll: cfg.collection
+            };
 
         clique.util.require(cfg.database, "database");
         clique.util.require(cfg.collection, "collection");
 
         return _.extend({
             findNodes: function (spec, callback) {
-                var data = {
-                    host: host,
-                    db: db,
-                    coll: coll,
+                var data = _.extend({
                     spec: JSON.stringify(spec)
-                };
+                }, mongoStore);
 
                 $.getJSON(findNodesService, data, _.compose(callback, _.partial(_.map, _, _.bind(this.getMutator, this))));
             },
 
             findNode: function (spec, callback) {
-                var data = {
-                    host: host,
-                    db: db,
-                    coll: coll,
+                var data = _.extend({
                     spec: JSON.stringify(spec),
                     singleton: JSON.stringify(true)
-                };
+                }, mongoStore);
 
                 $.getJSON(findNodesService, data, _.bind(function (result) {
                     if (result) {
@@ -47,11 +43,7 @@
 
                 options = _.clone(options);
                 options.center = options.center.key();
-                options = _.extend(options, {
-                    host: host,
-                    db: db,
-                    coll: coll
-                });
+                options = _.extend(options, mongoStore);
 
                 $.getJSON("/plugin/mongo/neighborhood", options, _.bind(function (results) {
                     _.each(results.nodes, _.bind(function (node, i) {
