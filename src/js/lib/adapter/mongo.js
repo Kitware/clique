@@ -61,7 +61,7 @@
             },
 
             write: function (callback) {
-                console.log(callback);
+                callback();
             },
 
             getMutator: function (mongoRec) {
@@ -76,7 +76,11 @@
                     });
 
                     this.listenTo(mutators[key], "changed", function (mutator, prop, value) {
-                        console.log("mutator for " + mutator.key() + ": " + prop + " -> " + value);
+                        $.getJSON("/plugin/mongo/update", _.extend({
+                            key: mutator.key(),
+                            prop: prop,
+                            value: value
+                        }, mongoStore));
                     });
                 }
 
