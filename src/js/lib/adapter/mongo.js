@@ -60,7 +60,7 @@
                 }, this));
             },
 
-            write: function (callback) {
+            sync: function (callback) {
                 callback();
             },
 

@@ -48,8 +48,8 @@ An adapter, in the context of Clique, is any JavaScript object that contains the
 following methods:
 
 - ``findNodes(spec, callback)`` - invokes ``callback`` with a list of node
-  objects matching the ``spec``, which itself is an object of key-value pairs
-  describing the sought pattern from the set of nodes.
+  mutator objects matching the ``spec``, which itself is an object of key-value
+  pairs describing the sought pattern from the set of nodes.
 
 - ``findNode(spec, callback)`` - invokes ``callback`` with a single node
   matching ``spec``, or ``undefined`` if there is no such node.  This is a
@@ -68,7 +68,7 @@ following methods:
   and ``links``, containing a list of objects with a ``source`` and ``target``
   property, each of which contains a key identifying one of the nodes.
 
-- ``write(callback)`` - causes the original source of the graph data to become
+- ``sync(callback)`` - causes the original source of the graph data to become
   synchronized with any changes made to the graph since loading.  Only changes
   made to the ``data`` property of the nodes will be written back to the store.
   For example, the ``x`` and ``y`` properties used by

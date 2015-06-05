@@ -90,7 +90,7 @@ $(function () {
     });
 
     $("#save").on("click", function () {
-        graph.adapter.write();
+        graph.adapter.sync();
     });
 
     window.view = view = new clique.view.Cola({

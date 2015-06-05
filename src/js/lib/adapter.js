@@ -192,7 +192,7 @@
                 });
             },
 
-            write: function (callback) {
+            sync: function (callback) {
                 orig.nodes = clique.util.deepCopy(_.pluck(nodes, "data"));
                 (callback || _.noop)();
             }
