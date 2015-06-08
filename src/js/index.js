@@ -1,5 +1,5 @@
 /*jshint browser: true, jquery: true */
-/*global clique, _ */
+/*global clique, _, tangelo */
 
 function randomGraph(n, pct) {
     "use strict";
@@ -37,41 +37,60 @@ $(function () {
     var graphData,
         graph,
         view,
-        info;
+        info,
+        mode;
 
-    window.graphData = graphData = randomGraph(26, 0.20);
+    mode = tangelo.queryArguments().mode || "mongo";
 
-    window.graph = graph = new clique.Graph({
-        adapter: clique.adapter.NodeLinkList,
-        options: graphData
-    });
+    switch (mode) {
+    case "mongo": {
+        window.graph = graph = new clique.Graph({
+            adapter: clique.adapter.Mongo,
+            options: {
+                host: "localhost",
+                database: "year3_graphs",
+                collection: "mentions_monica_nino_2hop_mar12"
+            }
+        });
+        break;
+    }
+
+    default: {
+        graphData = randomGraph(26, 0.20);
+
+        window.graph = graph = new clique.Graph({
+            adapter: clique.adapter.NodeLinkList,
+            options: graphData
+        });
+        break;
+    }
+    }
 
     $("#seed").on("click", function () {
         var name = $("#name").val().trim(),
             radiusText = $("#radius").val().trim(),
             radius = Number(radiusText),
-            delsearch = $("#delsearch").prop("checked"),
-            center;
+            delsearch = $("#delsearch").prop("checked");
 
         if (name === "" || radiusText === "" || isNaN(radius)) {
             return;
         }
 
-        center = graph.adapter.findNode({
+        graph.adapter.findNode({
             name: name
+        }, function (center) {
+            if (center) {
+                graph.addNeighborhood({
+                    center: center,
+                    radius: radius,
+                    deleted: delsearch
+                });
+            }
         });
-
-        if (center) {
-            graph.addNeighborhood({
-                center: center,
-                radius: radius,
-                deleted: delsearch
-            });
-        }
     });
 
     $("#save").on("click", function () {
-        graph.adapter.write();
+        graph.adapter.sync();
     });
 
     window.view = view = new clique.view.Cola({

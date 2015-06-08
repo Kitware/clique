@@ -47,26 +47,32 @@ any source of graph data into the format required by ``Graph`` to do its work.
 An adapter, in the context of Clique, is any JavaScript object that contains the
 following methods:
 
-- ``findNodes(spec)`` - returns a list of node objects matching the ``spec``,
-  which itself is an object of key-value pairs describing the sought pattern
-  from the set of nodes.
+- ``findNodes(spec, callback)`` - invokes ``callback`` with a list of node
+  mutator objects matching the ``spec``, which itself is an object of key-value
+  pairs describing the sought pattern from the set of nodes.
 
-- ``findNode(spec)`` - returns a single node matching ``spec``, or ``undefined``
-  if there is no such node.  This is a convenience function that can be
-  implemented in a general way simply by returning ``this.findNodes()[0]``, but if
-  there is a more efficient way to compute the result, this method can provide it.
+- ``findNode(spec, callback)`` - invokes ``callback`` with a single node
+  matching ``spec``, or ``undefined`` if there is no such node.  This is a
+  convenience function that can be implemented in a general way simply by
+  returning ``this.findNodes()[0]``, but if there is a more efficient way to
+  compute the result, this method can provide it.
 
-- ``neighborhood(options)`` - computes and returns a subgraph consisting of the
-  node ``options.center``, and all nodes lying within distance
-  ``options.radius`` of it.  Typically, ``options.center`` would be supplied via
-  a call to ``findNodes()`` or ``findNode()``.  This method, by default, will not
-  include any nodes with a ``deleted`` property set to true; to include these
-  nodes, ``options.deleted`` can be set to ``true``.
+- ``neighborhood(options, callback)`` - computes and invokes ``callback`` with
+  a subgraph consisting of the node ``options.center``, and all nodes lying
+  within distance ``options.radius`` of it.  Typically, ``options.center`` would
+  be supplied via a call to ``findNodes()`` or ``findNode()``.  This method, by
+  default, will not include any nodes with a ``deleted`` property set to true;
+  to include these nodes, ``options.deleted`` can be set to ``true``.  The
+  subgraph should be an object with two properties: ``nodes``, containing a list
+  of nodal data objects (which must contain at least a unique ``key`` property);
+  and ``links``, containing a list of objects with a ``source`` and ``target``
+  property, each of which contains a key identifying one of the nodes.
 
-- ``write()`` - causes the original source of the graph data to become
-  synchronized with any changes made to the graph since loading.  The following
-  node attributes are ignored for purposes of writeback: ``key``, ``root``,
-  ``index``, ``x``, ``y``, ``variable``, ``bounds``, ``fixed``, ``px``, ``py``.
-  Many of these attributes are used for runtime processing by
-  [Cola](http://marvl.infotech.monash.edu/webcola/), while others are used as
-  rendering metadata by the example application.
+- ``sync(callback)`` - causes the original source of the graph data to become
+  synchronized with any changes made to the graph since loading.  Only changes
+  made to the ``data`` property of the nodes will be written back to the store.
+  For example, the ``x`` and ``y`` properties used by
+  [Cola](http://marvl.infotech.monash.edu/webcola/) would not be written back, nor
+  any properties installed by the view to the node's top-level for purposes of
+  controlling rendering, etc.  After the operation is completed, ``callback`` will
+  be invoked with no arguments.

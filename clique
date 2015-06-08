@@ -1,0 +1,43 @@
+#!/bin/sh
+
+# Launches clique application on the supplied hostname and port.
+#
+# Omitting the hostname defaults it to "localhost", while omitting both defaults
+# to "localhost:3000".
+#
+# Set the TANGELO environment variable to use a different Tangelo executable
+# than the one on the path.
+
+# Set TANGELO environment variable if unset.
+if [ -z "${TANGELO}" ]; then
+    TANGELO=`command -v tangelo`
+    if [ -z "${TANGELO}" ]; then
+        echo "error: tangelo not found on path (set TANGELO, or add tangelo to path)" 1>&2
+        exit 1
+    fi
+fi
+
+# Parse command line arguments.
+hostname=$1
+port=$2
+
+if [ -z "${hostname}" ]; then
+    # If both are missing, they both receive the default values.
+    port=3000
+    hostname=localhost
+elif [ -z "${port}" ]; then
+    # If the "port" argument is missing, then assume the "hostname" argument is
+    # actually the port.
+    port=${hostname}
+    hostname=localhost
+fi
+
+# Find the absolute path to this script.
+here=`readlink -f $0`
+here=`dirname "${here}"`
+
+# Set the root location of the application
+app="${here}/build/site"
+
+# Launch the application
+"${TANGELO}" --root "${app}" --host ${hostname} --port ${port} --config "${here}/tangelo-config.yaml"

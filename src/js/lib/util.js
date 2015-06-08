@@ -1,4 +1,4 @@
-(function (clique, Hashes, _) {
+(function (clique, Hashes, _, Backbone) {
     "use strict";
 
     clique.util = {};
@@ -40,14 +40,13 @@
                     stuff = _.map(stuff, mapper);
                 }
                 return stuff;
+            },
+
+            size: function () {
+                return _.size(items);
             }
         };
     };
-
-    clique.ignore = new clique.util.Set();
-    _.each(["key", "root", "index", "x", "y", "variable", "bounds", "fixed", "px", "py"], function (val) {
-        clique.ignore.add(val);
-    });
 
     clique.util.MultiTable = function () {
         var table = {};
@@ -88,4 +87,70 @@
             throw new Error("argument '" + name + "' is required");
         }
     };
-}(window.clique, window.Hashes, window._));
+
+    clique.util.Mutator = function (cfg) {
+        var target = cfg.target,
+            disallowed = cfg.disallowed || [];
+
+        clique.util.require(target, "target");
+
+        (function () {
+            var disallowedList = disallowed;
+
+            disallowed = new clique.util.Set();
+            _.each(disallowedList, function (d) {
+                disallowed.add(d);
+            });
+        }());
+
+        return _.extend({
+            key: function () {
+                return target.key;
+            },
+
+            getTransient: function (prop) {
+                return target[prop];
+            },
+
+            setTransient: function (prop, value) {
+                if (prop === "key" || disallowed.has(prop)) {
+                    return false;
+                }
+
+                target[prop] = value;
+                return true;
+            },
+
+            clearTransient: function (prop) {
+                if (disallowed.has(prop)) {
+                    return false;
+                }
+
+                delete target[prop];
+                return true;
+            },
+
+            getAllData: function () {
+                return _.pairs(target.data);
+            },
+
+            getData: function (prop) {
+                return target.data[prop];
+            },
+
+            setData: function (prop, value) {
+                target.data[prop] = value;
+                this.trigger("changed", this, prop, value);
+            },
+
+            clearData: function (prop) {
+                delete target.data[prop];
+                this.trigger("cleared", this, prop);
+            },
+
+            getTarget: function () {
+                return target;
+            }
+        }, Backbone.Events);
+    };
+}(window.clique, window.Hashes, window._, window.Backbone));

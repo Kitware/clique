@@ -2,7 +2,20 @@
     "use strict";
 
     var linkHash = function (link) {
-        return JSON.stringify([link.source.key, link.target.key]);
+        var source,
+            target;
+
+        source = link.source;
+        if (!_.isString(source)) {
+            source = source.key;
+        }
+
+        target = link.target;
+        if (!_.isString(target)) {
+            target = target.key;
+        }
+
+        return JSON.stringify([source, target]);
     };
 
     clique.Graph = Backbone.Model.extend({
@@ -28,33 +41,37 @@
         },
 
         addNeighborhood: function (options) {
-            var nbd = this.adapter.neighborhood(options),
-                newNodes = [],
-                newLinks = [];
+            this.adapter.neighborhood(options, _.bind(function (nbd) {
+                var newNodes = [],
+                    newLinks = [];
 
-            _.each(nbd.nodes, _.bind(function (node) {
-                if (!_.has(this.nodes, node.key)) {
-                    this.nodes[node.key] = node;
-                    newNodes.push(node);
-                }
+                _.each(nbd.nodes, _.bind(function (node) {
+                    if (!_.has(this.nodes, node.key)) {
+                        this.nodes[node.key] = node;
+                        newNodes.push(node);
+                    }
+                }, this));
+
+                _.each(nbd.links, _.bind(function (link) {
+                    var linkKey = linkHash(link);
+                    if (!this.links.has(linkKey)) {
+                        this.links.add(linkKey);
+
+                        this.forward.add(link.source, link.target);
+                        this.back.add(link.target, link.source);
+
+                        link.source = this.nodes[link.source];
+                        link.target = this.nodes[link.target];
+
+                        newLinks.push(link);
+                    }
+                }, this));
+
+                this.set({
+                    nodes: this.get("nodes").concat(newNodes),
+                    links: this.get("links").concat(newLinks)
+                });
             }, this));
-
-            _.each(nbd.links, _.bind(function (link) {
-                var linkKey = linkHash(link);
-                if (!this.links.has(linkKey)) {
-                    this.links.add(linkKey);
-
-                    this.forward.add(link.source.key, link.target.key);
-                    this.back.add(link.target.key, link.source.key);
-
-                    newLinks.push(link);
-                }
-            }, this));
-
-            this.set({
-                nodes: this.get("nodes").concat(newNodes),
-                links: this.get("links").concat(newLinks)
-            });
         },
 
         removeNeighborhood: function (options) {
@@ -76,10 +93,10 @@
             // Compute the set of nodes that lie within the requested
             // neighborhood of the central node.
             neighborhood = new clique.util.Set();
-            neighborhood.add(center.key);
+            neighborhood.add(center.key());
 
             frontier = new clique.util.Set();
-            frontier.add(center.key);
+            frontier.add(center.key());
 
             _.each(_.range(radius), _.bind(function () {
                 var newFrontier = new clique.util.Set();
