@@ -76,17 +76,16 @@ $(function () {
             return;
         }
 
-        graph.adapter.findNode({
-            name: name
-        }, function (center) {
-            if (center) {
-                graph.addNeighborhood({
-                    center: center,
-                    radius: radius,
-                    deleted: delsearch
-                });
-            }
-        });
+        graph.adapter.findNode({name: name})
+            .then(function (center) {
+                if (center) {
+                    graph.addNeighborhood({
+                        center: center,
+                        radius: radius,
+                        deleted: delsearch
+                    });
+                }
+            });
     });
 
     $("#save").on("click", function () {
