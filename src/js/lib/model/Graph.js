@@ -41,37 +41,38 @@
         },
 
         addNeighborhood: function (options) {
-            this.adapter.neighborhood(options, _.bind(function (nbd) {
-                var newNodes = [],
-                    newLinks = [];
+            this.adapter.neighborhood(options)
+                .then(_.bind(function (nbd) {
+                    var newNodes = [],
+                        newLinks = [];
 
-                _.each(nbd.nodes, _.bind(function (node) {
-                    if (!_.has(this.nodes, node.key)) {
-                        this.nodes[node.key] = node;
-                        newNodes.push(node);
-                    }
+                    _.each(nbd.nodes, _.bind(function (node) {
+                        if (!_.has(this.nodes, node.key)) {
+                            this.nodes[node.key] = node;
+                            newNodes.push(node);
+                        }
+                    }, this));
+
+                    _.each(nbd.links, _.bind(function (link) {
+                        var linkKey = linkHash(link);
+                        if (!this.links.has(linkKey)) {
+                            this.links.add(linkKey);
+
+                            this.forward.add(link.source, link.target);
+                            this.back.add(link.target, link.source);
+
+                            link.source = this.nodes[link.source];
+                            link.target = this.nodes[link.target];
+
+                            newLinks.push(link);
+                        }
+                    }, this));
+
+                    this.set({
+                        nodes: this.get("nodes").concat(newNodes),
+                        links: this.get("links").concat(newLinks)
+                    });
                 }, this));
-
-                _.each(nbd.links, _.bind(function (link) {
-                    var linkKey = linkHash(link);
-                    if (!this.links.has(linkKey)) {
-                        this.links.add(linkKey);
-
-                        this.forward.add(link.source, link.target);
-                        this.back.add(link.target, link.source);
-
-                        link.source = this.nodes[link.source];
-                        link.target = this.nodes[link.target];
-
-                        newLinks.push(link);
-                    }
-                }, this));
-
-                this.set({
-                    nodes: this.get("nodes").concat(newNodes),
-                    links: this.get("links").concat(newLinks)
-                });
-            }, this));
         },
 
         removeNeighborhood: function (options) {

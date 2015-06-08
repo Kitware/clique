@@ -1,4 +1,4 @@
-(function (clique, _) {
+(function (clique, _, $) {
     "use strict";
 
     clique.adapter = {};
@@ -105,24 +105,29 @@
         });
 
         return {
-            findNodes: function (spec, callback) {
-                callback(_.map(_.pluck(_.filter(nodes, matchmaker(spec)), "key"), getMutator));
+            findNodes: function (spec) {
+                var def = new $.Deferred();
+                def.resolve(_.map(_.pluck(_.filter(nodes, matchmaker(spec)), "key"), getMutator));
+                return def;
             },
 
-            findNode: function (spec, callback) {
-                var node = _.find(nodes, matchmaker(spec));
+            findNode: function (spec) {
+                var node = _.find(nodes, matchmaker(spec)),
+                    def = new $.Deferred();
 
                 if (node) {
                     node = getMutator(node.key);
                 }
 
-                callback(node);
+                def.resolve(node);
+                return def;
             },
 
-            neighborhood: function (options, callback) {
+            neighborhood: function (options) {
                 var frontier,
                     neighborNodes = new clique.util.Set(),
-                    neighborLinks = new clique.util.Set();
+                    neighborLinks = new clique.util.Set(),
+                    def = new $.Deferred();
 
                 clique.util.require(options.center, "center");
                 clique.util.require(options.radius, "radius");
@@ -179,7 +184,7 @@
                     frontier = newFrontier;
                 });
 
-                callback({
+                def.resolve({
                     nodes: _.map(neighborNodes.items(), _.propertyOf(nodeIndex)),
                     links: _.map(neighborLinks.items(), function (link) {
                         link = JSON.parse(link);
@@ -190,12 +195,12 @@
                         };
                     })
                 });
+                return def;
             },
 
-            sync: function (callback) {
+            sync: function () {
                 orig.nodes = clique.util.deepCopy(_.pluck(nodes, "data"));
-                (callback || _.noop)();
             }
         };
     };
-}(window.clique, window._));
+}(window.clique, window._, window.jQuery));

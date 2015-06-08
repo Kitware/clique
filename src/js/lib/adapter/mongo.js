@@ -14,30 +14,35 @@
         clique.util.require(cfg.collection, "collection");
 
         return _.extend({
-            findNodes: function (spec, callback) {
+            findNodes: function (spec) {
                 var data = _.extend({
                     spec: JSON.stringify(spec)
                 }, mongoStore);
 
-                $.getJSON(findNodesService, data, _.compose(callback, _.partial(_.map, _, _.bind(this.getMutator, this))));
+                return $.getJSON(findNodesService, data)
+                   .then(_.partial(_.map, _, _.bind(this.getMutator, this)));
             },
 
-            findNode: function (spec, callback) {
+            findNode: function (spec) {
                 var data = _.extend({
                     spec: JSON.stringify(spec),
                     singleton: JSON.stringify(true)
                 }, mongoStore);
 
-                $.getJSON(findNodesService, data, _.bind(function (result) {
-                    if (result) {
-                        result = this.getMutator(result);
-                    }
+                return $.getJSON(findNodesService, data)
+                    .then(_.bind(function (result) {
+                        var def = new $.Deferred();
 
-                    callback(result);
-                }, this));
+                        if (result) {
+                            result = this.getMutator(result);
+                        }
+
+                        def.resolve(result);
+                        return def;
+                    }, this));
             },
 
-            neighborhood: function (options, callback) {
+            neighborhood: function (options) {
                 clique.util.require(options.center, "center");
                 clique.util.require(options.radius, "radius");
 
@@ -45,23 +50,29 @@
                 options.center = options.center.key();
                 options = _.extend(options, mongoStore);
 
-                $.getJSON("/plugin/mongo/neighborhood", options, _.bind(function (results) {
-                    _.each(results.nodes, _.bind(function (node, i) {
-                        var mut = this.getMutator(node);
+                return $.getJSON("/plugin/mongo/neighborhood", options)
+                   .then(_.bind(function (results) {
+                       var def = new $.Deferred();
 
-                        if (mut.key() === options.center) {
-                            mut.setTransient("root", true);
-                        }
+                       _.each(results.nodes, _.bind(function (node, i) {
+                            var mut = this.getMutator(node);
 
-                        results.nodes[i] = mut.getTarget();
-                    }, this));
+                            if (mut.key() === options.center) {
+                                mut.setTransient("root", true);
+                            }
 
-                    callback(results);
-                }, this));
+                            results.nodes[i] = mut.getTarget();
+                        }, this));
+
+                       def.resolve(results);
+                       return def;
+                   }, this));
             },
 
-            sync: function (callback) {
-                callback();
+            sync: function () {
+                var def = new $.Deferred();
+                def.resolve();
+                return def;
             },
 
             getMutator: function (mongoRec) {
