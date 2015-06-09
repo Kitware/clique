@@ -146,6 +146,12 @@ gulp.task("default", [
     "assets"
 ]);
 
-gulp.task("serve", ["default"], shell.task([
-    "./clique"
-]));
+gulp.task("serve", ["default"], function () {
+    "use strict";
+
+    var host = process.env.CLIQUE_HOST || "localhost",
+        port = process.env.CLIQUE_PORT || 3000;
+
+    return gulp.src("")
+        .pipe(shell(["./clique " + host + " " + port]));
+});
