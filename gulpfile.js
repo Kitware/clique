@@ -147,9 +147,11 @@ gulp.task("default", [
 ]);
 
 gulp.task("serve", ["default"], function () {
+    "use strict";
+
     var host = process.env.CLIQUE_HOST || "localhost",
         port = process.env.CLIQUE_PORT || 3000;
 
     return gulp.src("")
-        .pipe(shell(["./clique --host " + host + " --port " + port]);
+        .pipe(shell(["./clique " + host + " " + port]));
 });
