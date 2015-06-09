@@ -20,7 +20,7 @@ RUN pip install \
 RUN git config --global url."https://".insteadOf git://
 
 # Clone the repo.
-RUN git clone git://github.com/XDATA-Year-3/clique.git
+RUN git clone git://github.com/XDATA-Year-3/clique.git -b docker-env
 WORKDIR clique
 
 # Need to symlink node to nodejs because Ubuntu names things in a way that npm
@@ -32,6 +32,11 @@ RUN npm install -g gulp
 RUN npm install
 RUN gulp
 
+# Create a tangelo user
+RUN useradd -c "tangelo user" -m -d /home/tangelo -s /bin/bash tangelo
+USER tangelo
+ENV HOME /home/tangelo
+
 # Set up KWDemo vars.
 ENV KWDEMO_NAME Clique Demo
 ENV KWDEMO_KEY clique
@@ -39,6 +44,11 @@ ENV KWDEMO_SRCURL https://github.com/XDATA-Year-3/clique
 ENV KWDEMO_DESC XDATA Clique graph exploration framework
 ENV KWDEMO_IMG /clique/assets/clique.svg
 ENV KWDEMO_READY TRUE
+ENV CLIQUE_HOST 0.0.0.0
+ENV CLIQUE_PORT 3000
+
+# Become tangelo.
+USER tangelo
 
 # Start the clique application when this image is run.
 CMD ["gulp", "serve"]
