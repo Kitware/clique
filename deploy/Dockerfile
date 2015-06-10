@@ -19,23 +19,30 @@ RUN pip install \
 
 # Create a tangelo user
 RUN useradd -c "tangelo user" -m -d /home/tangelo -s /bin/bash tangelo
-USER tangelo
-ENV HOME /home/tangelo
-USER tangelo
 
 # XDATA's proxy can't use the git protocol
 RUN git config --global url."https://".insteadOf git://
-
-# Clone the repo.
-RUN git clone git://github.com/XDATA-Year-3/clique.git -b docker-env
-WORKDIR clique
 
 # Need to symlink node to nodejs because Ubuntu names things in a way that npm
 # doesn't expect.
 RUN ln -s /usr/bin/nodejs /usr/bin/node
 
-# Install gulp, then build clique.
+# Clone the repo.
+RUN git clone git://github.com/XDATA-Year-3/clique.git -b docker-env
+
+# Install gulp.
 RUN npm install -g gulp
+
+# Change ownership of directory to tangelo.
+RUN chown -R tangelo:tangelo clique
+
+# Switch to tangelo user.
+USER tangelo
+ENV HOME /home/tangelo
+
+WORKDIR clique
+
+# Build clique.
 RUN npm install
 RUN gulp
 
@@ -52,4 +59,4 @@ ENV CLIQUE_HOST 0.0.0.0
 ENV CLIQUE_PORT 3000
 
 # Start the clique application when this image is run.
-CMD ["sh /home/tangelo/hostip.sh >clique.yaml && gulp serve"]
+CMD ["sh", "-c", "sh /home/tangelo/hostip.sh >build/site/clique.yaml && /bin/bash && gulp serve"]

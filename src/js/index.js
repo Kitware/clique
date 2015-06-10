@@ -42,7 +42,7 @@ $(function () {
 
     mode = tangelo.queryArguments().mode || "mongo";
 
-    tangelo.plugin.config.config("clique.yaml", function (cfg) {
+    $.getJSON("clique.yaml", function (cfg) {
         switch (mode) {
         case "mongo": {
             window.graph = graph = new clique.Graph({
