@@ -17,6 +17,12 @@ RUN pip install \
     pymongo \
     tangelo
 
+# Create a tangelo user
+RUN useradd -c "tangelo user" -m -d /home/tangelo -s /bin/bash tangelo
+USER tangelo
+ENV HOME /home/tangelo
+USER tangelo
+
 # XDATA's proxy can't use the git protocol
 RUN git config --global url."https://".insteadOf git://
 
@@ -33,10 +39,7 @@ RUN npm install -g gulp
 RUN npm install
 RUN gulp
 
-# Create a tangelo user
-RUN useradd -c "tangelo user" -m -d /home/tangelo -s /bin/bash tangelo
-USER tangelo
-ENV HOME /home/tangelo
+COPY hostip.sh /home/tangelo/hostip.sh
 
 # Set up KWDemo vars.
 ENV KWDEMO_NAME Clique Demo
@@ -48,8 +51,5 @@ ENV KWDEMO_READY TRUE
 ENV CLIQUE_HOST 0.0.0.0
 ENV CLIQUE_PORT 3000
 
-# Become tangelo.
-USER tangelo
-
 # Start the clique application when this image is run.
-CMD ["gulp", "serve"]
+CMD ["sh /home/tangelo/hostip.sh >clique.yaml && gulp serve"]

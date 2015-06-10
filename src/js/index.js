@@ -42,65 +42,67 @@ $(function () {
 
     mode = tangelo.queryArguments().mode || "mongo";
 
-    switch (mode) {
-    case "mongo": {
-        window.graph = graph = new clique.Graph({
-            adapter: clique.adapter.Mongo,
-            options: {
-                host: "10.1.93.172",
-                database: "year3_graphs",
-                collection: "mentions_monica_nino_2hop_mar12"
-            }
-        });
-        break;
-    }
-
-    default: {
-        graphData = randomGraph(26, 0.20);
-
-        window.graph = graph = new clique.Graph({
-            adapter: clique.adapter.NodeLinkList,
-            options: graphData
-        });
-        break;
-    }
-    }
-
-    $("#seed").on("click", function () {
-        var name = $("#name").val().trim(),
-            radiusText = $("#radius").val().trim(),
-            radius = Number(radiusText),
-            delsearch = $("#delsearch").prop("checked");
-
-        if (name === "" || radiusText === "" || isNaN(radius)) {
-            return;
-        }
-
-        graph.adapter.findNode({name: name})
-            .then(function (center) {
-                if (center) {
-                    graph.addNeighborhood({
-                        center: center,
-                        radius: radius,
-                        deleted: delsearch
-                    });
+    tangelo.plugin.config.config("clique.yaml", function (cfg) {
+        switch (mode) {
+        case "mongo": {
+            window.graph = graph = new clique.Graph({
+                adapter: clique.adapter.Mongo,
+                options: {
+                    host: cfg.host || "localhost",
+                    database: cfg.database || "year3_graphs",
+                    collection: cfg.collection || "mentions_monica_nino_2hop_mar12"
                 }
             });
-    });
+            break;
+        }
 
-    $("#save").on("click", function () {
-        graph.adapter.sync();
-    });
+        default: {
+            graphData = randomGraph(26, 0.20);
 
-    window.view = view = new clique.view.Cola({
-        model: graph,
-        el: "#content"
-    });
+            window.graph = graph = new clique.Graph({
+                adapter: clique.adapter.NodeLinkList,
+                options: graphData
+            });
+            break;
+        }
+        }
 
-    window.info = info = new clique.view.SelectionInfo({
-        model: view.selection,
-        el: "#info",
-        graph: graph
+        $("#seed").on("click", function () {
+            var name = $("#name").val().trim(),
+                radiusText = $("#radius").val().trim(),
+                radius = Number(radiusText),
+                delsearch = $("#delsearch").prop("checked");
+
+            if (name === "" || radiusText === "" || isNaN(radius)) {
+                return;
+            }
+
+            graph.adapter.findNode({name: name})
+                .then(function (center) {
+                    if (center) {
+                        graph.addNeighborhood({
+                            center: center,
+                            radius: radius,
+                            deleted: delsearch
+                        });
+                    }
+                });
+        });
+
+        $("#save").on("click", function () {
+            graph.adapter.sync();
+        });
+
+        window.view = view = new clique.view.Cola({
+            model: graph,
+            el: "#content"
+        });
+
+        window.info = info = new clique.view.SelectionInfo({
+            model: view.selection,
+            el: "#info",
+            graph: graph
+        });
+        info.render();
     });
-    info.render();
 });
