@@ -47,7 +47,7 @@ $(function () {
         window.graph = graph = new clique.Graph({
             adapter: clique.adapter.Mongo,
             options: {
-                host: "localhost",
+                host: "10.1.93.172",
                 database: "year3_graphs",
                 collection: "mentions_monica_nino_2hop_mar12"
             }
