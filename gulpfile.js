@@ -74,7 +74,7 @@ gulp.task("uglify-index", function () {
         .pipe(dest());
 });
 
-gulp.task("uglify-clique", function () {
+gulp.task("uglify-clique", ["jade-templates"], function () {
     "use strict";
 
     var dest = _.bind(gulp.dest, gulp, "build/site");
@@ -132,7 +132,6 @@ gulp.task("clean", function () {
 });
 
 gulp.task("uglify", [
-    "jade-templates",
     "uglify-index",
     "uglify-clique"
 ]);
