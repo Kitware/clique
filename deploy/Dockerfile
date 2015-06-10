@@ -14,6 +14,7 @@ RUN apt-get update && apt-get install -y \
     npm
 
 RUN pip install \
+    pymongo \
     tangelo
 
 # XDATA's proxy can't use the git protocol
