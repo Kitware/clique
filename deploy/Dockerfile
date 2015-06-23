@@ -28,7 +28,7 @@ RUN git config --global url."https://".insteadOf git://
 RUN ln -s /usr/bin/nodejs /usr/bin/node
 
 # Clone the repo.
-RUN git clone git://github.com/XDATA-Year-3/clique.git -b docker-env
+RUN git clone git://github.com/XDATA-Year-3/clique.git
 
 # Install gulp.
 RUN npm install -g gulp
