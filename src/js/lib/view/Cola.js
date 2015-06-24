@@ -197,6 +197,8 @@
             (function () {
                 var dragging = false,
                     active = false,
+                    moving = false,
+                    curTransform,
                     origin,
                     selector,
                     start = {
@@ -226,13 +228,34 @@
 
                     // If shift is not held at the beginning of the operation,
                     // then remove the current selection.
-                    if (!d3.event.shiftKey) {
+                    if (d3.event.ctrlKey) {
                         _.each(that.model.get("nodes"), function (node) {
                             node.selected = false;
                             that.selection.remove(node.key);
                         });
 
                         that.renderNodes();
+                    } else if (!d3.event.shiftKey) {
+                        active = false;
+                        moving = true;
+
+                        curTransform = me.select("g").attr("transform");
+
+                        if (!curTransform) {
+                            curTransform = {
+                                x: 0,
+                                y: 0
+                            };
+                        } else {
+                            curTransform = curTransform.slice(curTransform.indexOf("(")+1, curTransform.indexOf(")")).split(",").map(Number);
+                            console.log(curTransform);
+                            curTransform = {
+                                x: curTransform[0],
+                                y: curTransform[1]
+                            };
+                        }
+
+                        console.log("curTransform", curTransform);
                     }
 
                     origin = that.$el.offset();
@@ -245,69 +268,77 @@
                     var x,
                         y;
 
-                    if (!active) {
-                        return;
+                    if (active || moving) {
+                        if (!dragging) {
+                            dragging = true;
+
+                            // Instantiate an SVG rect to act as the selector range.
+                            if (active) {
+                                selector = me.append("rect")
+                                    .classed("selector", true)
+                                    .attr("x", start.x)
+                                    .attr("y", start.y)
+                                    .attr("width", 0)
+                                    .attr("height", 0)
+                                    .style("opacity", 0.1)
+                                    .style("fill", "black");
+                            }
+                        }
+
+                        end.x = x = d3.event.pageX - origin.left;
+                        end.y = y = d3.event.pageY - origin.top;
                     }
 
-                    if (!dragging) {
-                        dragging = true;
+                    if (active) {
+                        // Resize the rect to reflect the current mouse position
+                        if (x > start.x) {
+                            selector.attr("width", x - start.x);
+                        } else {
+                            selector.attr("width", start.x - x)
+                                .attr("x", x);
+                        }
 
-                        // Instantiate an SVG rect to act as the selector range.
-                        selector = me.append("rect")
-                            .classed("selector", true)
-                            .attr("x", start.x)
-                            .attr("y", start.y)
-                            .attr("width", 0)
-                            .attr("height", 0)
-                            .style("opacity", 0.1)
-                            .style("fill", "black");
+                        if (y > start.y) {
+                            selector.attr("height", y - start.y);
+                        } else {
+                            selector.attr("height", start.y - y)
+                                .attr("y", y);
+                        }
+
+                        // Update the view.
+                        that.renderNodes();
+                    } else if (moving) {
+                        curTransform.x += d3.event.movementX;
+                        curTransform.y += d3.event.movementY;
+
+                        me.select("g").attr("transform", "translate(" + curTransform.x + "," + curTransform.y + ")");
                     }
-
-                    end.x = x = d3.event.pageX - origin.left;
-                    end.y = y = d3.event.pageY - origin.top;
-
-                    // Resize the rect to reflect the current mouse position
-                    if (x > start.x) {
-                        selector.attr("width", x - start.x);
-                    } else {
-                        selector.attr("width", start.x - x)
-                            .attr("x", x);
-                    }
-
-                    if (y > start.y) {
-                        selector.attr("height", y - start.y);
-                    } else {
-                        selector.attr("height", start.y - y)
-                            .attr("y", y);
-                    }
-
-                    // Update the view.
-                    that.renderNodes();
                 });
 
                 endBrush = function () {
-                    if (!active) {
-                        return;
-                    }
-
-                    if (dragging) {
-                        me.selectAll(".selector")
-                            .remove();
-                        selector = null;
-                    }
-
-                    _.each(that.model.get("nodes"), function (node) {
-                        if (between(node.x, start.x, end.x) && between(node.y, start.y, end.y)) {
-                            node.selected = true;
-                            that.selection.add(node.key);
+                    if (active) {
+                        if (dragging) {
+                            me.selectAll(".selector")
+                                .remove();
+                            selector = null;
                         }
-                    });
 
-                    // Update the view.
-                    that.renderNodes();
+                        _.each(that.model.get("nodes"), function (node) {
+                            if (between(node.x, start.x, end.x) && between(node.y, start.y, end.y)) {
+                                node.selected = true;
+                                that.selection.add(node.key);
+                            }
+                        });
+
+                        // Update the view.
+                        that.renderNodes();
+                    } else if (moving) {
+                        console.log("move done!");
+                    }
 
                     dragging = false;
                     active = false;
+                    moving = false;
                 };
 
                 // On mouseup, regardless of where the mouse is (as taken care
