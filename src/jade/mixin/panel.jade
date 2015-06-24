@@ -1,0 +1,13 @@
+mixin panel(panel_id, title, width)
+    .panel-group(id=panel_id)
+        .panel.panel-default.clique-panel(style="width:"+width+"px")
+            .panel-heading
+                a(data-toggle="collapse", data-parent="#"+panel_id, href="#"+panel_id+"-content")
+                    .panel-title
+                        b= title
+            .panel-collapse.collapse.in(id=panel_id+"-content")
+                .panel-body
+                    if block
+                        block
+                    else
+                        p (intentionally blank)
