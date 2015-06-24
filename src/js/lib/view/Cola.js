@@ -166,31 +166,15 @@
                 .remove();
 
             this.cola.on("tick", _.bind(function () {
-                var width = this.$el.width(),
-                    height = this.$el.height(),
-                    clamp = function (value, low, high) {
-                        return value < low ? low : (value > high ? high : value);
-                    },
-                    clampX = _.partial(clamp, _, this.nodeRadius, width - this.nodeRadius),
-                    clampY = _.partial(clamp, _, this.nodeRadius, height - this.nodeRadius);
-
                 this.nodes
-                    .attr("cx", _.compose(clampX, _.property("x")))
-                    .attr("cy", _.compose(clampY, _.property("y")));
+                    .attr("cx", _.property("x"))
+                    .attr("cy", _.property("y"));
 
                 this.links
-                    .attr("x1", _.compose(clampX, function (d) {
-                        return d.source.x;
-                    }))
-                    .attr("y1", _.compose(clampY, function (d) {
-                        return d.source.y;
-                    }))
-                    .attr("x2", _.compose(clampX, function (d) {
-                        return d.target.x;
-                    }))
-                    .attr("y2", _.compose(clampY, function (d) {
-                        return d.target.y;
-                    }));
+                    .attr("x1", _.compose(_.property("x"), _.property("source")))
+                    .attr("y1", _.compose(_.property("y"), _.property("source")))
+                    .attr("x2", _.compose(_.property("x"), _.property("target")))
+                    .attr("y2", _.compose(_.property("y"), _.property("target")));
             }, this));
 
             // Attach some selection actions to the background.
@@ -248,14 +232,11 @@
                             };
                         } else {
                             curTransform = curTransform.slice(curTransform.indexOf("(")+1, curTransform.indexOf(")")).split(",").map(Number);
-                            console.log(curTransform);
                             curTransform = {
                                 x: curTransform[0],
                                 y: curTransform[1]
                             };
                         }
-
-                        console.log("curTransform", curTransform);
                     }
 
                     origin = that.$el.offset();
@@ -332,8 +313,6 @@
 
                         // Update the view.
                         that.renderNodes();
-                    } else if (moving) {
-                        console.log("move done!");
                     }
 
                     dragging = false;
