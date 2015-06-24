@@ -26,7 +26,7 @@ body
 
     svg#content
 
-    +panel("query", "Query")(style="width:22.2%; position:absolute; left:5px")
+    +panel("query", "Query")(style="width:380px; position:absolute; left:10px")
         .row
             .col-md-12
                 h4 Add neighborhood
@@ -45,10 +45,9 @@ body
         .row
             .col-md-12
                 h4 Graph operations
-                .container
-                    .row
-                        .col-md-1
-                            button(type="button")#save.btn.btn-info.btn-xs Save #[span.glyphicon.glyphicon-save]
+                .row
+                    .col-md-1
+                        button(type="button")#save.btn.btn-info.btn-xs Save #[span.glyphicon.glyphicon-save]
         .row
             .col-md-12
                 h4 Selection Operations
