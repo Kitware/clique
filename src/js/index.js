@@ -34,15 +34,15 @@ function randomGraph(n, pct) {
 $(function () {
     "use strict";
 
-    var graphData,
-        graph,
-        view,
-        info,
-        mode;
+    var launch = function (cfg) {
+        var graphData,
+            graph,
+            view,
+            mode,
+            info;
 
-    mode = tangelo.queryArguments().mode || "mongo";
+        mode = tangelo.queryArguments().mode || "mongo";
 
-    $.getJSON("clique.yaml", function (cfg) {
         switch (mode) {
         case "mongo": {
             window.graph = graph = new clique.Graph({
@@ -104,5 +104,7 @@ $(function () {
             graph: graph
         });
         info.render();
-    });
+    };
+
+    $.getJSON("clique.yaml").then(launch, _.bind(launch, {}));
 });
