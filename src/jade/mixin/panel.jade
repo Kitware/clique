@@ -1,6 +1,6 @@
-mixin panel(panel_id, title, width)
+mixin panel(panel_id, title)
     .panel-group(id=panel_id)
-        .panel.panel-default.clique-panel(style="width:"+width+"px")
+        .panel.panel-default.clique-panel&attributes(attributes)
             .panel-heading
                 a(data-toggle="collapse", data-parent="#"+panel_id, href="#"+panel_id+"-content")
                     .panel-title
