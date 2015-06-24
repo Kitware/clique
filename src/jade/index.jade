@@ -1,8 +1,11 @@
+include mixin/panel.jade
+
 doctype html
 head
     title Clique
 
     script(src="assets/jquery-1.11.2.min.js")
+    script(src="assets/bootstrap.min.js")
     script(src="assets/underscore-min.js")
     script(src="assets/backbone-min.js")
     script(src="assets/d3.v3.min.js" charset="utf-8")
@@ -21,36 +24,31 @@ body
             .navbar-header
                 a.navbar-brand Clique Demo
 
-    .container.fill
-        .col-md-9
-            .row
-                .col-md-12
-                    svg(width="100%" height="825" style="background-color: aliceblue")#content
-        .col-md-3
-            .row
-                .col-md-12
-                    h4 Add neighborhood
-                    .container
-                        .row
-                            .col-md-1 Name
-                            .col-md-1 #[input#name]
-                        .row
-                            .col-md-1 Radius
-                            .col-md-1 #[input#radius]
-                        .row
-                            .col-md-12
-                                label #[input(type="checkbox")#delsearch] Include "deleted" nodes in search results
-                        .row
-                            .col-md-1
-                                a.btn.btn-default#seed Query
-            .row
-                .col-md-12
-                    h4 Graph operations
-                    .container
-                        .row
-                            .col-md-1
-                                button(type="button")#save.btn.btn-info.btn-xs Save #[span.glyphicon.glyphicon-save]
-            .row
-                .col-md-12
-                    h4 Selection Operations
-                    #info
+    svg#content
+
+    +panel("query", "Query")(style="width:380px; position:absolute; left:10px")
+        .row
+            .col-md-12
+                h4 Add neighborhood
+                .row
+                    .col-md-2 Name
+                    .col-md-1 #[input#name]
+                .row
+                    .col-md-2 Radius
+                    .col-md-1 #[input#radius]
+                .row
+                    .col-md-12.col-md-offset-1
+                        label #[input(type="checkbox")#delsearch] Include deleted nodes
+                .row
+                    .col-md-1
+                        a.btn.btn-default#seed Query
+        .row
+            .col-md-12
+                h4 Graph operations
+                .row
+                    .col-md-1
+                        button(type="button")#save.btn.btn-info.btn-xs Save #[span.glyphicon.glyphicon-save]
+        .row
+            .col-md-12
+                h4 Selection Operations
+                #info
