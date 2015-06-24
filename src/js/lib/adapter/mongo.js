@@ -2,7 +2,7 @@
     "use strict";
 
     clique.adapter.Mongo = function (cfg) {
-        var findNodesService = "/plugin/mongo/findNodes",
+        var findNodesService = "plugin/mongo/findNodes",
             mutators = {},
             mongoStore = {
                 host: cfg.host || "localhost",
@@ -50,7 +50,7 @@
                 options.center = options.center.key();
                 options = _.extend(options, mongoStore);
 
-                return $.getJSON("/plugin/mongo/neighborhood", options)
+                return $.getJSON("plugin/mongo/neighborhood", options)
                    .then(_.bind(function (results) {
                        var def = new $.Deferred();
 
@@ -87,7 +87,7 @@
                     });
 
                     this.listenTo(mutators[key], "changed", function (mutator, prop, value) {
-                        $.getJSON("/plugin/mongo/update", _.extend({
+                        $.getJSON("plugin/mongo/update", _.extend({
                             key: mutator.key(),
                             prop: prop,
                             value: value

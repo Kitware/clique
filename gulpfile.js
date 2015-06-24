@@ -74,7 +74,7 @@ gulp.task("uglify-index", function () {
         .pipe(dest());
 });
 
-gulp.task("uglify-clique", function () {
+gulp.task("uglify-clique", ["jade-templates"], function () {
     "use strict";
 
     var dest = _.bind(gulp.dest, gulp, "build/site");
@@ -132,7 +132,6 @@ gulp.task("clean", function () {
 });
 
 gulp.task("uglify", [
-    "jade-templates",
     "uglify-index",
     "uglify-clique"
 ]);
@@ -146,6 +145,12 @@ gulp.task("default", [
     "assets"
 ]);
 
-gulp.task("serve", ["default"], shell.task([
-    "./clique"
-]));
+gulp.task("serve", ["default"], function () {
+    "use strict";
+
+    var host = process.env.CLIQUE_HOST || "localhost",
+        port = process.env.CLIQUE_PORT || 3000;
+
+    return gulp.src("")
+        .pipe(shell(["./clique " + host + " " + port]));
+});
