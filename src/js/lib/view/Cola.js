@@ -179,10 +179,56 @@
 
             // Attach some selection actions to the background.
             (function () {
+                var active = false,
+                    curTransform,
+                    endMove;
+
+                me.on("mousedown.pan", function () {
+                    if (d3.event.ctrlKey || d3.event.shiftKey) {
+                        return;
+                    }
+
+                    active = true;
+
+                    curTransform = me.select("g").attr("transform");
+
+                    if (!curTransform) {
+                        curTransform = {
+                            x: 0,
+                            y: 0
+                        };
+                    } else {
+                        curTransform = curTransform.slice(curTransform.indexOf("(")+1, curTransform.indexOf(")")).split(",").map(Number);
+                        curTransform = {
+                            x: curTransform[0],
+                            y: curTransform[1]
+                        };
+                    }
+                });
+
+                me.on("mousemove.pan", function () {
+                    if (!active) {
+                        return;
+                    }
+
+                    curTransform.x += d3.event.movementX;
+                    curTransform.y += d3.event.movementY;
+
+                    me.select("g").attr("transform", "translate(" + curTransform.x + "," + curTransform.y + ")");
+                });
+
+                endMove = function () {
+                    active = false;
+                };
+
+                me.on("mouseup.pan", endMove);
+                d3.select(document)
+                    .on("mouseup.pan", endMove);
+            }());
+
+            (function () {
                 var dragging = false,
                     active = false,
-                    moving = false,
-                    curTransform,
                     origin,
                     selector,
                     start = {
@@ -206,7 +252,11 @@
                         return low < val && val < high;
                     };
 
-                me.on("mousedown", function () {
+                me.on("mousedown.select", function () {
+                    if (!d3.event.ctrlKey && !d3.event.shiftKey) {
+                        return;
+                    }
+
                     active = true;
                     dragging = false;
 
@@ -219,24 +269,6 @@
                         });
 
                         that.renderNodes();
-                    } else if (!d3.event.shiftKey) {
-                        active = false;
-                        moving = true;
-
-                        curTransform = me.select("g").attr("transform");
-
-                        if (!curTransform) {
-                            curTransform = {
-                                x: 0,
-                                y: 0
-                            };
-                        } else {
-                            curTransform = curTransform.slice(curTransform.indexOf("(")+1, curTransform.indexOf(")")).split(",").map(Number);
-                            curTransform = {
-                                x: curTransform[0],
-                                y: curTransform[1]
-                            };
-                        }
                     }
 
                     origin = that.$el.offset();
@@ -245,11 +277,11 @@
                     start.y = end.y = d3.event.pageY - origin.top;
                 });
 
-                me.on("mousemove", function () {
+                me.on("mousemove.select", function () {
                     var x,
                         y;
 
-                    if (active || moving) {
+                    if (active) {
                         if (!dragging) {
                             dragging = true;
 
@@ -288,11 +320,6 @@
 
                         // Update the view.
                         that.renderNodes();
-                    } else if (moving) {
-                        curTransform.x += d3.event.movementX;
-                        curTransform.y += d3.event.movementY;
-
-                        me.select("g").attr("transform", "translate(" + curTransform.x + "," + curTransform.y + ")");
                     }
                 });
 
@@ -317,15 +344,14 @@
 
                     dragging = false;
                     active = false;
-                    moving = false;
                 };
 
                 // On mouseup, regardless of where the mouse is (as taken care
                 // of by the second handler below), go ahead and terminate the
                 // brushing movement.
-                me.on("mouseup", endBrush);
+                me.on("mouseup.select", endBrush);
                 d3.select(document)
-                    .on("mouseup", endBrush);
+                    .on("mouseup.select", endBrush);
             }());
 
             this.cola.start();
