@@ -56,6 +56,7 @@
             var nodeData = this.model.get("nodes"),
                 linkData = this.model.get("links"),
                 drag,
+                getTranslation,
                 me = d3.select(this.el),
                 that = this;
 
@@ -177,6 +178,38 @@
                     .attr("y2", _.compose(_.property("y"), _.property("target")));
             }, this));
 
+            window.getTranslation = getTranslation = function (s) {
+                var text = s.attr("transform"),
+                    result;
+
+                if (!text) {
+                    result = {
+                        x: 0,
+                        y: 0
+                    };
+                } else {
+                    // Extract the "translate" portion.
+                    text = _.find(text.split(), function (t) {
+                        return t.startsWith("translate");
+                    });
+
+                    if (!text) {
+                        result = {
+                            x: 0,
+                            y: 0
+                        };
+                    } else {
+                        text = text.slice(text.indexOf("(")+1, text.indexOf(")")).split(",").map(Number);
+                        result = {
+                            x: text[0],
+                            y: text[1]
+                        };
+                    }
+                }
+
+                return result;
+            };
+
             // Attach some selection actions to the background.
             (function () {
                 var active = false,
@@ -189,21 +222,7 @@
                     }
 
                     active = true;
-
-                    curTransform = me.select("g").attr("transform");
-
-                    if (!curTransform) {
-                        curTransform = {
-                            x: 0,
-                            y: 0
-                        };
-                    } else {
-                        curTransform = curTransform.slice(curTransform.indexOf("(")+1, curTransform.indexOf(")")).split(",").map(Number);
-                        curTransform = {
-                            x: curTransform[0],
-                            y: curTransform[1]
-                        };
-                    }
+                    curTransform = getTranslation(me.select("g"));
                 });
 
                 me.on("mousemove.pan", function () {
@@ -229,6 +248,7 @@
             (function () {
                 var dragging = false,
                     active = false,
+                    curTranslation,
                     origin,
                     selector,
                     start = {
@@ -259,6 +279,7 @@
 
                     active = true;
                     dragging = false;
+                    curTranslation = getTranslation(me.select("g"));
 
                     // If shift is not held at the beginning of the operation,
                     // then remove the current selection.
@@ -332,7 +353,7 @@
                         }
 
                         _.each(that.model.get("nodes"), function (node) {
-                            if (between(node.x, start.x, end.x) && between(node.y, start.y, end.y)) {
+                            if (between(node.x + curTranslation.x, start.x, end.x) && between(node.y + curTranslation.y, start.y, end.y)) {
                                 node.selected = true;
                                 that.selection.add(node.key);
                             }
