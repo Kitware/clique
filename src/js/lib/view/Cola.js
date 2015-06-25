@@ -283,7 +283,7 @@
 
                     // If shift is not held at the beginning of the operation,
                     // then remove the current selection.
-                    if (d3.event.ctrlKey) {
+                    if (!d3.event.shiftKey) {
                         _.each(that.model.get("nodes"), function (node) {
                             node.selected = false;
                             that.selection.remove(node.key);
