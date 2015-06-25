@@ -217,7 +217,8 @@
                     endMove;
 
                 me.on("mousedown.pan", function () {
-                    if (d3.event.ctrlKey || d3.event.shiftKey) {
+                    if (d3.event.which !== 2) {
+                        // Only pan on middle mouse click.
                         return;
                     }
 
@@ -273,7 +274,8 @@
                     };
 
                 me.on("mousedown.select", function () {
-                    if (!d3.event.ctrlKey && !d3.event.shiftKey) {
+                    if (d3.event.which !== 1) {
+                        // Only select on left mouse click.
                         return;
                     }
 
