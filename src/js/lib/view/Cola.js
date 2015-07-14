@@ -178,9 +178,97 @@
                     .attr("y2", _.compose(_.property("y"), _.property("target")));
             }, this));
 
-            window.getTranslation = getTranslation = function (s) {
-                var text = s.attr("transform"),
-                    result;
+            (function () {
+                var transform = [1, 0, 0, 1, 0, 0],
+                    pan,
+                    zoom;
+
+                pan = function (dx, dy) {
+                    transform[4] += dx;
+                    transform[5] += dy;
+
+                    me.select("g").attr("transform", "matrix(" + transform.join(" ") + ")");
+                };
+
+                zoom = function (s, c) {
+                    transform[0] *= s;
+                    transform[3] *= s;
+
+                    transform[4] *= s;
+                    transform[5] *= s;
+
+                    transform[4] += (1-s)*c[0];
+                    transform[5] += (1-s)*c[1];
+
+                    me.select("g").attr("transform", "matrix(" + transform.join(" ") + ")");
+                };
+
+                // Panning actions.
+                (function () {
+                    var active = false,
+                        endMove;
+
+                    me.on("mousedown.pan", function () {
+                        if (d3.event.which !== 2) {
+                            return;
+                        }
+
+                        active = true;
+                    });
+
+                    me.on("mousemove.pan", function () {
+                        if (!active) {
+                            return;
+                        }
+
+                        pan(d3.event.movementX, d3.event.movementY);
+                    });
+
+                    endMove = function () {
+                        active = false;
+                    };
+
+                    me.on("mouseup.pan", endMove);
+                    d3.select(document)
+                        .on("mouseup.pan", endMove);
+                }());
+
+                // Zooming actions.
+                (function () {
+                    var active = false,
+                        click,
+                        endZoom;
+
+                    me.on("mousedown.zoom", function () {
+                        if (d3.event.which !== 3) {
+                            // Only zoom on right mouse click.
+                            return;
+                        }
+
+                        active = true;
+                        click = [d3.event.pageX - that.$el.offset().left, d3.event.pageY - that.$el.offset().top];
+                    });
+
+                    me.on("mousemove.zoom", function () {
+                        if (!active) {
+                            return;
+                        }
+
+                        zoom(1 - d3.event.movementY / 100, click);
+                    });
+
+                    endZoom = function () {
+                        active = false;
+                    };
+
+                    me.on("mouseup.zoom", endZoom);
+                    d3.select(document)
+                        .on("mouseup.zoom", endZoom);
+                }());
+            }());
+
+            getTranslation = function (text) {
+                var result;
 
                 if (!text) {
                     result = {
@@ -189,7 +277,7 @@
                     };
                 } else {
                     // Extract the "translate" portion.
-                    text = _.find(text.split(), function (t) {
+                    text = _.find(text.split(" "), function (t) {
                         return t.startsWith("translate");
                     });
 
@@ -209,42 +297,6 @@
 
                 return result;
             };
-
-            // Attach some selection actions to the background.
-            (function () {
-                var active = false,
-                    curTransform,
-                    endMove;
-
-                me.on("mousedown.pan", function () {
-                    if (d3.event.which !== 2) {
-                        // Only pan on middle mouse click.
-                        return;
-                    }
-
-                    active = true;
-                    curTransform = getTranslation(me.select("g"));
-                });
-
-                me.on("mousemove.pan", function () {
-                    if (!active) {
-                        return;
-                    }
-
-                    curTransform.x += d3.event.movementX;
-                    curTransform.y += d3.event.movementY;
-
-                    me.select("g").attr("transform", "translate(" + curTransform.x + "," + curTransform.y + ")");
-                });
-
-                endMove = function () {
-                    active = false;
-                };
-
-                me.on("mouseup.pan", endMove);
-                d3.select(document)
-                    .on("mouseup.pan", endMove);
-            }());
 
             (function () {
                 var dragging = false,
@@ -281,7 +333,7 @@
 
                     active = true;
                     dragging = false;
-                    curTranslation = getTranslation(me.select("g"));
+                    curTranslation = getTranslation(me.select("g").attr("transform"));
 
                     // If shift is not held at the beginning of the operation,
                     // then remove the current selection.
