@@ -46,7 +46,7 @@ $(function () {
         switch (mode) {
         case "mongo": {
             window.graph = graph = new clique.Graph({
-                adapter: clique.adapter.Mongo,
+                adapter: tangelo.getPlugin("mongo").MongoXdata,
                 options: {
                     host: cfg.host || "localhost",
                     database: cfg.database || "year3_graphs",
