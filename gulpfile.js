@@ -145,7 +145,7 @@ gulp.task("default", [
     "assets"
 ]);
 
-gulp.task("serve", ["default"], function () {
+gulp.task("serve", function () {
     "use strict";
 
     var host = process.env.CLIQUE_HOST || "localhost",
