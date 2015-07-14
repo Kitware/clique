@@ -279,6 +279,7 @@
                         x: null,
                         y: null
                     },
+                    invMatMult,
                     endBrush,
                     between = function (val, low, high) {
                         var tmp;
@@ -361,13 +362,31 @@
                     }
                 });
 
+                invMatMult = function (m, p) {
+                    var s = 1/m[0],
+                        t = {x: -m[4]*s, y: -m[5]*s};
+
+                    return {
+                        x: s*p.x + t.x,
+                        y: s*p.y + t.y
+                    };
+                };
+
                 endBrush = function () {
+                    var matrix;
+
                     if (active) {
                         if (dragging) {
                             me.selectAll(".selector")
                                 .remove();
                             selector = null;
                         }
+
+                        // Transform the start and end coordinates of the
+                        // selector box.
+                        matrix = (me.select("g").attr("transform") || "matrix(1 0 0 1 0 0)").slice("matrix(".length, -1).split(" ").map(Number);
+                        start = invMatMult(matrix, start);
+                        end = invMatMult(matrix, end);
 
                         _.each(that.model.get("nodes"), function (node) {
                             if (between(node.x, start.x, end.x) && between(node.y, start.y, end.y)) {
