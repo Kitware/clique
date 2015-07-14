@@ -7,7 +7,38 @@ application included in this repository) to explore, manipulate, and annotate
 the graph, and the adapters' ability to perform *writebacks* to save the updated
 graph for later use.
 
-This document contains some information about Clique's API.
+This document contains some information about Clique's API and the example
+application that comes with Clique.
+
+## Example Application
+
+To build the example application, be sure NPM is installed on your system, along
+with Gulp (``npm install -g gulp``).  Then, install the Node dependencies (``npm
+install``), and finally run Gulp to build Clique and the example application
+(``gulp``).
+
+To run the application, use the Gulp serve task (``gulp serve``).  The
+application will be served at http://localhost:3000?mode=demo by default.
+
+### Interacting with the Application
+
+The example application runs with a random graph dataset consisting of nodes
+labeled with the letters of the English alphabet, with randomly chosen links
+between them.  To see a subset of the full graph, type a lower-case letter into
+the "Name" field, and a radius into the "Radius" field.  For instance, try ``s``
+and ``2``.
+
+You will now see the neighborhood of the chosen radius about the selected node,
+which will be colored yellow.  To examine the nodes in this graph, you can click
+on them to see some information about them.  You can also select several nodes
+at once by clicking and dragging the left mouse button on the background.
+Holding shift during this operation will add the newly selected nodes to the
+selection, while clicking once on the background will clear the entire
+selection.
+
+You can also pan and zoom around the graph.  Middle clicking on the background
+and then dragging will let you pan, while right clicking and dragging up or down
+will let you zoom.
 
 ## Clique API
 

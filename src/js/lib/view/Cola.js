@@ -166,34 +166,106 @@
                 .remove();
 
             this.cola.on("tick", _.bind(function () {
-                var width = this.$el.width(),
-                    height = this.$el.height(),
-                    clamp = function (value, low, high) {
-                        return value < low ? low : (value > high ? high : value);
-                    },
-                    clampX = _.partial(clamp, _, this.nodeRadius, width - this.nodeRadius),
-                    clampY = _.partial(clamp, _, this.nodeRadius, height - this.nodeRadius);
-
                 this.nodes
-                    .attr("cx", _.compose(clampX, _.property("x")))
-                    .attr("cy", _.compose(clampY, _.property("y")));
+                    .attr("cx", _.property("x"))
+                    .attr("cy", _.property("y"));
 
                 this.links
-                    .attr("x1", _.compose(clampX, function (d) {
-                        return d.source.x;
-                    }))
-                    .attr("y1", _.compose(clampY, function (d) {
-                        return d.source.y;
-                    }))
-                    .attr("x2", _.compose(clampX, function (d) {
-                        return d.target.x;
-                    }))
-                    .attr("y2", _.compose(clampY, function (d) {
-                        return d.target.y;
-                    }));
+                    .attr("x1", _.compose(_.property("x"), _.property("source")))
+                    .attr("y1", _.compose(_.property("y"), _.property("source")))
+                    .attr("x2", _.compose(_.property("x"), _.property("target")))
+                    .attr("y2", _.compose(_.property("y"), _.property("target")));
             }, this));
 
-            // Attach some selection actions to the background.
+            (function () {
+                var transform = [1, 0, 0, 1, 0, 0],
+                    pan,
+                    zoom;
+
+                pan = function (dx, dy) {
+                    transform[4] += dx;
+                    transform[5] += dy;
+
+                    me.select("g").attr("transform", "matrix(" + transform.join(" ") + ")");
+                };
+
+                zoom = function (s, c) {
+                    transform[0] *= s;
+                    transform[3] *= s;
+
+                    transform[4] *= s;
+                    transform[5] *= s;
+
+                    transform[4] += (1-s)*c[0];
+                    transform[5] += (1-s)*c[1];
+
+                    me.select("g").attr("transform", "matrix(" + transform.join(" ") + ")");
+                };
+
+                // Panning actions.
+                (function () {
+                    var active = false,
+                        endMove;
+
+                    me.on("mousedown.pan", function () {
+                        if (d3.event.which !== 2) {
+                            return;
+                        }
+
+                        active = true;
+                    });
+
+                    me.on("mousemove.pan", function () {
+                        if (!active) {
+                            return;
+                        }
+
+                        pan(d3.event.movementX, d3.event.movementY);
+                    });
+
+                    endMove = function () {
+                        active = false;
+                    };
+
+                    me.on("mouseup.pan", endMove);
+                    d3.select(document)
+                        .on("mouseup.pan", endMove);
+                }());
+
+                // Zooming actions.
+                (function () {
+                    var active = false,
+                        click,
+                        endZoom;
+
+                    me.on("mousedown.zoom", function () {
+                        if (d3.event.which !== 3) {
+                            // Only zoom on right mouse click.
+                            return;
+                        }
+
+                        active = true;
+                        click = [d3.event.pageX - that.$el.offset().left, d3.event.pageY - that.$el.offset().top];
+                    });
+
+                    me.on("mousemove.zoom", function () {
+                        if (!active) {
+                            return;
+                        }
+
+                        zoom(1 - d3.event.movementY / 100, click);
+                    });
+
+                    endZoom = function () {
+                        active = false;
+                    };
+
+                    me.on("mouseup.zoom", endZoom);
+                    d3.select(document)
+                        .on("mouseup.zoom", endZoom);
+                }());
+            }());
+
             (function () {
                 var dragging = false,
                     active = false,
@@ -207,6 +279,7 @@
                         x: null,
                         y: null
                     },
+                    invMatMult,
                     endBrush,
                     between = function (val, low, high) {
                         var tmp;
@@ -220,7 +293,12 @@
                         return low < val && val < high;
                     };
 
-                me.on("mousedown", function () {
+                me.on("mousedown.select", function () {
+                    if (d3.event.which !== 1) {
+                        // Only select on left mouse click.
+                        return;
+                    }
+
                     active = true;
                     dragging = false;
 
@@ -241,70 +319,85 @@
                     start.y = end.y = d3.event.pageY - origin.top;
                 });
 
-                me.on("mousemove", function () {
+                me.on("mousemove.select", function () {
                     var x,
                         y;
 
-                    if (!active) {
-                        return;
+                    if (active) {
+                        if (!dragging) {
+                            dragging = true;
+
+                            // Instantiate an SVG rect to act as the selector range.
+                            if (active) {
+                                selector = me.append("rect")
+                                    .classed("selector", true)
+                                    .attr("x", start.x)
+                                    .attr("y", start.y)
+                                    .attr("width", 0)
+                                    .attr("height", 0)
+                                    .style("opacity", 0.1)
+                                    .style("fill", "black");
+                            }
+                        }
+
+                        end.x = x = d3.event.pageX - origin.left;
+                        end.y = y = d3.event.pageY - origin.top;
                     }
 
-                    if (!dragging) {
-                        dragging = true;
+                    if (active) {
+                        // Resize the rect to reflect the current mouse position
+                        if (x > start.x) {
+                            selector.attr("width", x - start.x);
+                        } else {
+                            selector.attr("width", start.x - x)
+                                .attr("x", x);
+                        }
 
-                        // Instantiate an SVG rect to act as the selector range.
-                        selector = me.append("rect")
-                            .classed("selector", true)
-                            .attr("x", start.x)
-                            .attr("y", start.y)
-                            .attr("width", 0)
-                            .attr("height", 0)
-                            .style("opacity", 0.1)
-                            .style("fill", "black");
+                        if (y > start.y) {
+                            selector.attr("height", y - start.y);
+                        } else {
+                            selector.attr("height", start.y - y)
+                                .attr("y", y);
+                        }
                     }
-
-                    end.x = x = d3.event.pageX - origin.left;
-                    end.y = y = d3.event.pageY - origin.top;
-
-                    // Resize the rect to reflect the current mouse position
-                    if (x > start.x) {
-                        selector.attr("width", x - start.x);
-                    } else {
-                        selector.attr("width", start.x - x)
-                            .attr("x", x);
-                    }
-
-                    if (y > start.y) {
-                        selector.attr("height", y - start.y);
-                    } else {
-                        selector.attr("height", start.y - y)
-                            .attr("y", y);
-                    }
-
-                    // Update the view.
-                    that.renderNodes();
                 });
 
+                invMatMult = function (m, p) {
+                    var s = 1/m[0],
+                        t = {x: -m[4]*s, y: -m[5]*s};
+
+                    return {
+                        x: s*p.x + t.x,
+                        y: s*p.y + t.y
+                    };
+                };
+
                 endBrush = function () {
-                    if (!active) {
-                        return;
-                    }
+                    var matrix;
 
-                    if (dragging) {
-                        me.selectAll(".selector")
-                            .remove();
-                        selector = null;
-                    }
-
-                    _.each(that.model.get("nodes"), function (node) {
-                        if (between(node.x, start.x, end.x) && between(node.y, start.y, end.y)) {
-                            node.selected = true;
-                            that.selection.add(node.key);
+                    if (active) {
+                        if (dragging) {
+                            me.selectAll(".selector")
+                                .remove();
+                            selector = null;
                         }
-                    });
 
-                    // Update the view.
-                    that.renderNodes();
+                        // Transform the start and end coordinates of the
+                        // selector box.
+                        matrix = (me.select("g").attr("transform") || "matrix(1 0 0 1 0 0)").slice("matrix(".length, -1).split(" ").map(Number);
+                        start = invMatMult(matrix, start);
+                        end = invMatMult(matrix, end);
+
+                        _.each(that.model.get("nodes"), function (node) {
+                            if (between(node.x, start.x, end.x) && between(node.y, start.y, end.y)) {
+                                node.selected = true;
+                                that.selection.add(node.key);
+                            }
+                        });
+
+                        // Update the view.
+                        that.renderNodes();
+                    }
 
                     dragging = false;
                     active = false;
@@ -313,9 +406,9 @@
                 // On mouseup, regardless of where the mouse is (as taken care
                 // of by the second handler below), go ahead and terminate the
                 // brushing movement.
-                me.on("mouseup", endBrush);
+                me.on("mouseup.select", endBrush);
                 d3.select(document)
-                    .on("mouseup", endBrush);
+                    .on("mouseup.select", endBrush);
             }());
 
             this.cola.start();
