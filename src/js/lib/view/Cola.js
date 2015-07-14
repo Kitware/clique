@@ -392,9 +392,6 @@
                             selector.attr("height", start.y - y)
                                 .attr("y", y);
                         }
-
-                        // Update the view.
-                        that.renderNodes();
                     }
                 });
 
