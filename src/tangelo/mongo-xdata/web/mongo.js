@@ -1,8 +1,8 @@
 (function (clique, $, _, Backbone, tangelo) {
     "use strict";
 
-    tangelo.getPlugin("mongo").MongoXdata = function (cfg) {
-        var findNodesService = "plugin/mongo/findNodes",
+    tangelo.getPlugin("mongo-xdata").MongoXdata = function (cfg) {
+        var findNodesService = "plugin/mongo-xdata/findNodes",
             mutators = {},
             mongoStore = {
                 host: cfg.host || "localhost",
@@ -50,7 +50,7 @@
                 options.center = options.center.key();
                 options = _.extend(options, mongoStore);
 
-                return $.getJSON("plugin/mongo/neighborhood", options)
+                return $.getJSON("plugin/mongo-xdata/neighborhood", options)
                    .then(_.bind(function (results) {
                        var def = new $.Deferred();
 
@@ -87,7 +87,7 @@
                     });
 
                     this.listenTo(mutators[key], "changed", function (mutator, prop, value) {
-                        $.getJSON("plugin/mongo/update", _.extend({
+                        $.getJSON("plugin/mongo-xdata/update", _.extend({
                             key: mutator.key(),
                             prop: prop,
                             value: value

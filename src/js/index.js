@@ -41,12 +41,12 @@ $(function () {
             mode,
             info;
 
-        mode = tangelo.queryArguments().mode || "mongo";
+        mode = tangelo.queryArguments().mode || "mongo-xdata";
 
         switch (mode) {
-        case "mongo": {
+        case "mongo-xdata": {
             window.graph = graph = new clique.Graph({
-                adapter: tangelo.getPlugin("mongo").MongoXdata,
+                adapter: tangelo.getPlugin("mongo-xdata").MongoXdata,
                 options: {
                     host: cfg.host || "localhost",
                     database: cfg.database || "year3_graphs",
