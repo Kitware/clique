@@ -120,5 +120,5 @@ $(function () {
         info.render();
     };
 
-    $.getJSON("clique.yaml").then(launch, _.bind(launch, {}));
+    $.getJSON("clique.json").then(launch, _.bind(launch, {}));
 });
