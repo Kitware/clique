@@ -38,13 +38,12 @@ $(function () {
         var graphData,
             graph,
             view,
-            qargs,
             mode,
             info;
 
-        qargs = tangelo.queryArguments();
+        mode = tangelo.queryArguments().mode || "demo";
 
-        if (_.has(qargs, "demo")) {
+        if (mode === "demo") {
             mode = "demo";
 
             graphData = randomGraph(26, 0.20);
@@ -53,7 +52,7 @@ $(function () {
                 adapter: clique.adapter.NodeLinkList,
                 options: graphData
             });
-        } else if (_.has(qargs, "xdata")) {
+        } else if (mode === "xdata") {
             mode = "xdata";
 
             window.graph = graph = new clique.Graph({
@@ -64,7 +63,7 @@ $(function () {
                     collection: cfg.xdataCollection || "mentions_monica_nino_2hop_mar12"
                 }
             });
-        } else if (_.has(qargs, "mongo")) {
+        } else if (mode === "mongo") {
             mode = "mongo";
 
             graph = new clique.Graph({
@@ -75,8 +74,6 @@ $(function () {
                     collection: cfg.mongoCollection || "twittermentions"
                 }
             });
-        } else {
-            window.location = window.location.href + "?demo";
         }
 
         $("#seed").on("click", function () {
