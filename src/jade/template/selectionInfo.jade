@@ -3,7 +3,7 @@ mixin item(key, value)
         td.text-right: strong= key
         td= value
 
-.container.noclick
+.container.full-width
     if _.isUndefined(node)
         em (Selection is empty)
     else
@@ -15,7 +15,7 @@ mixin item(key, value)
                 li.next
                     a(aria-label="Next").virtual-link.next
                         span(aria-hidden="true") &raquo;
-        .container.noclick
+        .container.full-width
             .row
                 .col-md-1
                     table.table.table-striped.table-bordered
