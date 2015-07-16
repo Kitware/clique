@@ -1,6 +1,8 @@
 hostip=`netstat -rn | grep '^0.0.0.0' | awk '{print $2}'`
 cat <<EOF
 {
+    "mode": "mongo",
+
     "xdataHost": "${hostip}",
     "xdataDatabase": "year3_graphs",
     "xdataCollection": "mentions_monica_nino_2hop_mar12",

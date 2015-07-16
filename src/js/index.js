@@ -41,7 +41,7 @@ $(function () {
             mode,
             info;
 
-        mode = tangelo.queryArguments().mode || "demo";
+        mode = tangelo.queryArguments().mode || cfg.mode || "demo";
 
         if (mode === "demo") {
             mode = "demo";
