@@ -18,7 +18,7 @@ mixin item(key, value)
         .container.full-width
             .row
                 .col-md-1
-                    table.table.table-striped.table-bordered
+                    table.table.table-striped.table-bordered.select-ok
                         +item("key", node.key())
                         for item in node.getAllData()
                             +item(item[0], item[1])
