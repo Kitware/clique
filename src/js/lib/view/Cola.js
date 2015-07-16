@@ -240,6 +240,12 @@
 
                     zoom(factor, [d3.event.pageX - that.$el.offset().left, d3.event.pageY - that.$el.offset().top]);
                 });
+
+                d3.select(document.body)
+                    .on("wheel", function () {
+                        d3.event.preventDefault();
+                        d3.event.stopPropagation();
+                    });
             }());
 
             (function () {
