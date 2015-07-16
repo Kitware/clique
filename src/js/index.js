@@ -41,34 +41,44 @@ $(function () {
             mode,
             info;
 
-        mode = tangelo.queryArguments().mode || "mongo";
+        mode = tangelo.queryArguments().mode || cfg.mode || "demo";
 
-        switch (mode) {
-        case "mongo": {
-            window.graph = graph = new clique.Graph({
-                adapter: clique.adapter.Mongo,
-                options: {
-                    host: cfg.host || "localhost",
-                    database: cfg.database || "year3_graphs",
-                    collection: cfg.collection || "mentions_monica_nino_2hop_mar12"
-                }
-            });
-            break;
-        }
+        if (mode === "demo") {
+            mode = "demo";
 
-        default: {
             graphData = randomGraph(26, 0.20);
 
             window.graph = graph = new clique.Graph({
                 adapter: clique.adapter.NodeLinkList,
                 options: graphData
             });
-            break;
-        }
+        } else if (mode === "xdata") {
+            mode = "xdata";
+
+            window.graph = graph = new clique.Graph({
+                adapter: tangelo.getPlugin("mongo-xdata").MongoXdata,
+                options: {
+                    host: cfg.xdataHost || "localhost",
+                    database: cfg.xdataDatabase || "year3_graphs",
+                    collection: cfg.xdataCollection || "mentions_monica_nino_2hop_mar12"
+                }
+            });
+        } else if (mode === "mongo") {
+            mode = "mongo";
+
+            graph = new clique.Graph({
+                adapter: tangelo.getPlugin("mongo").Mongo,
+                options: {
+                    host: cfg.mongoHost || "localhost",
+                    database: cfg.mongoDatabase || "year3_graphs",
+                    collection: cfg.mongoCollection || "twittermentions"
+                }
+            });
         }
 
         $("#seed").on("click", function () {
             var name = $("#name").val().trim(),
+                spec = {},
                 radiusText = $("#radius").val().trim(),
                 radius = Number(radiusText),
                 delsearch = $("#delsearch").prop("checked");
@@ -77,7 +87,8 @@ $(function () {
                 return;
             }
 
-            graph.adapter.findNode({name: name})
+            spec[mode === "xdata" ? "username" : "name"] = name;
+            graph.adapter.findNode(spec)
                 .then(function (center) {
                     if (center) {
                         graph.addNeighborhood({
@@ -106,5 +117,5 @@ $(function () {
         info.render();
     };
 
-    $.getJSON("clique.yaml").then(launch, _.bind(launch, {}));
+    $.getJSON("clique.json").then(launch, _.bind(launch, {}));
 });

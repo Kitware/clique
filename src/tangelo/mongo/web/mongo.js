@@ -1,7 +1,7 @@
-(function (clique, $, _, Backbone) {
+(function (clique, $, _, Backbone, tangelo) {
     "use strict";
 
-    clique.adapter.Mongo = function (cfg) {
+    tangelo.getPlugin("mongo").Mongo = function (cfg) {
         var findNodesService = "plugin/mongo/findNodes",
             mutators = {},
             mongoStore = {
@@ -99,4 +99,4 @@
             }
         }, Backbone.Events);
     };
-}(window.clique, window.jQuery, window._, window.Backbone));
+}(window.clique, window.jQuery, window._, window.Backbone, window.tangelo));

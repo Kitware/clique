@@ -5,7 +5,16 @@ from pymongo import MongoClient
 
 
 def freeze(rec):
-    return (rec["_id"], bson.json_util.dumps(rec))
+    return (str(rec["_id"]), rec["data"]["id"], bson.json_util.dumps(rec))
+
+
+def process(frozen):
+    rec = json.loads(frozen[2])
+
+    processed = {"key": rec["_id"]["$oid"]}
+    processed.update(rec["data"])
+
+    return processed
 
 
 def run(host=None, db=None, coll=None, center=None, radius=None, deleted=json.dumps(False)):
@@ -35,23 +44,22 @@ def run(host=None, db=None, coll=None, center=None, radius=None, deleted=json.du
         new_frontier = set()
 
         # Compute the next frontier from the current frontier.
-        for node in frontier:
-            id = node[0]
-
+        for key, id, _ in frontier:
             # Find all incoming and outgoing links from all nodes in the
             # frontier.
             query = {"$and": [{"type": "link"},
-                              {"$or": [{"source": id},
-                                       {"target": id}]}]}
+                              {"$or": [{"data.source": id},
+                                       {"data.target": id}]}]}
 
             links = graph.find(query)
 
             # Collect the neighbors of the node, and add them to the new
             # frontier if appropriate.
             for link in links:
-                source = link["source"] == id
-                neighbor_id = source and link["target"] or link["source"]
-                query_clauses = [{"_id": neighbor_id}]
+                source = link["data"]["source"] == id
+                neighbor_id = source and link["data"]["target"] or link["data"]["source"]
+                query_clauses = [{"type": "node"},
+                                 {"data.id": neighbor_id}]
                 if not deleted:
                     query_clauses.append({"$or": [{"data.deleted": {"$exists": False}},
                                                   {"data.deleted": False}]})
@@ -63,16 +71,17 @@ def run(host=None, db=None, coll=None, center=None, radius=None, deleted=json.du
                         neighbor_nodes.add(frozen)
 
                     if source:
-                        neighbor_link = {"source": str(id),
-                                         "target": str(frozen[0])}
+                        neighbor_link = {"source": key,
+                                         "target": str(neighbor["_id"])}
                     else:
-                        neighbor_link = {"source": str(frozen[0]),
-                                         "target": str(id)}
+                        neighbor_link = {"source": str(neighbor["_id"]),
+                                         "target": key}
                     neighbor_links.append(neighbor_link)
 
             frontier = new_frontier
 
-    processed = map(lambda x: json.loads(x[1]), neighbor_nodes)
+    # processed = map(process, neighbor_nodes)
+    processed = map(lambda x: json.loads(x[2]), neighbor_nodes)
 
     return {"nodes": processed,
             "links": neighbor_links}

@@ -28,7 +28,7 @@ RUN git config --global url."https://".insteadOf git://
 RUN ln -s /usr/bin/nodejs /usr/bin/node
 
 # Clone the repo.
-RUN git clone git://github.com/XDATA-Year-3/clique.git
+RUN git clone git://github.com/Kitware/clique.git
 
 # Install gulp.
 RUN npm install -g gulp
@@ -59,4 +59,4 @@ ENV CLIQUE_HOST 0.0.0.0
 ENV CLIQUE_PORT 3000
 
 # Start the clique application when this image is run.
-CMD ["sh", "-c", "sh /home/tangelo/hostip.sh >build/site/clique.yaml && /bin/bash && gulp serve"]
+CMD ["sh", "-c", "sh /home/tangelo/hostip.sh >build/site/clique.json && /bin/bash && gulp serve"]
