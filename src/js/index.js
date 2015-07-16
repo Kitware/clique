@@ -71,7 +71,7 @@ $(function () {
                 adapter: tangelo.getPlugin("mongo").Mongo,
                 options: {
                     host: cfg.mongoHost || "localhost",
-                    database: cfg.mongoDatabase || "roni",
+                    database: cfg.mongoDatabase || "year3_graphs",
                     collection: cfg.mongoCollection || "twittermentions"
                 }
             });
