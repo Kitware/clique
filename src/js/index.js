@@ -56,6 +56,18 @@ $(function () {
             break;
         }
 
+        case "mongo": {
+            graph = new clique.Graph({
+                adapter: tangelo.getPlugin("mongo").Mongo,
+                options: {
+                    host: "localhost",
+                    database: "roni",
+                    collection: "twittermentions"
+                }
+            });
+            break;
+        }
+
         default: {
             graphData = randomGraph(26, 0.20);
 
@@ -69,6 +81,7 @@ $(function () {
 
         $("#seed").on("click", function () {
             var name = $("#name").val().trim(),
+                spec = {},
                 radiusText = $("#radius").val().trim(),
                 radius = Number(radiusText),
                 delsearch = $("#delsearch").prop("checked");
@@ -77,7 +90,8 @@ $(function () {
                 return;
             }
 
-            graph.adapter.findNode({name: name})
+            spec[mode === "mongo-xdata" ? "username" : "name"] = name;
+            graph.adapter.findNode(spec)
                 .then(function (center) {
                     if (center) {
                         graph.addNeighborhood({

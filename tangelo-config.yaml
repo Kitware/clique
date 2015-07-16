@@ -1,4 +1,6 @@
 plugins:
     - name: mongo-xdata
       path: src/tangelo/mongo-xdata
+    - name: mongo
+      path: src/tangelo/mongo
     - name: tangelo
