@@ -208,7 +208,7 @@
                         endMove;
 
                     me.on("mousedown.pan", function () {
-                        if (d3.event.which !== 2) {
+                        if (d3.event.which !== 3) {
                             return;
                         }
 
@@ -232,38 +232,20 @@
                         .on("mouseup.pan", endMove);
                 }());
 
-                // Zooming actions.
-                (function () {
-                    var active = false,
-                        click,
-                        endZoom;
+                me.on("wheel.zoom", function () {
+                    var factor = 1 + Math.abs(d3.event.deltaY) / 200;
+                    if (d3.event.deltaY > 0) {
+                        factor = 1 / factor;
+                    }
 
-                    me.on("mousedown.zoom", function () {
-                        if (d3.event.which !== 3) {
-                            // Only zoom on right mouse click.
-                            return;
-                        }
+                    zoom(factor, [d3.event.pageX - that.$el.offset().left, d3.event.pageY - that.$el.offset().top]);
+                });
 
-                        active = true;
-                        click = [d3.event.pageX - that.$el.offset().left, d3.event.pageY - that.$el.offset().top];
+                d3.select(document.body)
+                    .on("wheel", function () {
+                        d3.event.preventDefault();
+                        d3.event.stopPropagation();
                     });
-
-                    me.on("mousemove.zoom", function () {
-                        if (!active) {
-                            return;
-                        }
-
-                        zoom(1 - d3.event.movementY / 100, click);
-                    });
-
-                    endZoom = function () {
-                        active = false;
-                    };
-
-                    me.on("mouseup.zoom", endZoom);
-                    d3.select(document)
-                        .on("mouseup.zoom", endZoom);
-                }());
             }());
 
             (function () {

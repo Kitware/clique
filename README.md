@@ -36,8 +36,8 @@ Holding shift during this operation will add the newly selected nodes to the
 selection, while clicking once on the background will clear the entire
 selection.
 
-You can also pan and zoom around the graph.  Middle clicking on the background
-and then dragging will let you pan, while right clicking and dragging up or down
+You can also pan and zoom around the graph.  Right clicking on the background
+and then dragging will let you pan, while rolling the mouse wheel up and down
 will let you zoom.
 
 ## Clique API
