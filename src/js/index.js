@@ -38,45 +38,45 @@ $(function () {
         var graphData,
             graph,
             view,
+            qargs,
             mode,
             info;
 
-        mode = tangelo.queryArguments().mode || "mongo-xdata";
+        qargs = tangelo.queryArguments();
 
-        switch (mode) {
-        case "mongo-xdata": {
-            window.graph = graph = new clique.Graph({
-                adapter: tangelo.getPlugin("mongo-xdata").MongoXdata,
-                options: {
-                    host: cfg.host || "localhost",
-                    database: cfg.database || "year3_graphs",
-                    collection: cfg.collection || "mentions_monica_nino_2hop_mar12"
-                }
-            });
-            break;
-        }
+        if (_.has(qargs, "demo")) {
+            mode = "demo";
 
-        case "mongo": {
-            graph = new clique.Graph({
-                adapter: tangelo.getPlugin("mongo").Mongo,
-                options: {
-                    host: "localhost",
-                    database: "roni",
-                    collection: "twittermentions"
-                }
-            });
-            break;
-        }
-
-        default: {
             graphData = randomGraph(26, 0.20);
 
             window.graph = graph = new clique.Graph({
                 adapter: clique.adapter.NodeLinkList,
                 options: graphData
             });
-            break;
-        }
+        } else if (_.has(qargs, "xdata")) {
+            mode = "xdata";
+
+            window.graph = graph = new clique.Graph({
+                adapter: tangelo.getPlugin("mongo-xdata").MongoXdata,
+                options: {
+                    host: cfg.xdataHost || "localhost",
+                    database: cfg.xdataDatabase || "year3_graphs",
+                    collection: cfg.xdataCollection || "mentions_monica_nino_2hop_mar12"
+                }
+            });
+        } else if (_.has(qargs, "mongo")) {
+            mode = "mongo";
+
+            graph = new clique.Graph({
+                adapter: tangelo.getPlugin("mongo").Mongo,
+                options: {
+                    host: cfg.mongoHost || "localhost",
+                    database: cfg.mongoDatabase || "roni",
+                    collection: cfg.mongoCollection || "twittermentions"
+                }
+            });
+        } else {
+            window.location = window.location.href + "?demo";
         }
 
         $("#seed").on("click", function () {
@@ -90,7 +90,7 @@ $(function () {
                 return;
             }
 
-            spec[mode === "mongo-xdata" ? "username" : "name"] = name;
+            spec[mode === "xdata" ? "username" : "name"] = name;
             graph.adapter.findNode(spec)
                 .then(function (center) {
                     if (center) {
