@@ -70,13 +70,13 @@ def run(host=None, db=None, coll=None, center=None, radius=None, deleted=json.du
                         new_frontier.add(frozen)
                         neighbor_nodes.add(frozen)
 
-                        if source:
-                            neighbor_link = {"source": key,
-                                             "target": str(neighbor["_id"])}
-                        else:
-                            neighbor_link = {"source": str(neighbor["_id"]),
-                                             "target": key}
-                        neighbor_links.append(neighbor_link)
+                    if source:
+                        neighbor_link = {"source": key,
+                                         "target": str(neighbor["_id"])}
+                    else:
+                        neighbor_link = {"source": str(neighbor["_id"]),
+                                         "target": key}
+                    neighbor_links.append(neighbor_link)
 
             frontier = new_frontier
 
