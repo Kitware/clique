@@ -28,7 +28,7 @@ RUN git config --global url."https://".insteadOf git://
 RUN ln -s /usr/bin/nodejs /usr/bin/node
 
 # Clone the repo.
-RUN git clone git://github.com/Kitware/clique.git -b reorg
+RUN git clone git://github.com/Kitware/clique.git
 
 # Install gulp.
 RUN npm install -g gulp
