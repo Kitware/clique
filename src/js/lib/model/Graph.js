@@ -156,6 +156,20 @@
                 nodes: newNodes,
                 links: newLinks
             });
+        },
+
+        inDegree: function (key) {
+            var neighbors = this.back.items(key);
+            return neighbors && _.size(neighbors) || -1;
+        },
+
+        outDegree: function (key) {
+            var neighbors = this.forward.items(key);
+            return neighbors && _.size(neighbors) || -1;
+        },
+
+        degree: function (key) {
+            return this.inDegree(key) + this.outDegree(key);
         }
     });
 }(window.clique, window.Backbone, window._));
