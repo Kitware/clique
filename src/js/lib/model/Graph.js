@@ -169,7 +169,14 @@
         },
 
         degree: function (key) {
-            return this.inDegree(key) + this.outDegree(key);
+            var ind = this.inDegree(key),
+                outd = this.outDegree(key);
+
+            if (ind < 0 && outd < 0) {
+                return -1;
+            }
+
+            return (ind < 0 ? 0 : ind) + (outd < 0 ? 0 : outd);
         }
     });
 }(window.clique, window.Backbone, window._));
