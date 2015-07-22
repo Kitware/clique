@@ -158,6 +158,25 @@
             });
         },
 
+        inNeighbors: function (key) {
+            return _.clone(this.back.items(key));
+        },
+
+        outNeighbors: function (key) {
+            return _.clone(this.forward.items(key));
+        },
+
+        neighbors: function (key) {
+            var inn = this.inNeighbors(key),
+                outn = this.outNeighbors(key);
+
+            if (_.isUndefined(inn) && _.isUndefined(outn)) {
+                return undefined;
+            }
+
+            return (inn || []).concat(outn || []);
+        },
+
         inDegree: function (key) {
             var neighbors = this.back.items(key);
             return neighbors && _.size(neighbors) || -1;
