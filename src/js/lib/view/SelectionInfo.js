@@ -128,6 +128,12 @@
                 this.$("button.collapser").on("click", _.bind(function () {
                     this.collapseNode(this.model.focused());
                 }, this));
+
+                this.$("button.collapser-sel").on("click", _.bind(function () {
+                    _.each(this.model.items(), function (key) {
+                        this.collapseNode(key);
+                    }, this);
+                }, this));
             }, this);
 
             focused = this.model.focused();
