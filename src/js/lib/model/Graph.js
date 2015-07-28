@@ -156,6 +156,50 @@
                 nodes: newNodes,
                 links: newLinks
             });
+        },
+
+        inNeighbors: function (key) {
+            return _.clone(this.back.items(key));
+        },
+
+        outNeighbors: function (key) {
+            return _.clone(this.forward.items(key));
+        },
+
+        neighbors: function (key) {
+            var inn = this.inNeighbors(key),
+                outn = this.outNeighbors(key),
+                nbs;
+
+            if (_.isUndefined(inn) && _.isUndefined(outn)) {
+                return undefined;
+            }
+
+            nbs = new clique.util.Set();
+            _.each((inn || []).concat(outn || []), nbs.add, nbs);
+
+            return nbs.items();
+        },
+
+        inDegree: function (key) {
+            var neighbors = this.back.items(key);
+            return neighbors && _.size(neighbors) || -1;
+        },
+
+        outDegree: function (key) {
+            var neighbors = this.forward.items(key);
+            return neighbors && _.size(neighbors) || -1;
+        },
+
+        degree: function (key) {
+            var ind = this.inDegree(key),
+                outd = this.outDegree(key);
+
+            if (ind < 0 && outd < 0) {
+                return -1;
+            }
+
+            return (ind < 0 ? 0 : ind) + (outd < 0 ? 0 : outd);
         }
     });
 }(window.clique, window.Backbone, window._));

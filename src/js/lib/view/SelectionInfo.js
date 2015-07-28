@@ -44,6 +44,28 @@
             });
         },
 
+        collapseNode: function (node) {
+            var loners,
+                mutators;
+
+            // Find all neighbors of the node that have exactly one neighbor.
+            loners = _.filter(this.graph.neighbors(node), function (nbr) {
+                return _.size(this.graph.neighbors(nbr)) === 1;
+            }, this);
+
+            // Extract the mutator objects for these nodes.
+            mutators = _.map(loners, function (key) {
+                return this.graph.adapter.getMutator({
+                    _id: {
+                        $oid: key
+                    }
+                });
+            }, this);
+
+            // Hide them.
+            _.each(mutators, _.partial(this.hideNode, _, false), this);
+        },
+
         render: function () {
             var focused,
                 renderTemplate;
@@ -51,6 +73,7 @@
             renderTemplate = _.bind(function (node) {
                 this.$el.html(clique.template.selectionInfo({
                     node: node,
+                    degree: node ? this.graph.degree(node.key()) : -1,
                     selectionSize: this.model.size()
                 }));
 
@@ -100,6 +123,16 @@
                         this.graph.adapter.findNode({ key: key})
                             .then(_.bind(this.expandNode, this));
                     }, this));
+                }, this));
+
+                this.$("button.collapser").on("click", _.bind(function () {
+                    this.collapseNode(this.model.focused());
+                }, this));
+
+                this.$("button.collapser-sel").on("click", _.bind(function () {
+                    _.each(this.model.items(), function (key) {
+                        this.collapseNode(key);
+                    }, this);
                 }, this));
             }, this);
 
