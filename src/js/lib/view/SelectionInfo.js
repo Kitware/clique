@@ -48,9 +48,9 @@
             var loners,
                 mutators;
 
-            // Find all neighbors of the node that have degree 1.
+            // Find all neighbors of the node that have exactly one neighbor.
             loners = _.filter(this.graph.neighbors(node), function (nbr) {
-                return this.graph.degree(nbr) === 1;
+                return _.size(this.graph.neighbors(nbr)) === 1;
             }, this);
 
             // Extract the mutator objects for these nodes.

@@ -168,13 +168,17 @@
 
         neighbors: function (key) {
             var inn = this.inNeighbors(key),
-                outn = this.outNeighbors(key);
+                outn = this.outNeighbors(key),
+                nbs;
 
             if (_.isUndefined(inn) && _.isUndefined(outn)) {
                 return undefined;
             }
 
-            return (inn || []).concat(outn || []);
+            nbs = new clique.util.Set();
+            _.each((inn || []).concat(outn || []), nbs.add, nbs);
+
+            return nbs.items();
         },
 
         inDegree: function (key) {
