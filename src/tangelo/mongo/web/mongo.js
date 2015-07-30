@@ -42,6 +42,53 @@
                     }, this));
             },
 
+            findLinks: function (spec) {
+                var data = _.extend({
+                    spec: JSON.stringify(spec),
+                    singleton: JSON.stringify(false)
+                }, mongoStore);
+
+                return $.getJSON("plugin/mongo/findLinks", data)
+                    .then(_.bind(function (results) {
+                        var def = new $.Deferred();
+
+                        def.resolve(_.map(results, this.getMutator, this));
+                        return def;
+                    }, this));
+            },
+
+            findLink: function (spec) {
+                var data = _.extend({
+                    spec: JSON.stringify(spec),
+                    singleton: JSON.stringify(true)
+                }, mongoStore);
+
+                return $.getJSON("plugin/mongo/findLinks", data)
+                    .then(_.bind(function (result) {
+                        var def = new $.Deferred();
+
+                        def.resolve(result && this.getMutator(result));
+                        return def;
+                    }, this));
+            },
+
+            newNode: function (metadata) {
+                var data = _.extend({
+                    data: metadata ? JSON.stringify(metadata) : "{}"
+                }, mongoStore);
+                return $.getJSON("plugin/mongo/newNode", data);
+            },
+
+            newLink: function (source, target, metadata) {
+                var data = _.extend({
+                    source: source,
+                    target: target,
+                    data: metadata ? JSON.stringify(metadata) : "{}"
+                }, mongoStore);
+
+                return $.getJSON("plugin/mongo/newLink", data);
+            },
+
             neighborhood: function (options) {
                 clique.util.require(options.center, "center");
                 clique.util.require(options.radius, "radius");

@@ -66,7 +66,7 @@ $(function () {
         } else if (mode === "mongo") {
             mode = "mongo";
 
-            graph = new clique.Graph({
+            window.graph = graph = new clique.Graph({
                 adapter: tangelo.getPlugin("mongo").Mongo,
                 options: {
                     host: cfg.mongoHost || "localhost",

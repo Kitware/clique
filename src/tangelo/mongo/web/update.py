@@ -1,19 +1,7 @@
 from bson.objectid import ObjectId
 from pymongo import MongoClient
 
-
-def readValue(value):
-    try:
-        return float(value)
-    except ValueError:
-        pass
-
-    try:
-        return int(value)
-    except ValueError:
-        pass
-
-    return value
+from tangelo.plugin.mongo.util import readValue
 
 
 def run(host=None, db=None, coll=None, key=None, prop=None, value=None):

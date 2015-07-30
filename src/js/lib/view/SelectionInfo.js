@@ -1,6 +1,8 @@
 (function (clique, Backbone, _) {
     "use strict";
 
+    var $ = Backbone.$;
+
     clique.view.SelectionInfo = Backbone.View.extend({
         initialize: function (options) {
             var debRender;
@@ -64,6 +66,61 @@
 
             // Hide them.
             _.each(mutators, _.partial(this.hideNode, _, false), this);
+        },
+
+        groupNodes: function (nodes) {
+            var mut;
+
+            // Construct a new node with special properties.
+            this.graph.adapter.newNode({
+                grouped: true
+            }).then(_.bind(function (mongoRec) {
+                mut = this.graph.adapter.getMutator(mongoRec);
+
+                // Find all links to/from the nodes in the group.
+                return $.when.apply($, _.flatten(_.map(nodes, _.bind(function (node) {
+                    return [
+                        this.graph.adapter.findLinks({
+                            source: node
+                        }),
+                        this.graph.adapter.findLinks({
+                            target: node
+                        })
+                    ];
+                }, this)), true));
+            }, this)).then(_.bind(function (links) {
+                var nodeSet = new clique.util.Set(),
+                    addLinks = [];
+
+                _.each(nodes, _.bind(function (node) {
+                    nodeSet.add(node);
+
+                    // Add an "inclusion" link between the group node and
+                    // constituents.
+                    addLinks.push(this.graph.adapter.newLink(mut.key(), node, {
+                        grouping: true
+                    }));
+                }, this));
+
+                _.each(links, _.bind(function (link) {
+                    var source = link.getTransient("source"),
+                        target = link.getTransient("target");
+
+                    if (!nodeSet.has(source)) {
+                        addLinks.push(this.graph.adapter.newLink(mut.key(), source));
+                    }
+
+                    if (!nodeSet.has(link.getTransient("target"))) {
+                        addLinks.push(this.graph.adapter.newLink(mut.key(), target));
+                    }
+                }, this));
+
+                return $.when.apply($, addLinks);
+            }, this));
+        },
+
+        ungroupNode: function (node) {
+            console.log(node);
         },
 
         render: function () {
@@ -133,6 +190,10 @@
                     _.each(this.model.items(), function (key) {
                         this.collapseNode(key);
                     }, this);
+                }, this));
+
+                this.$("button.group-sel").on("click", _.bind(function () {
+                    this.groupNodes(this.model.items());
                 }, this));
             }, this);
 
