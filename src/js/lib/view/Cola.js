@@ -25,7 +25,10 @@
 
             options = options || {};
 
-            this.nodeRadius = options.nodeRadius || 7.5;
+            this.nodeRadius = function (d) {
+                var r = options.nodeRadius || 7.5;
+                return d.data && d.data.grouped ? 2*r : r;
+            };
 
             this.transitionTime = 500;
 
