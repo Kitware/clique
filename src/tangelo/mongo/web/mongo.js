@@ -126,11 +126,21 @@
                 var key = mongoRec._id.$oid;
 
                 if (!_.has(mutators, key)) {
+                    var target = {
+                        key: key,
+                        data: mongoRec.data
+                    };
+
+                    if (mongoRec.source) {
+                        target.source = mongoRec.source.$oid;
+                    }
+
+                    if (mongoRec.target) {
+                        target.target = mongoRec.target.$oid;
+                    }
+
                     mutators[key] = new clique.util.Mutator({
-                        target: {
-                            key: key,
-                            data: mongoRec.data
-                        }
+                        target: target
                     });
 
                     this.listenTo(mutators[key], "changed", function (mutator, prop, value) {

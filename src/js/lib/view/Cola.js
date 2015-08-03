@@ -157,6 +157,9 @@
                 .classed("link", true)
                 .style("stroke-width", 0)
                 .style("stroke", "black")
+                .style("stroke-dasharray", function (d) {
+                    return d.data && d.data.grouping ? "5,5" : "none";
+                })
                 .transition()
                 .duration(this.transitionTime)
                 .style("stroke-width", 1);

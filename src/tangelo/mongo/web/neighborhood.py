@@ -68,6 +68,9 @@ def run(host=None, db=None, coll=None, center=None, radius=None, deleted=json.du
                     else:
                         neighbor_link = {"source": str(frozen[0]),
                                          "target": str(id)}
+
+                    neighbor_link.update({"data": link.get("data", {})})
+
                     neighbor_links.append(neighbor_link)
 
             frontier = new_frontier

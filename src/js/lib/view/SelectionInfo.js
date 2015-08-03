@@ -69,13 +69,14 @@
         },
 
         groupNodes: function (nodes) {
-            var mut;
+            var nodeSet,
+                newKey;
 
             // Construct a new node with special properties.
             this.graph.adapter.newNode({
                 grouped: true
             }).then(_.bind(function (mongoRec) {
-                mut = this.graph.adapter.getMutator(mongoRec);
+                newKey = mongoRec._id.$oid;
 
                 // Find all links to/from the nodes in the group.
                 return $.when.apply($, _.flatten(_.map(nodes, _.bind(function (node) {
@@ -88,16 +89,19 @@
                         })
                     ];
                 }, this)), true));
-            }, this)).then(_.bind(function (links) {
-                var nodeSet = new clique.util.Set(),
+            }, this)).then(_.bind(function () {
+                var links,
                     addLinks = [];
 
+                links = Array.prototype.concat.apply([], Array.prototype.slice.call(arguments));
+
+                nodeSet = new clique.util.Set();
                 _.each(nodes, _.bind(function (node) {
                     nodeSet.add(node);
 
                     // Add an "inclusion" link between the group node and
                     // constituents.
-                    addLinks.push(this.graph.adapter.newLink(mut.key(), node, {
+                    addLinks.push(this.graph.adapter.newLink(newKey, node, {
                         grouping: true
                     }));
                 }, this));
@@ -107,15 +111,34 @@
                         target = link.getTransient("target");
 
                     if (!nodeSet.has(source)) {
-                        addLinks.push(this.graph.adapter.newLink(mut.key(), source));
+                        addLinks.push(this.graph.adapter.newLink(newKey, source));
                     }
 
                     if (!nodeSet.has(link.getTransient("target"))) {
-                        addLinks.push(this.graph.adapter.newLink(mut.key(), target));
+                        addLinks.push(this.graph.adapter.newLink(newKey, target));
                     }
                 }, this));
 
                 return $.when.apply($, addLinks);
+            }, this)).then(_.bind(function () {
+                var mongoRecs = _.map(nodeSet.items(), function (key) {
+                    return {
+                        _id: {
+                            $oid: key
+                        }
+                    };
+                });
+
+                _.each(_.map(mongoRecs, this.graph.adapter.getMutator, this.graph.adapter), this.hideNode, this);
+
+                this.graph.adapter.findNode({
+                    key: newKey
+                }).then(_.bind(function (groupNode) {
+                    this.graph.addNeighborhood({
+                        center: groupNode,
+                        radius: 1
+                    });
+                }, this));
             }, this));
         },
 
