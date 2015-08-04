@@ -101,12 +101,15 @@
                             // If the shift key is pressed, then simply toggle
                             // the presence of the clicked node in the current
                             // selection.
-                            d.selected = !d.selected;
+                            if (that.selected.has(d.key)) {
+                                that.selection.remove(d.key);
+                            } else {
+                                that.selection.add(d.key);
+                            }
                         } else if (d3.event.ctrlKey) {
                             // If the control key is pressed, then move the
                             // focus to the clicked node, adding it to the
                             // selection first if necessary.
-                            d.selected = true;
                             that.selection.add(d.key);
                             that.selection.focusKey(d.key);
                         } else {
@@ -116,20 +119,7 @@
                                 that.selection.remove(key);
                             });
 
-                            d3.select(that.el)
-                                .selectAll("circle.node")
-                                .datum(function (d) {
-                                    d.selected = false;
-                                    return d;
-                                });
-
-                            d.selected = true;
-                        }
-
-                        if (d.selected) {
                             that.selection.add(d.key);
-                        } else {
-                            that.selection.remove(d.key);
                         }
 
                         that.renderNodes();
@@ -301,7 +291,6 @@
                     // then remove the current selection.
                     if (!d3.event.shiftKey) {
                         _.each(that.model.get("nodes"), function (node) {
-                            node.selected = false;
                             that.selection.remove(node.key);
                         });
 
@@ -385,7 +374,6 @@
 
                         _.each(that.model.get("nodes"), function (node) {
                             if (between(node.x, start.x, end.x) && between(node.y, start.y, end.y)) {
-                                node.selected = true;
                                 that.selection.add(node.key);
                             }
                         });
