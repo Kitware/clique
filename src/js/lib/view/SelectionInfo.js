@@ -132,7 +132,10 @@
                 this.graph.adapter.findNode({
                     key: newKey
                 }).then(_.bind(function (groupNode) {
-                    return this.graph.addNode(groupNode);
+                    return this.graph.addNode(groupNode)
+                        .then(_.bind(function () {
+                            this.model.add(groupNode.key());
+                        }, this));
                 }, this)).then(_.bind(function () {
                     var children = _.map(mongoRecs, this.graph.adapter.getMutator, this.graph.adapter);
                     _.each(children, _.bind(function (child) {
@@ -157,6 +160,7 @@
                     }).then(_.bind(function (child) {
                         child.clearData("deleted");
                         this.graph.adapter.once("cleared:" + child.key(), _.bind(function () {
+                            this.model.add(child.key());
                             this.graph.addNode(child);
                         }, this));
                     }, this));

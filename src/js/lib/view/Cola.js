@@ -15,7 +15,7 @@
     };
 
     strokeWidth = function (d) {
-        return d.selected ? "2px" : "0px";
+        return this.selected.has(d.key) ? "2px" : "0px";
     };
 
     clique.view.Cola = Backbone.View.extend({
@@ -45,6 +45,13 @@
             this.listenTo(this.selection, "focused", function (focused) {
                 this.focused = focused;
                 this.renderNodes();
+            });
+            this.selected = new clique.util.Set();
+            this.listenTo(this.selection, "added", function (key) {
+                this.selected.add(key);
+            });
+            this.listenTo(this.selection, "removed", function (key) {
+                this.selected.remove(key);
             });
         },
 
