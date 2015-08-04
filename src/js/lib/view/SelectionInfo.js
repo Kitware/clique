@@ -151,10 +151,6 @@
                 source: node.key(),
                 grouping: true
             }).then(_.bind(function (links) {
-                console.log(_.map(links, function (c) {
-                    return c.getTransient("target");
-                }));
-
                 this.hideNode(node);
                 this.graph.adapter.destroyNode(node.key());
 
