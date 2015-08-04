@@ -89,6 +89,13 @@
                 return $.getJSON("plugin/mongo/newLink", data);
             },
 
+            destroyNode: function (key) {
+                var data = _.extend({
+                    key: key
+                }, mongoStore);
+                return $.getJSON("plugin/mongo/destroyNode", data);
+            },
+
             neighborhood: function (options) {
                 clique.util.require(options.center, "center");
                 clique.util.require(options.radius, "radius");
@@ -147,8 +154,17 @@
                         $.getJSON("plugin/mongo/update", _.extend({
                             key: mutator.key(),
                             prop: prop,
-                            value: value
+                            value: JSON.stringify(value)
                         }, mongoStore));
+                    });
+
+                    this.listenTo(mutators[key], "cleared", function (mutator, prop) {
+                        $.getJSON("plugin/mongo/clear", _.extend({
+                            key: mutator.key(),
+                            prop: prop
+                        }, mongoStore)).then(_.bind(function () {
+                            this.trigger("cleared:" + mutator.key(), mutator, prop);
+                        }, this));
                     });
                 }
 
