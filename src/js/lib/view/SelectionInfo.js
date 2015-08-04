@@ -158,11 +158,13 @@
                     this.graph.adapter.findNode({
                         key: link.getTransient("target")
                     }).then(_.bind(function (child) {
-                        child.setData("deleted", false);
-                        this.graph.addNeighborhood({
-                            center: child,
-                            radius: 1
-                        });
+                        child.clearData("deleted");
+                        this.graph.adapter.once("cleared:" + child.key(), _.bind(function () {
+                            this.graph.addNeighborhood({
+                                center: child,
+                                radius: 1
+                            });
+                        }, this));
                     }, this));
                 }, this));
             }, this));

@@ -157,6 +157,15 @@
                             value: JSON.stringify(value)
                         }, mongoStore));
                     });
+
+                    this.listenTo(mutators[key], "cleared", function (mutator, prop) {
+                        $.getJSON("plugin/mongo/clear", _.extend({
+                            key: mutator.key(),
+                            prop: prop
+                        }, mongoStore)).then(_.bind(function () {
+                            this.trigger("cleared:" + mutator.key(), mutator, prop);
+                        }, this));
+                    });
                 }
 
                 return mutators[key];
