@@ -75,6 +75,39 @@
                 }, this));
         },
 
+        addNode: function (node) {
+            return this.adapter.neighborhood({
+                center: node,
+                radius: 1
+            }).then(_.bind(function (nbd) {
+                var newLinks = [];
+
+                if (!_.has(this.nodes, node.key())) {
+                    this.nodes[node.key()] = node.getTarget();
+                }
+
+                _.each(nbd.links, _.bind(function (link) {
+                    var linkKey = linkHash(link);
+                    if (!this.links.has(linkKey) && _.has(this.nodes, link.source) && _.has(this.nodes, link.target)) {
+                        this.links.add(linkKey);
+
+                        this.forward.add(link.source, link.target);
+                        this.back.add(link.target, link.source);
+
+                        link.source = this.nodes[link.source];
+                        link.target = this.nodes[link.target];
+
+                        newLinks.push(link);
+                    }
+                }, this));
+
+                this.set({
+                    nodes: this.get("nodes").concat([node.getTarget()]),
+                    links: this.get("links").concat(newLinks)
+                });
+            }, this));
+        },
+
         removeNeighborhood: function (options) {
             var center,
                 radius,

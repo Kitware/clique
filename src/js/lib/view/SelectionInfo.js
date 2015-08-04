@@ -132,10 +132,7 @@
                 this.graph.adapter.findNode({
                     key: newKey
                 }).then(_.bind(function (groupNode) {
-                    return this.graph.addNeighborhood({
-                        center: groupNode,
-                        radius: 1
-                    });
+                    return this.graph.addNode(groupNode);
                 }, this)).then(_.bind(function () {
                     var children = _.map(mongoRecs, this.graph.adapter.getMutator, this.graph.adapter);
                     _.each(children, _.bind(function (child) {
@@ -160,10 +157,7 @@
                     }).then(_.bind(function (child) {
                         child.clearData("deleted");
                         this.graph.adapter.once("cleared:" + child.key(), _.bind(function () {
-                            this.graph.addNeighborhood({
-                                center: child,
-                                radius: 1
-                            });
+                            this.graph.addNode(child);
                         }, this));
                     }, this));
                 }, this));
