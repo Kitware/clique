@@ -41,7 +41,7 @@
         },
 
         addNeighborhood: function (options) {
-            this.adapter.neighborhood(options)
+            return this.adapter.neighborhood(options)
                 .then(_.bind(function (nbd) {
                     var newNodes = [],
                         newLinks = [];

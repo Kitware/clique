@@ -129,21 +129,47 @@
                     };
                 });
 
-                _.each(_.map(mongoRecs, this.graph.adapter.getMutator, this.graph.adapter), this.hideNode, this);
-
                 this.graph.adapter.findNode({
                     key: newKey
                 }).then(_.bind(function (groupNode) {
-                    this.graph.addNeighborhood({
+                    return this.graph.addNeighborhood({
                         center: groupNode,
                         radius: 1
                     });
+                }, this)).then(_.bind(function () {
+                    var children = _.map(mongoRecs, this.graph.adapter.getMutator, this.graph.adapter);
+                    _.each(children, _.bind(function (child) {
+                        child.setData("deleted", true);
+                        this.hideNode(child);
+                    }, this));
                 }, this));
             }, this));
         },
 
         ungroupNode: function (node) {
-            console.log(node);
+            this.graph.adapter.findLinks({
+                source: node.key(),
+                grouping: true
+            }).then(_.bind(function (links) {
+                console.log(_.map(links, function (c) {
+                    return c.getTransient("target");
+                }));
+
+                this.hideNode(node);
+                this.graph.adapter.destroyNode(node.key());
+
+                _.each(links, _.bind(function (link) {
+                    this.graph.adapter.findNode({
+                        key: link.getTransient("target")
+                    }).then(_.bind(function (child) {
+                        child.setData("deleted", false);
+                        this.graph.addNeighborhood({
+                            center: child,
+                            radius: 1
+                        });
+                    }, this));
+                }, this));
+            }, this));
         },
 
         render: function () {
@@ -213,6 +239,11 @@
                     _.each(this.model.items(), function (key) {
                         this.collapseNode(key);
                     }, this);
+                }, this));
+
+                this.$("button.ungroup").on("click", _.bind(function () {
+                    this.graph.adapter.findNode({key: this.model.focused()})
+                        .then(_.bind(this.ungroupNode, this));
                 }, this));
 
                 this.$("button.group-sel").on("click", _.bind(function () {
