@@ -42,6 +42,60 @@
                     }, this));
             },
 
+            findLinks: function (spec) {
+                var data = _.extend({
+                    spec: JSON.stringify(spec),
+                    singleton: JSON.stringify(false)
+                }, mongoStore);
+
+                return $.getJSON("plugin/mongo/findLinks", data)
+                    .then(_.bind(function (results) {
+                        var def = new $.Deferred();
+
+                        def.resolve(_.map(results, this.getMutator, this));
+                        return def;
+                    }, this));
+            },
+
+            findLink: function (spec) {
+                var data = _.extend({
+                    spec: JSON.stringify(spec),
+                    singleton: JSON.stringify(true)
+                }, mongoStore);
+
+                return $.getJSON("plugin/mongo/findLinks", data)
+                    .then(_.bind(function (result) {
+                        var def = new $.Deferred();
+
+                        def.resolve(result && this.getMutator(result));
+                        return def;
+                    }, this));
+            },
+
+            newNode: function (metadata) {
+                var data = _.extend({
+                    data: metadata ? JSON.stringify(metadata) : "{}"
+                }, mongoStore);
+                return $.getJSON("plugin/mongo/newNode", data);
+            },
+
+            newLink: function (source, target, metadata) {
+                var data = _.extend({
+                    source: source,
+                    target: target,
+                    data: metadata ? JSON.stringify(metadata) : "{}"
+                }, mongoStore);
+
+                return $.getJSON("plugin/mongo/newLink", data);
+            },
+
+            destroyNode: function (key) {
+                var data = _.extend({
+                    key: key
+                }, mongoStore);
+                return $.getJSON("plugin/mongo/destroyNode", data);
+            },
+
             neighborhood: function (options) {
                 clique.util.require(options.center, "center");
                 clique.util.require(options.radius, "radius");
@@ -79,19 +133,38 @@
                 var key = mongoRec._id.$oid;
 
                 if (!_.has(mutators, key)) {
+                    var target = {
+                        key: key,
+                        data: mongoRec.data
+                    };
+
+                    if (mongoRec.source) {
+                        target.source = mongoRec.source.$oid;
+                    }
+
+                    if (mongoRec.target) {
+                        target.target = mongoRec.target.$oid;
+                    }
+
                     mutators[key] = new clique.util.Mutator({
-                        target: {
-                            key: key,
-                            data: mongoRec.data
-                        }
+                        target: target
                     });
 
                     this.listenTo(mutators[key], "changed", function (mutator, prop, value) {
                         $.getJSON("plugin/mongo/update", _.extend({
                             key: mutator.key(),
                             prop: prop,
-                            value: value
+                            value: JSON.stringify(value)
                         }, mongoStore));
+                    });
+
+                    this.listenTo(mutators[key], "cleared", function (mutator, prop) {
+                        $.getJSON("plugin/mongo/clear", _.extend({
+                            key: mutator.key(),
+                            prop: prop
+                        }, mongoStore)).then(_.bind(function () {
+                            this.trigger("cleared:" + mutator.key(), mutator, prop);
+                        }, this));
                     });
                 }
 

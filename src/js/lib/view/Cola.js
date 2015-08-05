@@ -15,7 +15,7 @@
     };
 
     strokeWidth = function (d) {
-        return d.selected ? "2px" : "0px";
+        return this.selected.has(d.key) ? "2px" : "0px";
     };
 
     clique.view.Cola = Backbone.View.extend({
@@ -25,7 +25,10 @@
 
             options = options || {};
 
-            this.nodeRadius = options.nodeRadius || 7.5;
+            this.nodeRadius = function (d) {
+                var r = options.nodeRadius || 7.5;
+                return d.data && d.data.grouped ? 2*r : r;
+            };
 
             this.transitionTime = 500;
 
@@ -42,6 +45,13 @@
             this.listenTo(this.selection, "focused", function (focused) {
                 this.focused = focused;
                 this.renderNodes();
+            });
+            this.selected = new clique.util.Set();
+            this.listenTo(this.selection, "added", function (key) {
+                this.selected.add(key);
+            });
+            this.listenTo(this.selection, "removed", function (key) {
+                this.selected.remove(key);
             });
         },
 
@@ -91,12 +101,15 @@
                             // If the shift key is pressed, then simply toggle
                             // the presence of the clicked node in the current
                             // selection.
-                            d.selected = !d.selected;
+                            if (that.selected.has(d.key)) {
+                                that.selection.remove(d.key);
+                            } else {
+                                that.selection.add(d.key);
+                            }
                         } else if (d3.event.ctrlKey) {
                             // If the control key is pressed, then move the
                             // focus to the clicked node, adding it to the
                             // selection first if necessary.
-                            d.selected = true;
                             that.selection.add(d.key);
                             that.selection.focusKey(d.key);
                         } else {
@@ -106,20 +119,7 @@
                                 that.selection.remove(key);
                             });
 
-                            d3.select(that.el)
-                                .selectAll("circle.node")
-                                .datum(function (d) {
-                                    d.selected = false;
-                                    return d;
-                                });
-
-                            d.selected = true;
-                        }
-
-                        if (d.selected) {
                             that.selection.add(d.key);
-                        } else {
-                            that.selection.remove(d.key);
                         }
 
                         that.renderNodes();
@@ -154,6 +154,9 @@
                 .classed("link", true)
                 .style("stroke-width", 0)
                 .style("stroke", "black")
+                .style("stroke-dasharray", function (d) {
+                    return d.data && d.data.grouping ? "5,5" : "none";
+                })
                 .transition()
                 .duration(this.transitionTime)
                 .style("stroke-width", 1);
@@ -288,7 +291,6 @@
                     // then remove the current selection.
                     if (!d3.event.shiftKey) {
                         _.each(that.model.get("nodes"), function (node) {
-                            node.selected = false;
                             that.selection.remove(node.key);
                         });
 
@@ -372,7 +374,6 @@
 
                         _.each(that.model.get("nodes"), function (node) {
                             if (between(node.x, start.x, end.x) && between(node.y, start.y, end.y)) {
-                                node.selected = true;
                                 that.selection.add(node.key);
                             }
                         });

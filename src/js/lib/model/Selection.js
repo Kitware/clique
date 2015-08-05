@@ -11,6 +11,8 @@
             if (this.size()) {
                 this.trigger("focused", this.focused());
             }
+
+            this.trigger("added", key);
         },
 
         remove: function (key) {
@@ -24,6 +26,8 @@
             } else if (focused) {
                 this.focusLeft();
             }
+
+            this.trigger("removed", key);
         },
 
         items: function () {

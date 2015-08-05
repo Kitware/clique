@@ -1,6 +1,8 @@
 (function (clique, Backbone, _) {
     "use strict";
 
+    var $ = Backbone.$;
+
     clique.view.SelectionInfo = Backbone.View.extend({
         initialize: function (options) {
             var debRender;
@@ -64,6 +66,106 @@
 
             // Hide them.
             _.each(mutators, _.partial(this.hideNode, _, false), this);
+        },
+
+        groupNodes: function (nodes) {
+            var nodeSet,
+                newKey;
+
+            // Construct a new node with special properties.
+            this.graph.adapter.newNode({
+                grouped: true
+            }).then(_.bind(function (mongoRec) {
+                newKey = mongoRec._id.$oid;
+
+                // Find all links to/from the nodes in the group.
+                return $.when.apply($, _.flatten(_.map(nodes, _.bind(function (node) {
+                    return [
+                        this.graph.adapter.findLinks({
+                            source: node
+                        }),
+                        this.graph.adapter.findLinks({
+                            target: node
+                        })
+                    ];
+                }, this)), true));
+            }, this)).then(_.bind(function () {
+                var links,
+                    addLinks = [];
+
+                links = Array.prototype.concat.apply([], Array.prototype.slice.call(arguments));
+
+                nodeSet = new clique.util.Set();
+                _.each(nodes, _.bind(function (node) {
+                    nodeSet.add(node);
+
+                    // Add an "inclusion" link between the group node and
+                    // constituents.
+                    addLinks.push(this.graph.adapter.newLink(newKey, node, {
+                        grouping: true
+                    }));
+                }, this));
+
+                _.each(links, _.bind(function (link) {
+                    var source = link.getTransient("source"),
+                        target = link.getTransient("target");
+
+                    if (!nodeSet.has(source)) {
+                        addLinks.push(this.graph.adapter.newLink(newKey, source));
+                    }
+
+                    if (!nodeSet.has(link.getTransient("target"))) {
+                        addLinks.push(this.graph.adapter.newLink(newKey, target));
+                    }
+                }, this));
+
+                return $.when.apply($, addLinks);
+            }, this)).then(_.bind(function () {
+                var mongoRecs = _.map(nodeSet.items(), function (key) {
+                    return {
+                        _id: {
+                            $oid: key
+                        }
+                    };
+                });
+
+                this.graph.adapter.findNode({
+                    key: newKey
+                }).then(_.bind(function (groupNode) {
+                    return this.graph.addNode(groupNode)
+                        .then(_.bind(function () {
+                            this.model.add(groupNode.key());
+                        }, this));
+                }, this)).then(_.bind(function () {
+                    var children = _.map(mongoRecs, this.graph.adapter.getMutator, this.graph.adapter);
+                    _.each(children, _.bind(function (child) {
+                        child.setData("deleted", true);
+                        this.hideNode(child);
+                    }, this));
+                }, this));
+            }, this));
+        },
+
+        ungroupNode: function (node) {
+            this.graph.adapter.findLinks({
+                source: node.key(),
+                grouping: true
+            }).then(_.bind(function (links) {
+                this.hideNode(node);
+                this.graph.adapter.destroyNode(node.key());
+
+                _.each(links, _.bind(function (link) {
+                    this.graph.adapter.findNode({
+                        key: link.getTransient("target")
+                    }).then(_.bind(function (child) {
+                        child.clearData("deleted");
+                        this.graph.adapter.once("cleared:" + child.key(), _.bind(function () {
+                            this.model.add(child.key());
+                            this.graph.addNode(child);
+                        }, this));
+                    }, this));
+                }, this));
+            }, this));
         },
 
         render: function () {
@@ -133,6 +235,15 @@
                     _.each(this.model.items(), function (key) {
                         this.collapseNode(key);
                     }, this);
+                }, this));
+
+                this.$("button.ungroup").on("click", _.bind(function () {
+                    this.graph.adapter.findNode({key: this.model.focused()})
+                        .then(_.bind(this.ungroupNode, this));
+                }, this));
+
+                this.$("button.group-sel").on("click", _.bind(function () {
+                    this.groupNodes(this.model.items());
                 }, this));
             }, this);
 
