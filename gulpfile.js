@@ -74,6 +74,18 @@ gulp.task("uglify-index", function () {
         .pipe(dest());
 });
 
+gulp.task("uglify-anb", function () {
+    "use strict";
+
+    var dest = _.bind(gulp.dest, gulp, "build/site");
+
+    return gulp.src("src/js/anb.js")
+        .pipe(dest())
+        .pipe(uglify())
+        .pipe(rename("anb.min.js"))
+        .pipe(dest());
+});
+
 gulp.task("uglify-clique", ["jade-templates"], function () {
     "use strict";
 
@@ -133,6 +145,7 @@ gulp.task("clean", function () {
 
 gulp.task("uglify", [
     "uglify-index",
+    "uglify-anb",
     "uglify-clique"
 ]);
 
