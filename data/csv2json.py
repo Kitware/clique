@@ -15,7 +15,6 @@ def make_record(filename=None, label=None, semtype=None, card=None, attr=None):
 
 
 def find_list_starts(row):
-    #return [entry.endswith("]") for entry in row[3:]].index(True) + 3
     return map(lambda x: x[0], filter(lambda x: x[1].startswith("["), enumerate(row)))
 
 
