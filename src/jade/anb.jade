@@ -1,0 +1,51 @@
+include mixin/panel.jade
+
+doctype html
+head
+    title Clique
+
+    script(src="assets/jquery-1.11.2.min.js")
+    script(src="assets/bootstrap.min.js")
+    script(src="assets/underscore-min.js")
+    script(src="assets/backbone-min.js")
+    script(src="assets/d3.v3.min.js" charset="utf-8")
+    script(src="assets/cola.v3.min.js")
+    script(src="plugin/tangelo/tangelo.js")
+
+    link(rel="stylesheet" href="assets/bootstrap.min.css")
+    link(rel="stylesheet" href="index.css")
+
+    script(src="clique.js")
+    script(src="plugin/mongo/mongo.js")
+    script(src="plugin/mongo-xdata/mongo.js")
+
+    script(src="anb.js")
+
+body
+    nav.navbar.navbar-default
+        .container-fluid
+            .navbar-header
+                a.navbar-brand Clique Demo
+
+    svg(oncontextmenu="return false;")#content
+
+    +panel("query", "Query")(style="width:380px; position:absolute; left:10px")
+        .row
+            .col-md-12
+                h4 Add nodes
+                .row
+                    .col-md-2 File
+                    .col-md-1 #[input#filename]
+                .row
+                    .col-md-2 Label
+                    .col-md-1 #[input#label]
+                .row
+                    .col-md-12.col-md-offset-1
+                        label #[input(type="checkbox")#delsearch] Include deleted nodes
+                .row
+                    .col-md-1
+                        a.btn.btn-default#submit Query
+        .row
+            .col-md-12
+                h4 Selection Operations
+                #info
