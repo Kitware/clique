@@ -41,7 +41,6 @@ $(function () {
 
             graph.adapter.findNode(spec)
                 .then(function (center) {
-                    console.log(center);
                     if (center) {
                         graph.addNode(center);
                     }
