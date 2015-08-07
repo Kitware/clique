@@ -18,6 +18,9 @@ $(function () {
             }
         });
 
+        $("#filename").val("CONGLOMERATE");
+        $("#label").val("John HOLLISTER");
+
         $("#submit").on("click", function () {
             var label = $("#label").val().trim(),
                 filename = $("#filename").val().trim(),
