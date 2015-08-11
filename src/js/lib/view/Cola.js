@@ -198,6 +198,23 @@
                 .duration(this.transitionTime)
                 .style("stroke-width", 1);
 
+            groups.append("line")
+                .style("stroke-width", 10)
+                .style("stroke", "gray")
+                .style("opacity", 0)
+                .on("mouseenter", function () {
+                    d3.select(this)
+                        .style("opacity", 0.7);
+                })
+                .on("mouseout", function () {
+                    d3.select(this)
+                        .style("opacity", 0.0);
+                })
+                .on("click", function (d) {
+                    d3.event.stopPropagation();
+                    console.log(d);
+                });
+
             this.links.exit()
                 .transition()
                 .duration(this.transitionTime)
