@@ -99,6 +99,7 @@
                 linkData = this.model.get("links"),
                 drag,
                 me = d3.select(this.el),
+                groups,
                 that = this;
 
             this.cola
@@ -178,14 +179,16 @@
                 .remove();
 
             this.links = me.select("g.links")
-                .selectAll("line.link")
+                .selectAll("g.link")
                 .data(linkData, function (d) {
                     return JSON.stringify([d.source.key, d.target.key]);
                 });
 
-            this.links.enter()
-                .append("line")
-                .classed("link", true)
+            groups = this.links.enter()
+                .append("g")
+                .classed("link", true);
+
+            groups.append("line")
                 .style("stroke-width", 0)
                 .style("stroke", "black")
                 .style("stroke-dasharray", function (d) {
@@ -207,7 +210,7 @@
                     .attr("cx", _.property("x"))
                     .attr("cy", _.property("y"));
 
-                this.links
+                this.links.selectAll("line")
                     .attr("x1", _.compose(_.property("x"), _.property("source")))
                     .attr("y1", _.compose(_.property("y"), _.property("source")))
                     .attr("x2", _.compose(_.property("x"), _.property("target")))
