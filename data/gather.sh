@@ -2,6 +2,7 @@
 
 datapath="$1"
 if [ -z $datapath ]; then
+    echo "usage: gather.sh <datapath>" >>/dev/stderr
     exit 1
 fi
 

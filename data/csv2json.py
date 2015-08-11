@@ -32,11 +32,32 @@ def emit_link(link, source, target, bi=False):
 
 
 def make_node_record(filename=None, label=None, semtype=None, card=None, attr=None):
-    return {"filename": filename,
+    attr_dict = {}
+    if attr:
+        attr = json.loads(attr)
+
+        for o in attr:
+            attr_dict[o["Name"]] = o["Value"]
+
+    card_dict = {}
+    if card:
+        card = json.loads(card)
+
+        for o in card:
+            if "Summary" in o:
+                summary = o["Summary"]
+                if summary in card_dict:
+                    print >>sys.stderr, "Warning: duplicate Summary field '%s'" % (summary)
+                card_dict[summary] = o.get("Text", "")
+
+    base = {"filename": filename,
             "label": label,
-            "type": semtype,
-            "card": json.loads(card) if card else card,
-            "attr": json.loads(attr) if attr else attr}
+            "type": semtype}
+
+    base.update(attr_dict)
+    base.update(card_dict)
+
+    return base
 
 
 def make_link_record(filename=None, label=None, semtype=None, contype=None, card=None, attr=None):
