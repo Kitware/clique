@@ -54,6 +54,7 @@
                 .start();
 
             this.selection = new clique.model.Selection();
+            this.linkSelection = new clique.model.Selection();
 
             this.$el.html(clique.template.cola());
             this.listenTo(this.model, "change", _.debounce(this.render, 100));
@@ -155,9 +156,13 @@
                 .on("mousedown", function () {
                     d3.event.stopPropagation();
                 })
-                .on("mouseup", function (d) {
-                    console.log(d);
-                });
+                .on("mouseup", _.bind(function (d) {
+                    _.each(this.linkSelection.items(), _.bind(function (key) {
+                        this.linkSelection.remove(key);
+                    }, this));
+
+                    this.linkSelection.add(clique.util.linkHash(d));
+                }, this));
 
             this.links.exit()
                 .transition()

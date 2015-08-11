@@ -7,7 +7,8 @@ $(function () {
     var launch = function (cfg) {
         var graph,
             view,
-            info;
+            info,
+            linkInfo;
 
         window.graph = graph = new clique.Graph({
             adapter: tangelo.getPlugin("mongo").Mongo,
@@ -58,6 +59,12 @@ $(function () {
             graph: graph
         });
         info.render();
+
+        linkInfo = new clique.view.LinkInfo({
+            model: view.linkSelection,
+            el: "#link-info",
+            graph: graph
+        });
     };
 
     $.getJSON("anb.json").then(launch, _.bind(launch, {}));
