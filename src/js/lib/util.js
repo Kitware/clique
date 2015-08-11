@@ -11,6 +11,23 @@
         };
     }());
 
+    clique.util.linkHash = function (link) {
+        var source,
+            target;
+
+        source = link.source;
+        if (!_.isString(source)) {
+            source = source.key;
+        }
+
+        target = link.target;
+        if (!_.isString(target)) {
+            target = target.key;
+        }
+
+        return JSON.stringify([source, target]);
+    };
+
     clique.util.deepCopy = function (o) {
         if (_.isUndefined(o)) {
             return undefined;
