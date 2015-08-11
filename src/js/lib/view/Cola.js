@@ -5,28 +5,32 @@
         fill,
         strokeWidth;
 
-    prefill = function (d) {
-        if (d.key === this.focused) {
-            return "crimson";
-        } else if (d.root) {
-            return "gold";
-        } else {
-            return "limegreen";
-        }
+    prefill = function (cmap) {
+        return function (d) {
+            if (d.key === this.focused) {
+                return "pink";
+            } else if (d.root) {
+                return "gold";
+            } else {
+                return cmap(d);
+            }
+        };
     };
 
-    fill = function (d) {
-        this.model.adapter.getMutator({
-            _id: {
-                $oid: d.key
-            }
-        }).clearTransient("root");
+    fill = function (cmap) {
+        return function (d) {
+            this.model.adapter.getMutator({
+                _id: {
+                    $oid: d.key
+                }
+            }).clearTransient("root");
 
-        if (d.key === this.focused) {
-            return "crimson";
-        } else {
-            return "limegreen";
-        }
+            if (d.key === this.focused) {
+                return "pink";
+            } else {
+                return cmap(d);
+            }
+        };
     };
 
     strokeWidth = function (d) {
@@ -35,6 +39,8 @@
 
     clique.view.Cola = Backbone.View.extend({
         initialize: function (options) {
+            var cmap;
+
             clique.util.require(this.model, "model");
             clique.util.require(this.el, "el");
 
@@ -46,6 +52,14 @@
             };
 
             this.transitionTime = 500;
+
+            cmap = d3.scale.category10();
+            this.colormap = function (d) {
+                return cmap((d.data || {}).type || "no type");
+            };
+
+            this.prefill = prefill(this.colormap);
+            this.fill = fill(this.colormap);
 
             this.cola = cola.d3adaptor()
                 .linkDistance(options.linkDistance || 100)
@@ -79,7 +93,7 @@
             }
 
             this.nodes
-                .style("fill", _.bind(prefill, this))
+                .style("fill", _.bind(this.prefill, this))
                 .style("stroke", "blue")
                 .style("stroke-width", _.bind(strokeWidth, this))
                 .filter(function (d) {
@@ -89,10 +103,10 @@
                 .delay(this.transitionTime)
                 .each("interrupt", function () {
                     d3.select(this)
-                        .style("fill", _.bind(fill, that));
+                        .style("fill", _.bind(that.fill, that));
                 })
                 .duration(1500)
-                .style("fill", _.bind(fill, this));
+                .style("fill", _.bind(this.fill, this));
         },
 
         render: function () {
