@@ -29,23 +29,24 @@ body
 
     svg(oncontextmenu="return false;")#content
 
-    +panel("query", "Query")(style="width:380px; position:absolute; left:10px")
-        .row
-            .col-md-12
-                h4 Add nodes
-                .row
-                    .col-md-2 File
-                    .col-md-1 #[input#filename]
-                .row
-                    .col-md-2 Label
-                    .col-md-1 #[input#label]
-                .row
-                    .col-md-12.col-md-offset-1
-                        label #[input(type="checkbox")#delsearch] Include deleted nodes
-                .row
-                    .col-md-1
-                        a.btn.btn-default#submit Query
-        .row
-            .col-md-12
-                h4 Selection Operations
-                #info
+    div(style="position:absolute; left:10px")
+        +panel("query", "Query")(style="width:380px;")
+            .row
+                .col-md-12
+                    .row
+                        .col-md-2 File
+                        .col-md-1 #[input#filename]
+                    .row
+                        .col-md-2 Label
+                        .col-md-1 #[input#label]
+                    .row
+                        .col-md-12.col-md-offset-1
+                            label #[input(type="checkbox")#delsearch] Include deleted nodes
+                    .row
+                        .col-md-1
+                            a.btn.btn-default#submit Query
+
+        +panel("selection", "Selection")(style="width:380px;")
+            .row
+                .col-md-12
+                    #info
