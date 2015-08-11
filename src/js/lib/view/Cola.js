@@ -120,6 +120,52 @@
                 return d;
             });
 
+            this.links = me.select("g.links")
+                .selectAll("g.link")
+                .data(linkData, function (d) {
+                    return JSON.stringify([d.source.key, d.target.key]);
+                });
+
+            groups = this.links.enter()
+                .append("g")
+                .classed("link", true);
+
+            groups.append("line")
+                .style("stroke-width", 0)
+                .style("stroke", "black")
+                .style("stroke-dasharray", function (d) {
+                    return d.data && d.data.grouping ? "5,5" : "none";
+                })
+                .transition()
+                .duration(this.transitionTime)
+                .style("stroke-width", 1);
+
+            groups.append("line")
+                .style("stroke-width", 10)
+                .style("stroke", "gray")
+                .style("opacity", 0)
+                .on("mouseenter", function () {
+                    d3.select(this)
+                        .style("opacity", 0.7);
+                })
+                .on("mouseout", function () {
+                    d3.select(this)
+                        .style("opacity", 0.0);
+                })
+                .on("mousedown", function () {
+                    d3.event.stopPropagation();
+                })
+                .on("mouseup", function (d) {
+                    console.log(d);
+                });
+
+            this.links.exit()
+                .transition()
+                .duration(this.transitionTime)
+                .style("stroke-width", 0)
+                .style("opacity", 0)
+                .remove();
+
             this.nodes.enter()
                 .append("circle")
                 .classed("node", true)
@@ -175,50 +221,6 @@
                 .transition()
                 .duration(this.transitionTime)
                 .attr("r", 0)
-                .style("opacity", 0)
-                .remove();
-
-            this.links = me.select("g.links")
-                .selectAll("g.link")
-                .data(linkData, function (d) {
-                    return JSON.stringify([d.source.key, d.target.key]);
-                });
-
-            groups = this.links.enter()
-                .append("g")
-                .classed("link", true);
-
-            groups.append("line")
-                .style("stroke-width", 0)
-                .style("stroke", "black")
-                .style("stroke-dasharray", function (d) {
-                    return d.data && d.data.grouping ? "5,5" : "none";
-                })
-                .transition()
-                .duration(this.transitionTime)
-                .style("stroke-width", 1);
-
-            groups.append("line")
-                .style("stroke-width", 10)
-                .style("stroke", "gray")
-                .style("opacity", 0)
-                .on("mouseenter", function () {
-                    d3.select(this)
-                        .style("opacity", 0.7);
-                })
-                .on("mouseout", function () {
-                    d3.select(this)
-                        .style("opacity", 0.0);
-                })
-                .on("click", function (d) {
-                    d3.event.stopPropagation();
-                    console.log(d);
-                });
-
-            this.links.exit()
-                .transition()
-                .duration(this.transitionTime)
-                .style("stroke-width", 0)
                 .style("opacity", 0)
                 .remove();
 
