@@ -142,27 +142,40 @@
                 .style("stroke-width", 1);
 
             groups.append("line")
+                .classed("handle", true)
                 .style("stroke-width", 10)
-                .style("stroke", "gray")
-                .style("opacity", 0)
                 .on("mouseenter", function () {
                     d3.select(this)
-                        .style("opacity", 0.7);
+                        .classed("hovering", true);
                 })
                 .on("mouseout", function () {
                     d3.select(this)
-                        .style("opacity", 0.0);
+                        .classed("hovering", false);
                 })
                 .on("mousedown", function () {
                     d3.event.stopPropagation();
                 })
-                .on("mouseup", _.bind(function (d) {
-                    _.each(this.linkSelection.items(), _.bind(function (key) {
-                        this.linkSelection.remove(key);
-                    }, this));
+                .on("mouseup", function (d) {
+                    var selected = d3.select(this).classed("selected");
 
-                    this.linkSelection.add(clique.util.linkHash(d));
-                }, this));
+                    _.each(that.linkSelection.items(), function (key) {
+                        that.linkSelection.remove(key);
+                    });
+
+                    if (!selected) {
+                        that.linkSelection.add(clique.util.linkHash(d));
+                    }
+
+                    d3.select(that.el)
+                        .selectAll(".handle")
+                        .classed("selected", false);
+
+                    if (!selected) {
+                        d3.select(this)
+                            .classed("hovering", false)
+                            .classed("selected", true);
+                    }
+                });
 
             this.links.exit()
                 .transition()

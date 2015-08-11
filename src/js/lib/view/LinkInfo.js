@@ -15,20 +15,29 @@
         render: function () {
             var source,
                 target,
-                key;
+                text,
+                key,
+                doRender;
 
-            key = JSON.parse(this.model.focused());
-            source = key[0];
-            target = key[1];
-
-            this.graph.adapter.findLink({
-                source: source,
-                target: target
-            }).then(_.bind(function (link) {
+            doRender = _.bind(function (link) {
                 this.$el.html(clique.template.linkInfo({
                     link: link
                 }));
-            }, this));
+            }, this);
+
+            text = this.model.focused();
+            if (!text) {
+                doRender(undefined);
+            } else {
+                key = JSON.parse(text);
+                source = key[0];
+                target = key[1];
+
+                this.graph.adapter.findLink({
+                    source: source,
+                    target: target
+                }).then(doRender);
+            }
         }
     });
 }(window.clique, window.Backbone, window._));

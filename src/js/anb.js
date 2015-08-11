@@ -65,6 +65,7 @@ $(function () {
             el: "#link-info",
             graph: graph
         });
+        linkInfo.render();
     };
 
     $.getJSON("anb.json").then(launch, _.bind(launch, {}));
