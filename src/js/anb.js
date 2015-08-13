@@ -22,6 +22,17 @@ $(function () {
         $("#filename").val("CONGLOMERATE");
         $("#label").val("John HOLLISTER");
 
+        $.getJSON("assets/tangelo/anb/get_filenames", {
+            host: cfg.host,
+            db: cfg.database,
+            coll: cfg.collection
+        }, function (filenames) {
+            $("#filename").autocomplete({
+                source: filenames,
+                minLength: 0
+            });
+        });
+
         $("#submit").on("click", function () {
             var label = $("#label").val().trim(),
                 filename = $("#filename").val().trim(),
