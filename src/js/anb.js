@@ -19,19 +19,52 @@ $(function () {
             }
         });
 
-        $("#filename").val("CONGLOMERATE");
-        $("#label").val("John HOLLISTER");
-
         $.getJSON("assets/tangelo/anb/get_filenames", {
             host: cfg.host,
             db: cfg.database,
             coll: cfg.collection
-        }, function (filenames) {
+        }).then(function (filenames) {
             $("#filename").autocomplete({
                 source: filenames,
                 minLength: 0
+            }).focus(function () {
+                $(this).autocomplete("search", $(this).val());
             });
         });
+
+        (function () {
+            var request = null,
+                action;
+
+            action = _.debounce(function () {
+                var filename = $("#filename").val();
+
+                if (request) {
+                    request.abort();
+                }
+
+                request = $.getJSON("assets/tangelo/anb/get_nodes", {
+                    host: cfg.host,
+                    db: cfg.database,
+                    coll: cfg.collection,
+                    filename: filename
+                }).then(function (nodes) {
+                    request = null;
+
+                    console.log("good");
+
+                    $("#label").autocomplete({
+                        source: nodes,
+                        minLength: 0
+                    }).focus(function () {
+                        $(this).autocomplete("search", $(this).val());
+                    });
+                });
+            }, 300);
+
+            $("#filename").on("input", action);
+            $("#filename").on("autocompleteselect", action);
+        }());
 
         $("#submit").on("click", function () {
             var label = $("#label").val().trim(),
