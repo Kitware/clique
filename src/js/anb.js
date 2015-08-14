@@ -51,8 +51,6 @@ $(function () {
                 }).then(function (nodes) {
                     request = null;
 
-                    console.log("good");
-
                     $("#label").autocomplete({
                         source: nodes,
                         minLength: 0
