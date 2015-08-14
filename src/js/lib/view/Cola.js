@@ -169,7 +169,7 @@
                 .on("mousedown", function () {
                     d3.event.stopPropagation();
                 })
-                .on("mouseup", function (d) {
+                .on("click", function (d) {
                     var selected = d3.select(this).classed("selected");
 
                     _.each(that.linkSelection.items(), function (key) {
