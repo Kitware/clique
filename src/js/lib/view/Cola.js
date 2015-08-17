@@ -170,15 +170,25 @@
                     d3.event.stopPropagation();
                 })
                 .on("click", function (d) {
-                    var selected;
+                    var key = clique.util.linkHash(d);
 
                     if (d3.event.shiftKey) {
-                        console.log("shift click on link");
+                        if (that.linkSelection.has(key)) {
+                            that.linkSelection.remove(key);
+
+                            d3.select(this)
+                                .classed("hovering", true)
+                                .classed("selected", false);
+                        } else {
+                            that.linkSelection.add(key);
+
+                            d3.select(this)
+                                .classed("hovering", false)
+                                .classed("selected", true);
+                        }
                     } else if (d3.event.ctrlKey) {
                         console.log("ctrl click on link");
                     } else {
-                        selected = d3.select(this).classed("selected");
-
                         _.each(that.linkSelection.items(), function (key) {
                             that.linkSelection.remove(key);
                         });

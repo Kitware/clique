@@ -7,6 +7,14 @@ mixin item(key, value)
     if _.isUndefined(link)
         em (Selection is empty)
     else
+        nav
+            ul.pagination
+                li.prev
+                    a(aria-label="Previous").virtual-link.prev
+                        span(aria-hidden="true") &laquo;
+                li.next
+                    a(aria-label="Next").virtual-link.next
+                        span(aria-hidden="true") &raquo;
         .container.full-width
             .row
                 .col-md-1
