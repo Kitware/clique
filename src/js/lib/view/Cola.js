@@ -368,6 +368,9 @@
                         }
 
                         return low < val && val < high;
+                    },
+                    inBox = function (start, end, point) {
+                        return between(point.x, start.x, end.x) && between(point.y, start.y, end.y);
                     };
 
                 me.on("mousedown.select", function () {
@@ -467,6 +470,12 @@
                         _.each(that.model.get("nodes"), function (node) {
                             if (between(node.x, start.x, end.x) && between(node.y, start.y, end.y)) {
                                 that.selection.add(node.key);
+                            }
+                        });
+
+                        _.each(that.model.get("links"), function (link) {
+                            if (_.any([inBox(start, end, link.source), inBox(start, end, link.target)])) {
+                                console.log(link);
                             }
                         });
 
