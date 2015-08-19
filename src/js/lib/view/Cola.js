@@ -76,6 +76,15 @@
                 this.focused = focused;
                 this.renderNodes();
             });
+            this.listenTo(this.linkSelection, "focused", _.debounce(function (focused) {
+                d3.select(this.el)
+                    .selectAll(".handle")
+                    .classed("selected", false)
+                    .filter(function (d) {
+                        return d.key === focused;
+                    })
+                    .classed("selected", true);
+            }, 100));
             this.selected = new clique.util.Set();
             this.listenTo(this.selection, "added", function (key) {
                 this.selected.add(key);
@@ -173,16 +182,8 @@
                     if (d3.event.shiftKey) {
                         if (that.linkSelection.has(d.key)) {
                             that.linkSelection.remove(d.key);
-
-                            d3.select(this)
-                                .classed("hovering", true)
-                                .classed("selected", false);
                         } else {
                             that.linkSelection.add(d.key);
-
-                            d3.select(this)
-                                .classed("hovering", false)
-                                .classed("selected", true);
                         }
                     } else if (d3.event.ctrlKey) {
                         console.log("ctrl click on link");
@@ -192,14 +193,6 @@
                         });
 
                         that.linkSelection.add(d.key);
-
-                        d3.select(that.el)
-                            .selectAll(".handle")
-                            .classed("selected", false);
-
-                        d3.select(this)
-                            .classed("hovering", false)
-                            .classed("selected", true);
                     }
                 });
 
