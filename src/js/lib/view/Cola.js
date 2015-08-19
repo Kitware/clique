@@ -405,13 +405,17 @@
                     dragging = false;
 
                     // If shift is not held at the beginning of the operation,
-                    // then remove the current selection.
+                    // then remove the current selections.
                     if (!d3.event.shiftKey) {
                         _.each(that.model.get("nodes"), function (node) {
                             that.selection.remove(node.key);
                         });
 
                         that.renderNodes();
+
+                        _.each(that.model.get("links"), function (link) {
+                            that.linkSelection.remove(link.key);
+                        });
                     }
 
                     origin = that.$el.offset();
@@ -497,7 +501,7 @@
 
                         _.each(that.model.get("links"), function (link) {
                             if (_.any([inBox(start, end, link.source), inBox(start, end, link.target)])) {
-                                console.log(link);
+                                that.linkSelection.add(link.key);
                             }
                         });
 
