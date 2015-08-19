@@ -18,10 +18,7 @@
         },
 
         render: function () {
-            var source,
-                target,
-                text,
-                key,
+            var key,
                 doRender;
 
             doRender = _.bind(function (link) {
@@ -38,17 +35,12 @@
                 }, this));
             }, this);
 
-            text = this.model.focused();
-            if (!text) {
+            key = this.model.focused();
+            if (!key) {
                 doRender(undefined);
             } else {
-                key = JSON.parse(text);
-                source = key[0];
-                target = key[1];
-
                 this.graph.adapter.findLink({
-                    source: source,
-                    target: target
+                    key: key
                 }).then(doRender);
             }
         }

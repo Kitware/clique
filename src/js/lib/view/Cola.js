@@ -170,17 +170,15 @@
                     d3.event.stopPropagation();
                 })
                 .on("click", function (d) {
-                    var key = clique.util.linkHash(d);
-
                     if (d3.event.shiftKey) {
-                        if (that.linkSelection.has(key)) {
-                            that.linkSelection.remove(key);
+                        if (that.linkSelection.has(d.key)) {
+                            that.linkSelection.remove(d.key);
 
                             d3.select(this)
                                 .classed("hovering", true)
                                 .classed("selected", false);
                         } else {
-                            that.linkSelection.add(key);
+                            that.linkSelection.add(d.key);
 
                             d3.select(this)
                                 .classed("hovering", false)
@@ -193,7 +191,7 @@
                             that.linkSelection.remove(key);
                         });
 
-                        that.linkSelection.add(clique.util.linkHash(d));
+                        that.linkSelection.add(d.key);
 
                         d3.select(that.el)
                             .selectAll(".handle")

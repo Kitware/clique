@@ -118,6 +118,11 @@
                             results.nodes[i] = mut.getTarget();
                         }, this));
 
+                       _.each(results.links, _.bind(function (link, i) {
+                           var mut = this.getMutator(link);
+                           results.links[i] = mut.getTarget();
+                       }, this));
+
                        def.resolve(results);
                        return def;
                    }, this));
@@ -139,11 +144,11 @@
                     };
 
                     if (mongoRec.source) {
-                        target.source = mongoRec.source.$oid;
+                        target.source = mongoRec.source;
                     }
 
                     if (mongoRec.target) {
-                        target.target = mongoRec.target.$oid;
+                        target.target = mongoRec.target;
                     }
 
                     mutators[key] = new clique.util.Mutator({

@@ -37,9 +37,9 @@
                     }, this));
 
                     _.each(nbd.links, _.bind(function (link) {
-                        var linkKey = clique.util.linkHash(link);
-                        if (!this.links.has(linkKey)) {
-                            this.links.add(linkKey);
+                        var key = link.key;
+                        if (!this.links.has(key)) {
+                            this.links.add(key);
 
                             this.forward.add(link.source, link.target);
                             this.back.add(link.target, link.source);
@@ -70,9 +70,9 @@
                 }
 
                 _.each(nbd.links, _.bind(function (link) {
-                    var linkKey = clique.util.linkHash(link);
-                    if (!this.links.has(linkKey) && _.has(this.nodes, link.source) && _.has(this.nodes, link.target)) {
-                        this.links.add(linkKey);
+                    var key = link.key;
+                    if (!this.links.has(key) && _.has(this.nodes, link.source) && _.has(this.nodes, link.target)) {
+                        this.links.add(key);
 
                         this.forward.add(link.source, link.target);
                         this.back.add(link.target, link.source);
@@ -163,7 +163,7 @@
                 if (!marked.has(link.source.key) && !marked.has(link.target.key)) {
                     newLinks.push(link);
                 } else {
-                    this.links.remove(clique.util.linkHash(link));
+                    this.links.remove(link.key);
                 }
             }, this));
 

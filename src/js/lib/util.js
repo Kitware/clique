@@ -125,6 +125,14 @@
                 return target.key;
             },
 
+            source: function () {
+                return target.source;
+            },
+
+            target: function () {
+                return target.target;
+            },
+
             getTransient: function (prop) {
                 return target[prop];
             },
