@@ -203,7 +203,11 @@
                             that.linkSelection.add(d.key);
                         }
                     } else if (d3.event.ctrlKey) {
-                        console.log("ctrl click on link");
+                        if (!that.linkSelection.has(d.key)) {
+                            that.linkSelection.add(d.key);
+                        }
+
+                        that.linkSelection.focusKey(d.key);
                     } else {
                         _.each(that.linkSelection.items(), function (key) {
                             that.linkSelection.remove(key);
