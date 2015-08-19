@@ -76,31 +76,31 @@
                 this.focused = focused;
                 this.renderNodes();
             });
-            this.listenTo(this.linkSelection, "focused", _.debounce(function (focused) {
+            this.listenTo(this.linkSelection, "removed", function (key) {
+                d3.select(this.el)
+                    .selectAll(".handle")
+                    .filter(function (d) {
+                        return d.key === key;
+                    })
+                .classed("selected", false);
+            });
+            this.listenTo(this.linkSelection, "added", function (key) {
+                d3.select(this.el)
+                    .selectAll(".handle")
+                    .filter(function (d) {
+                        return d.key === key;
+                    })
+                .classed("selected", true);
+            });
+            this.listenTo(this.linkSelection, "focused", function (focused) {
                 d3.select(this.el)
                     .selectAll(".handle")
                     .classed("focused", false)
                     .filter(function (d) {
                         return d.key === focused;
                     })
-                    .classed("focused", true);
-            }, 100));
-            this.listenTo(this.linkSelection, "added", _.debounce(function (key) {
-                d3.select(this.el)
-                    .selectAll(".handle")
-                    .filter(function (d) {
-                        return d.key === key;
-                    })
-                    .classed("selected", true);
-            }, 100));
-            this.listenTo(this.linkSelection, "removed", _.debounce(function (key) {
-                d3.select(this.el)
-                    .selectAll(".handle")
-                    .filter(function (d) {
-                        return d.key === key;
-                    })
-                    .classed("selected", false);
-            }, 100));
+                .classed("focused", true);
+            });
 
             this.selected = new clique.util.Set();
             this.listenTo(this.selection, "added", function (key) {
