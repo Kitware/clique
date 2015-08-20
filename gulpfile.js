@@ -84,7 +84,6 @@ gulp.task("uglify-clique", ["jade-templates"], function () {
         "node_modules/jade/runtime.js",
         "src/js/lib/preamble.js",
         "build/jade/templates.js",
-        "src/js/lib/error.js",
         "src/js/lib/**/*.js"
     ])
         .pipe(concat("clique.js"))
