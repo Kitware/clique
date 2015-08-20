@@ -163,9 +163,7 @@
 
             this.links = me.select("g.links")
                 .selectAll("g.link")
-                .data(linkData, function (d) {
-                    return JSON.stringify([d.source.key, d.target.key]);
-                });
+                .data(linkData, _.property("key"));
 
             groups = this.links.enter()
                 .append("g")
