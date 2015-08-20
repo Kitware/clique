@@ -170,6 +170,7 @@
                 .classed("link", true);
 
             groups.append("path")
+                .style("fill", "transparent")
                 .style("stroke-width", 0)
                 .style("stroke", "black")
                 .style("stroke-dasharray", function (d) {
@@ -180,6 +181,7 @@
                 .style("stroke-width", 1);
 
             groups.append("path")
+                .style("fill", "transparent")
                 .classed("handle", true)
                 .style("stroke-width", 10)
                 .on("mouseenter", function () {
@@ -214,6 +216,42 @@
                         that.linkSelection.add(d.key);
                     }
                 });
+
+            (function () {
+                var count = {},
+                    key,
+                    bumpCount;
+
+                key = function (source, target) {
+                    var min,
+                        max;
+
+                    if (source < target) {
+                        min = source;
+                        max = target;
+                    } else {
+                        min = target;
+                        max = source;
+                    }
+
+                    return min + "," + max;
+                };
+
+                bumpCount = function (source, target) {
+                    var name = key(source, target);
+                    if (!_.has(count, name)) {
+                        count[name] = 0;
+                    }
+
+                    count[name] += 1;
+                    return count[name] - 1;
+                };
+
+                that.links.datum(function (d) {
+                    d.linkRank = bumpCount(d.source.key, d.target.key);
+                    return d;
+                });
+            }());
 
             this.links.exit()
                 .transition()
@@ -287,8 +325,33 @@
 
                 this.links.selectAll("path")
                     .attr("d", function (d) {
-                        return ["M", d.source.x + "," + d.source.y,
-                                "L", d.target.x + "," + d.target.y].join(" ");
+                        var multiplier,
+                            dx,
+                            dy,
+                            invLen,
+                            control,
+                            path,
+                            point;
+
+                        point = function (x, y) {
+                            return x + "," + y;
+                        };
+
+                        multiplier = 0.15 * (d.linkRank % 2 === 0 ? -d.linkRank / 2 : (d.linkRank + 1) / 2);
+
+                        dx = d.target.x - d.source.x;
+                        dy = d.target.y - d.source.y;
+
+                        control = {
+                            x: d.source.x + 0.5*dx + multiplier * dy,
+                            y: d.source.y + 0.5*dy + multiplier * -dx
+                        };
+
+                        path = [
+                            "M", point(d.source.x, d.source.y),
+                            "Q", point(control.x, control.y), point(d.target.x, d.target.y)
+                        ];
+                        return path.join(" ");
                     });
             }, this));
 
