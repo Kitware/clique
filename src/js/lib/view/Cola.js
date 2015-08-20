@@ -171,7 +171,7 @@
                 .append("g")
                 .classed("link", true);
 
-            groups.append("line")
+            groups.append("path")
                 .style("stroke-width", 0)
                 .style("stroke", "black")
                 .style("stroke-dasharray", function (d) {
@@ -181,7 +181,7 @@
                 .duration(this.transitionTime)
                 .style("stroke-width", 1);
 
-            groups.append("line")
+            groups.append("path")
                 .classed("handle", true)
                 .style("stroke-width", 10)
                 .on("mouseenter", function () {
@@ -287,11 +287,11 @@
                     .attr("cx", _.property("x"))
                     .attr("cy", _.property("y"));
 
-                this.links.selectAll("line")
-                    .attr("x1", _.compose(_.property("x"), _.property("source")))
-                    .attr("y1", _.compose(_.property("y"), _.property("source")))
-                    .attr("x2", _.compose(_.property("x"), _.property("target")))
-                    .attr("y2", _.compose(_.property("y"), _.property("target")));
+                this.links.selectAll("path")
+                    .attr("d", function (d) {
+                        return ["M", d.source.x + "," + d.source.y,
+                                "L", d.target.x + "," + d.target.y].join(" ");
+                    });
             }, this));
 
             (function () {
