@@ -1,14 +1,29 @@
 (function (clique, Backbone, _, d3, cola) {
     "use strict";
 
-    var fill,
+    var prefill,
+        fill,
         strokeWidth;
 
-    fill = function (d) {
+    prefill = function (d) {
         if (d.key === this.focused) {
             return "crimson";
         } else if (d.root) {
             return "gold";
+        } else {
+            return "limegreen";
+        }
+    };
+
+    fill = function (d) {
+        this.model.adapter.getMutator({
+            _id: {
+                $oid: d.key
+            }
+        }).clearTransient("root");
+
+        if (d.key === this.focused) {
+            return "crimson";
         } else {
             return "limegreen";
         }
@@ -55,11 +70,28 @@
             });
         },
 
-        renderNodes: function () {
+        renderNodes: function (cfg) {
+            var that = this;
+
+            if (cfg && cfg.cancel) {
+                this.nodes.interrupt();
+            }
+
             this.nodes
-                .style("fill", _.bind(fill, this))
+                .style("fill", _.bind(prefill, this))
                 .style("stroke", "blue")
-                .style("stroke-width", _.bind(strokeWidth, this));
+                .style("stroke-width", _.bind(strokeWidth, this))
+                .filter(function (d) {
+                    return d.root;
+                })
+                .transition()
+                .delay(this.transitionTime)
+                .each("interrupt", function () {
+                    d3.select(this)
+                        .style("fill", _.bind(fill, that));
+                })
+                .duration(1500)
+                .style("fill", _.bind(fill, this));
         },
 
         render: function () {
@@ -122,7 +154,9 @@
                             that.selection.add(d.key);
                         }
 
-                        that.renderNodes();
+                        that.renderNodes({
+                            cancel: true
+                        });
                     }
                     that.dragging = false;
                 })
@@ -379,7 +413,9 @@
                         });
 
                         // Update the view.
-                        that.renderNodes();
+                        that.renderNodes({
+                            cancel: true
+                        });
                     }
 
                     dragging = false;
