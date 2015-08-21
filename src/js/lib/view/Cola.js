@@ -328,7 +328,6 @@
                         var multiplier,
                             dx,
                             dy,
-                            invLen,
                             control,
                             path,
                             point;
