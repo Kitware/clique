@@ -163,15 +163,14 @@
 
             this.links = me.select("g.links")
                 .selectAll("g.link")
-                .data(linkData, function (d) {
-                    return JSON.stringify([d.source.key, d.target.key]);
-                });
+                .data(linkData, _.property("key"));
 
             groups = this.links.enter()
                 .append("g")
                 .classed("link", true);
 
-            groups.append("line")
+            groups.append("path")
+                .style("fill", "transparent")
                 .style("stroke-width", 0)
                 .style("stroke", "black")
                 .style("stroke-dasharray", function (d) {
@@ -181,7 +180,8 @@
                 .duration(this.transitionTime)
                 .style("stroke-width", 1);
 
-            groups.append("line")
+            groups.append("path")
+                .style("fill", "transparent")
                 .classed("handle", true)
                 .style("stroke-width", 10)
                 .on("mouseenter", function () {
@@ -216,6 +216,42 @@
                         that.linkSelection.add(d.key);
                     }
                 });
+
+            (function () {
+                var count = {},
+                    key,
+                    bumpCount;
+
+                key = function (source, target) {
+                    var min,
+                        max;
+
+                    if (source < target) {
+                        min = source;
+                        max = target;
+                    } else {
+                        min = target;
+                        max = source;
+                    }
+
+                    return min + "," + max;
+                };
+
+                bumpCount = function (source, target) {
+                    var name = key(source, target);
+                    if (!_.has(count, name)) {
+                        count[name] = 0;
+                    }
+
+                    count[name] += 1;
+                    return count[name] - 1;
+                };
+
+                that.links.datum(function (d) {
+                    d.linkRank = bumpCount(d.source.key, d.target.key);
+                    return d;
+                });
+            }());
 
             this.links.exit()
                 .transition()
@@ -287,11 +323,36 @@
                     .attr("cx", _.property("x"))
                     .attr("cy", _.property("y"));
 
-                this.links.selectAll("line")
-                    .attr("x1", _.compose(_.property("x"), _.property("source")))
-                    .attr("y1", _.compose(_.property("y"), _.property("source")))
-                    .attr("x2", _.compose(_.property("x"), _.property("target")))
-                    .attr("y2", _.compose(_.property("y"), _.property("target")));
+                this.links.selectAll("path")
+                    .attr("d", function (d) {
+                        var multiplier,
+                            dx,
+                            dy,
+                            invLen,
+                            control,
+                            path,
+                            point;
+
+                        point = function (x, y) {
+                            return x + "," + y;
+                        };
+
+                        multiplier = 0.15 * (d.linkRank % 2 === 0 ? -d.linkRank / 2 : (d.linkRank + 1) / 2);
+
+                        dx = d.target.x - d.source.x;
+                        dy = d.target.y - d.source.y;
+
+                        control = {
+                            x: d.source.x + 0.5*dx + multiplier * dy,
+                            y: d.source.y + 0.5*dy + multiplier * -dx
+                        };
+
+                        path = [
+                            "M", point(d.source.x, d.source.y),
+                            "Q", point(control.x, control.y), point(d.target.x, d.target.y)
+                        ];
+                        return path.join(" ");
+                    });
             }, this));
 
             (function () {
