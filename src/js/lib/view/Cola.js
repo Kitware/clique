@@ -467,7 +467,7 @@
                     d3.event.preventDefault();
 
                     // Disable pointer events (temporarily) on the menu panels.
-                    d3.select(".menu-panel")
+                    d3.selectAll(".panel-group")
                         .style("pointer-events", "none");
 
                     // If shift is not held at the beginning of the operation,
@@ -554,8 +554,8 @@
                         }
 
                         // Restore pointer events on the menu panels.
-                        d3.select(".menu-panel")
-                            .style("pointer-events", null);
+                        d3.selectAll(".panel-group")
+                            .style("pointer-events", "auto");
 
                         // Transform the start and end coordinates of the
                         // selector box.
