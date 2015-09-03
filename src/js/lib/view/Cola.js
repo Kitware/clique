@@ -170,7 +170,7 @@
                 .classed("link", true);
 
             groups.append("path")
-                .style("fill", "transparent")
+                .style("fill", "none")
                 .style("stroke-width", 0)
                 .style("stroke", "black")
                 .style("stroke-dasharray", function (d) {
@@ -181,7 +181,7 @@
                 .style("stroke-width", 1);
 
             groups.append("path")
-                .style("fill", "transparent")
+                .style("fill", "none")
                 .classed("handle", true)
                 .style("stroke-width", 10)
                 .on("mouseenter", function () {
