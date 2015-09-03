@@ -192,9 +192,6 @@
                     d3.select(this)
                         .classed("hovering", false);
                 })
-                .on("mousedown", function () {
-                    d3.event.stopPropagation();
-                })
                 .on("click", function (d) {
                     if (d3.event.shiftKey) {
                         if (that.linkSelection.has(d.key)) {
