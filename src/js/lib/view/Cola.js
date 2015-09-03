@@ -464,6 +464,12 @@
                     active = true;
                     dragging = false;
 
+                    d3.event.preventDefault();
+
+                    // Disable pointer events (temporarily) on the menu panels.
+                    d3.select(".menu-panel")
+                        .style("pointer-events", "none");
+
                     // If shift is not held at the beginning of the operation,
                     // then remove the current selections.
                     if (!d3.event.shiftKey) {
@@ -546,6 +552,10 @@
                                 .remove();
                             selector = null;
                         }
+
+                        // Restore pointer events on the menu panels.
+                        d3.select(".menu-panel")
+                            .style("pointer-events", null);
 
                         // Transform the start and end coordinates of the
                         // selector box.
