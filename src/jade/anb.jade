@@ -65,8 +65,19 @@ body
                                     label #[input(type="checkbox")#delsearch-adv] Include deleted nodes
                             .row
                                 .col-md-12
-                                    a.btn.btn-primary Add a search clause
+                                    a.btn.btn-primary(data-toggle="modal" data-target="#add-clause") Add a search clause
                                     a.btn.btn-default#submit-adv Query
+
+                    .modal.fade#add-clause
+                        .modal-dialog
+                            .modal-content
+                                .modal-header
+                                    h4 Add a search clause
+                                .modal-body
+                                    p Hello
+                                .modal-footer
+                                    a.btn.btn-default(data-dismiss="modal") Cancel
+                                    a.btn.btn-primary Add
 
         +panel("selection", "Selection")(style="width:380px;")
             .row
