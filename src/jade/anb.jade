@@ -83,14 +83,14 @@ body
                                         .col-md-3
                                             input#fieldname(placeholder="Field name").form-control
                                         .col-md-2
-                                            select.form-control
+                                            select#operator.form-control
                                                 option Operator
                                                 option ==
                                         .col-md-3
                                             input#value(placeholder="Value").form-control
                                 .modal-footer
                                     a.btn.btn-default(data-dismiss="modal") Cancel
-                                    a.btn.btn-primary Add
+                                    a.btn.btn-primary#add Add
 
         +panel("selection", "Selection")(style="width:380px;")
             .row

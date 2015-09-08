@@ -1,5 +1,5 @@
 /*jshint browser: true, jquery: true */
-/*global clique, _, tangelo */
+/*global clique, _, tangelo, d3 */
 
 $(function () {
     "use strict";
@@ -9,6 +9,54 @@ $(function () {
 
         d3.select("#clause-type")
             .style("display", emptyQuery ? "none" : null);
+    });
+
+    $("#add").on("click", function () {
+        var query = $("#query-string").val(),
+            clause = $("#clause-type select").val(),
+            field = $("#fieldname").val(),
+            op = $("#operator").val(),
+            value = $("#value").val();
+
+        if (_.size(query.trim()) > 0 && clause === "Clause type") {
+            // TODO error condition - must specify a clause type
+            return;
+        }
+
+        if (op === "Operator") {
+            // TODO error condition - must specify an operator
+            return;
+        }
+
+        if (field === "") {
+            // TODO error condition - must specify a field name
+            return;
+        }
+
+        switch (clause) {
+        case "AND": {
+            query += " & ";
+            break;
+        }
+
+        case "OR": {
+            query += " | ";
+            break;
+        }
+
+        case "Clause type": {
+            break;
+        }
+
+        default: {
+            throw new Error("Impossible");
+        }
+        }
+
+        query += [field, op, "\"" + value + "\""].join(" ");
+
+        $("#query-string").val(query);
+        $("#add-clause").modal("hide");
     });
 
     var launch = function (cfg) {
