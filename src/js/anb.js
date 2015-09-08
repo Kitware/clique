@@ -18,18 +18,27 @@ $(function () {
             op = $("#operator").val(),
             value = $("#value").val();
 
+        d3.select("#errors")
+            .classed("hidden", true);
+
         if (_.size(query.trim()) > 0 && clause === "Clause type") {
-            // TODO error condition - must specify a clause type
+            d3.select("#errors")
+                .html("You must specify a <strong>Clause type</strong>!")
+                .classed("hidden", false);
             return;
         }
 
         if (op === "Operator") {
-            // TODO error condition - must specify an operator
+            d3.select("#errors")
+                .html("You must specify an <strong>operator</strong>!")
+                .classed("hidden", false);
             return;
         }
 
         if (field === "") {
-            // TODO error condition - must specify a field name
+            d3.select("#errors")
+                .html("You must specify a <strong>field name</strong>!")
+                .classed("hidden", false);
             return;
         }
 
