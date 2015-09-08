@@ -1,8 +1,72 @@
 /*jshint browser: true, jquery: true */
-/*global clique, _, tangelo */
+/*global clique, _, tangelo, d3 */
 
 $(function () {
     "use strict";
+
+    $("#add-clause").on("show.bs.modal", function () {
+        var emptyQuery = _.size($("#query-string").val().trim()) === 0;
+
+        d3.select("#clause-type")
+            .style("display", emptyQuery ? "none" : null);
+    });
+
+    $("#add").on("click", function () {
+        var query = $("#query-string").val(),
+            clause = $("#clause-type select").val(),
+            field = $("#fieldname").val(),
+            op = $("#operator").val(),
+            value = $("#value").val();
+
+        d3.select("#errors")
+            .classed("hidden", true);
+
+        if (_.size(query.trim()) > 0 && clause === "Clause type") {
+            d3.select("#errors")
+                .html("You must specify a <strong>Clause type</strong>!")
+                .classed("hidden", false);
+            return;
+        }
+
+        if (op === "Operator") {
+            d3.select("#errors")
+                .html("You must specify an <strong>operator</strong>!")
+                .classed("hidden", false);
+            return;
+        }
+
+        if (field === "") {
+            d3.select("#errors")
+                .html("You must specify a <strong>field name</strong>!")
+                .classed("hidden", false);
+            return;
+        }
+
+        switch (clause) {
+        case "AND": {
+            query += " & ";
+            break;
+        }
+
+        case "OR": {
+            query += " | ";
+            break;
+        }
+
+        case "Clause type": {
+            break;
+        }
+
+        default: {
+            throw new Error("Impossible");
+        }
+        }
+
+        query += [field, op, "\"" + value + "\""].join(" ");
+
+        $("#query-string").val(query);
+        $("#add-clause").modal("hide");
+    });
 
     var launch = function (cfg) {
         var graph,
