@@ -4,6 +4,13 @@
 $(function () {
     "use strict";
 
+    $("#add-clause").on("show.bs.modal", function () {
+        var emptyQuery = _.size($("#query-string").val().trim()) === 0;
+
+        d3.select("#clause-type")
+            .style("display", emptyQuery ? "none" : null);
+    });
+
     var launch = function (cfg) {
         var graph,
             view,

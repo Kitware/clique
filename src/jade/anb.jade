@@ -74,7 +74,20 @@ body
                                 .modal-header
                                     h4 Add a search clause
                                 .modal-body
-                                    p Hello
+                                    .row
+                                        .col-md-3#clause-type
+                                            select.form-control
+                                                option Clause type
+                                                option AND
+                                                option OR
+                                        .col-md-3
+                                            input#fieldname(placeholder="Field name").form-control
+                                        .col-md-2
+                                            select.form-control
+                                                option Operator
+                                                option ==
+                                        .col-md-3
+                                            input#value(placeholder="Value").form-control
                                 .modal-footer
                                     a.btn.btn-default(data-dismiss="modal") Cancel
                                     a.btn.btn-primary Add
