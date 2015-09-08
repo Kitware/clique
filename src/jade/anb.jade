@@ -33,20 +33,40 @@ body
 
     div.menu-panel(style="position:absolute; left:10px")
         +panel("query", "Query")(style="width:380px;")
-            .row
-                .col-md-12
+            ul.nav.nav-tabs(role="tablist")
+                li.active(role="presentation") #[a(href="#query-basic" role="tab" data-toggle="tab") Basic]
+                li(role="presentation") #[a(href="#query-advanced" role="tab" data-toggle="tab") Advanced]
+
+            .tab-content
+                .tab-pane.active(id="query-basic")
                     .row
-                        .col-md-2 File
-                        .col-md-1 #[input#filename]
+                        .col-md-12
+                            .row
+                                .col-md-2 File
+                                .col-md-1 #[input#filename]
+                            .row
+                                .col-md-2 Label
+                                .col-md-1 #[input#label]
+                            .row
+                                .col-md-12.col-md-offset-1
+                                    label #[input(type="checkbox")#delsearch] Include deleted nodes
+                            .row
+                                .col-md-1
+                                    a.btn.btn-default#submit Query
+
+                .tab-pane(id="query-advanced")
                     .row
-                        .col-md-2 Label
-                        .col-md-1 #[input#label]
-                    .row
-                        .col-md-12.col-md-offset-1
-                            label #[input(type="checkbox")#delsearch] Include deleted nodes
-                    .row
-                        .col-md-1
-                            a.btn.btn-default#submit Query
+                        .col-md-12
+                            .row
+                                .col-md-2 Query
+                                .col-md-1 #[input#query-string]
+                            .row
+                                .col-md-12.col-md-offset-1
+                                    label #[input(type="checkbox")#delsearch-adv] Include deleted nodes
+                            .row
+                                .col-md-12
+                                    a.btn.btn-primary Add a search clause
+                                    a.btn.btn-default#submit-adv Query
 
         +panel("selection", "Selection")(style="width:380px;")
             .row
