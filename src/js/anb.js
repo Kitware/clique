@@ -4,7 +4,9 @@
 $(function () {
     "use strict";
 
-    var parser;
+    var parser,
+        removeAlert,
+        createAlert;
 
     $("#add-clause").on("show.bs.modal", function () {
         var emptyQuery = _.size($("#query-string").val().trim()) === 0;
@@ -13,6 +15,20 @@ $(function () {
             .style("display", emptyQuery ? "none" : null);
     });
 
+    removeAlert = function (selector) {
+        d3.select(selector)
+            .selectAll(".alert.alert-danger")
+            .remove();
+    };
+
+    createAlert = function (selector, message) {
+        d3.select(selector)
+            .append("div")
+            .classed("alert", true)
+            .classed("alert-danger", true)
+            .html(message);
+    };
+
     $("#add").on("click", function () {
         var query = $("#query-string").val(),
             clause = $("#clause-type select").val(),
@@ -20,27 +36,20 @@ $(function () {
             op = $("#operator").val(),
             value = $("#value").val();
 
-        d3.select("#errors")
-            .classed("hidden", true);
+        removeAlert("#errors");
 
         if (_.size(query.trim()) > 0 && clause === "Clause type") {
-            d3.select("#errors")
-                .html("You must specify a <strong>Clause type</strong>!")
-                .classed("hidden", false);
-            return;
-        }
-
-        if (op === "Operator") {
-            d3.select("#errors")
-                .html("You must specify an <strong>operator</strong>!")
-                .classed("hidden", false);
+            createAlert("#errors", "You must specify a <strong>clause type</strong>!");
             return;
         }
 
         if (field === "") {
-            d3.select("#errors")
-                .html("You must specify a <strong>field name</strong>!")
-                .classed("hidden", false);
+            createAlert("#errors", "You must specify a <strong>field name</strong>!");
+            return;
+        }
+
+        if (op === "Operator") {
+            createAlert("#errors", "You must specify an <strong>operator</strong>!");
             return;
         }
 
