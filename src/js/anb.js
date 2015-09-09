@@ -1,8 +1,10 @@
 /*jshint browser: true, jquery: true */
-/*global clique, _, tangelo, d3 */
+/*global clique, _, tangelo, d3, PEG */
 
 $(function () {
     "use strict";
+
+    var parser;
 
     $("#add-clause").on("show.bs.modal", function () {
         var emptyQuery = _.size($("#query-string").val().trim()) === 0;
@@ -66,6 +68,28 @@ $(function () {
 
         $("#query-string").val(query);
         $("#add-clause").modal("hide");
+    });
+
+    $("#submit-adv").on("click", function () {
+        var query = $("#query-string").val().trim(),
+            errMsg,
+            result;
+
+        // Bail if there's no query.
+        if (query === "") {
+            return;
+        }
+
+        // Attempt to parse the string.
+        try {
+            result = parser.parse(query);
+        } catch (e) {
+            errMsg = "line " + e.location.start.line + ", column " + e.location.start.column + ": " + e.message;
+            console.log(errMsg);
+            return;
+        }
+
+        console.log(result);
     });
 
     var launch = function (cfg) {
@@ -174,5 +198,11 @@ $(function () {
         linkInfo.render();
     };
 
-    $.getJSON("anb.json").then(launch, _.bind(launch, {}));
+    $.get("assets/pegjs/query.pegjs", "text")
+        .then(function (src) {
+            parser = PEG.buildParser(src);
+        });
+
+    $.getJSON("anb.json")
+        .then(launch, _.bind(launch, {}));
 });
