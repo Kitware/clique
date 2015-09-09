@@ -8,10 +8,52 @@
                 host: cfg.host || "localhost",
                 db: cfg.database,
                 coll: cfg.collection
-            };
+            },
+            translateSpec;
 
         clique.util.require(cfg.database, "database");
         clique.util.require(cfg.collection, "collection");
+
+        translateSpec = function (spec) {
+            var result = {},
+                value;
+
+            if (_.has(spec, "queryOp")) {
+                // If this is a "leaf node", translate it to a direct comparison
+                // query and return.
+                switch (spec.queryOp) {
+                case "==": {
+                    value = spec.value;
+                    break;
+                }
+
+                case "!=":
+                case ">":
+                case ">=":
+                case "<":
+                case "<=":
+                case "~~":
+                case "|~":
+                case "~|": {
+                    throw new Error("unimplemented");
+                    break;
+                }
+
+                default: {
+                    throw new Error("illegal value for queryOp: " + spec.queryOp);
+                    break;
+                }
+                }
+
+                result = {};
+                result["data." + spec.field] = value;
+            } else if (_.has(spec, "logicOp")) {
+                result = {};
+                result["$" + spec.logicOp] = [translateSpec(spec.left), translateSpec(spec.right)];
+            }
+
+            return result;
+        };
 
         return _.extend({
             findNodes: function (spec) {
