@@ -2,6 +2,7 @@
   "version": "0.1.0",
   "devDependencies": {
     "gulp": "^3.8.11",
+    "gulp-bower": "0.0.10",
     "gulp-concat": "^2.5.2",
     "gulp-jade": "^1.0.0",
     "gulp-job": "^0.1.1",

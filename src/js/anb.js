@@ -1,8 +1,111 @@
 /*jshint browser: true, jquery: true */
-/*global clique, _, tangelo */
+/*global clique, _, tangelo, d3, PEG */
 
 $(function () {
     "use strict";
+
+    var parser,
+        removeAlert,
+        createAlert;
+
+    $("#add-clause").on("show.bs.modal", function () {
+        var emptyQuery = _.size($("#query-string").val().trim()) === 0;
+
+        d3.select("#clause-type")
+            .style("display", emptyQuery ? "none" : null);
+    });
+
+    removeAlert = function (selector) {
+        d3.select(selector)
+            .selectAll(".alert.alert-danger")
+            .remove();
+    };
+
+    createAlert = function (selector, message) {
+        d3.select(selector)
+            .append("div")
+            .classed("alert", true)
+            .classed("alert-danger", true)
+            .classed("alert-dismissible", true)
+            .classed("fade", true)
+            .classed("in", true)
+            .html("<a class=\"close\" data-dismiss=\"alert\">&times;</a>" + message);
+    };
+
+    $("#add").on("click", function () {
+        var query = $("#query-string").val(),
+            clause = $("#clause-type select").val(),
+            field = $("#fieldname").val(),
+            op = $("#operator").val(),
+            value = $("#value").val();
+
+        removeAlert("#errors");
+
+        if (_.size(query.trim()) > 0 && clause === "Clause type") {
+            createAlert("#errors", "You must specify a <strong>clause type</strong>!");
+            return;
+        }
+
+        if (field === "") {
+            createAlert("#errors", "You must specify a <strong>field name</strong>!");
+            return;
+        }
+
+        if (op === "Operator") {
+            createAlert("#errors", "You must specify an <strong>operator</strong>!");
+            return;
+        }
+
+        switch (clause) {
+        case "AND": {
+            query += " & ";
+            break;
+        }
+
+        case "OR": {
+            query += " | ";
+            break;
+        }
+
+        case "Clause type": {
+            break;
+        }
+
+        default: {
+            throw new Error("Impossible");
+        }
+        }
+
+        query += [field, op, "\"" + value + "\""].join(" ");
+
+        $("#query-string").val(query);
+        $("#add-clause").modal("hide");
+    });
+
+    $("#submit-adv").on("click", function () {
+        var query = $("#query-string").val().trim(),
+            errMsg,
+            result;
+
+        // Remove any existing syntax error alert.
+        removeAlert("#syntaxerror");
+
+        // Bail if there's no query.
+        if (query === "") {
+            return;
+        }
+
+        // Attempt to parse the string.
+        try {
+            result = parser.parse(query);
+        } catch (e) {
+            errMsg = "line " + e.location.start.line + ", column " + e.location.start.column + ": " + e.message;
+            createAlert("#syntaxerror", "<h4>Syntax error</h4> " + errMsg);
+            return;
+        }
+
+        console.log(result);
+    });
 
     var launch = function (cfg) {
         var graph,
@@ -110,5 +213,11 @@ $(function () {
         linkInfo.render();
     };
 
-    $.getJSON("anb.json").then(launch, _.bind(launch, {}));
+    $.get("assets/pegjs/query.pegjs", "text")
+        .then(function (src) {
+            parser = PEG.buildParser(src);
+        });
+
+    $.getJSON("anb.json")
+        .then(launch, _.bind(launch, {}));
 });

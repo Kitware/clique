@@ -12,6 +12,7 @@ head
     script(src="assets/backbone-min.js")
     script(src="assets/d3.v3.min.js" charset="utf-8")
     script(src="assets/cola.v3.min.js")
+    script(src="bower_components/pegjs/peg-0.9.0.min.js")
     script(src="plugin/tangelo/tangelo.js")
 
     link(rel="stylesheet" href="assets/bootstrap.min.css")
@@ -33,20 +34,65 @@ body
 
     div.menu-panel(style="position:absolute; left:10px")
         +panel("query", "Query")(style="width:380px;")
-            .row
-                .col-md-12
+            ul.nav.nav-tabs(role="tablist")
+                li.active(role="presentation") #[a(href="#query-basic" role="tab" data-toggle="tab") Basic]
+                li(role="presentation") #[a(href="#query-advanced" role="tab" data-toggle="tab") Advanced]
+
+            .tab-content
+                .tab-pane.active(id="query-basic")
                     .row
-                        .col-md-2 File
-                        .col-md-1 #[input#filename]
+                        .col-md-12
+                            .row
+                                .col-md-12 #[input.form-control(placeholder="File")#filename]
+                            .row
+                                .col-md-12 #[input.form-control(placeholder="Label")#label]
+                            .row
+                                .col-md-12.col-md-offset-1
+                                    label #[input(type="checkbox")#delsearch] Include deleted nodes
+                            .row
+                                .col-md-1
+                                    a.btn.btn-default#submit Query
+
+                .tab-pane(id="query-advanced")
                     .row
-                        .col-md-2 Label
-                        .col-md-1 #[input#label]
-                    .row
-                        .col-md-12.col-md-offset-1
-                            label #[input(type="checkbox")#delsearch] Include deleted nodes
-                    .row
-                        .col-md-1
-                            a.btn.btn-default#submit Query
+                        .col-md-12
+                            .row
+                                .col-md-12 #[textarea#query-string.form-control(rows="3" style="resize:none" placeholder="Query string")]
+                            .row
+                                .col-md-12.col-md-offset-1
+                                    label #[input(type="checkbox")#delsearch-adv] Include deleted nodes
+                            .row
+                                .col-md-12#syntaxerror
+                            .row
+                                .col-md-12
+                                    a.btn.btn-primary(data-toggle="modal" data-target="#add-clause") Add a search clause
+                                    a.btn.btn-default#submit-adv Query
+
+                    .modal.fade#add-clause
+                        .modal-dialog
+                            .modal-content
+                                .modal-header
+                                    h4 Add a search clause
+                                .modal-body
+                                    .row
+                                        .col-md-12#errors
+                                    .row
+                                        .col-md-3#clause-type
+                                            select.form-control
+                                                option Clause type
+                                                option AND
+                                                option OR
+                                        .col-md-3
+                                            input#fieldname(placeholder="Field name").form-control
+                                        .col-md-2
+                                            select#operator.form-control
+                                                option Operator
+                                                option ==
+                                        .col-md-3
+                                            input#value(placeholder="Value").form-control
+                                .modal-footer
+                                    a.btn.btn-default(data-dismiss="modal") Cancel
+                                    a.btn.btn-primary#add Add
 
         +panel("selection", "Selection")(style="width:380px;")
             .row

@@ -1,0 +1,19 @@
+{
+  "name": "clique",
+  "version": "0.0.0",
+  "homepage": "https://github.com/Kitware/clique",
+  "authors": [
+    "Roni Choudhury <roni.choudhury@kitware.com>"
+  ],
+  "license": "Apache v2",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ],
+  "devDependencies": {
+    "pegjs": "~0.9.0"
+  }
+}
