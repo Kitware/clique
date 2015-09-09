@@ -1,23 +1,6 @@
 (function (clique, Backbone, _) {
     "use strict";
 
-    var linkHash = function (link) {
-        var source,
-            target;
-
-        source = link.source;
-        if (!_.isString(source)) {
-            source = source.key;
-        }
-
-        target = link.target;
-        if (!_.isString(target)) {
-            target = target.key;
-        }
-
-        return JSON.stringify([source, target]);
-    };
-
     clique.Graph = Backbone.Model.extend({
         constructor: function (options) {
             Backbone.Model.call(this, {}, options || {});
@@ -54,7 +37,7 @@
                     }, this));
 
                     _.each(nbd.links, _.bind(function (link) {
-                        var linkKey = linkHash(link);
+                        var linkKey = clique.util.linkHash(link);
                         if (!this.links.has(linkKey)) {
                             this.links.add(linkKey);
 
@@ -87,7 +70,7 @@
                 }
 
                 _.each(nbd.links, _.bind(function (link) {
-                    var linkKey = linkHash(link);
+                    var linkKey = clique.util.linkHash(link);
                     if (!this.links.has(linkKey) && _.has(this.nodes, link.source) && _.has(this.nodes, link.target)) {
                         this.links.add(linkKey);
 
@@ -180,7 +163,7 @@
                 if (!marked.has(link.source.key) && !marked.has(link.target.key)) {
                     newLinks.push(link);
                 } else {
-                    this.links.remove(linkHash(link));
+                    this.links.remove(clique.util.linkHash(link));
                 }
             }, this));
 

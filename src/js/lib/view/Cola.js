@@ -5,14 +5,32 @@
         fill,
         strokeWidth;
 
-    prefill = function (d) {
-        if (d.key === this.focused) {
-            return "crimson";
-        } else if (d.root) {
-            return "gold";
-        } else {
-            return "limegreen";
-        }
+    prefill = function (cmap) {
+        return function (d) {
+            if (d.key === this.focused) {
+                return "pink";
+            } else if (d.root) {
+                return "gold";
+            } else {
+                return cmap(d);
+            }
+        };
+    };
+
+    fill = function (cmap) {
+        return function (d) {
+            this.model.adapter.getMutator({
+                _id: {
+                    $oid: d.key
+                }
+            }).clearTransient("root");
+
+            if (d.key === this.focused) {
+                return "pink";
+            } else {
+                return cmap(d);
+            }
+        };
     };
 
     fill = function (d) {
@@ -35,6 +53,8 @@
 
     clique.view.Cola = Backbone.View.extend({
         initialize: function (options) {
+            var cmap;
+
             clique.util.require(this.model, "model");
             clique.util.require(this.el, "el");
 
@@ -47,6 +67,14 @@
 
             this.transitionTime = 500;
 
+            cmap = d3.scale.category10();
+            this.colormap = function (d) {
+                return cmap((d.data || {}).type || "no type");
+            };
+
+            this.prefill = prefill(this.colormap);
+            this.fill = fill(this.colormap);
+
             this.cola = cola.d3adaptor()
                 .linkDistance(options.linkDistance || 100)
                 .avoidOverlaps(true)
@@ -54,6 +82,7 @@
                 .start();
 
             this.selection = new clique.model.Selection();
+            this.linkSelection = new clique.model.Selection();
 
             this.$el.html(clique.template.cola());
             this.listenTo(this.model, "change", _.debounce(this.render, 100));
@@ -78,7 +107,7 @@
             }
 
             this.nodes
-                .style("fill", _.bind(prefill, this))
+                .style("fill", _.bind(this.prefill, this))
                 .style("stroke", "blue")
                 .style("stroke-width", _.bind(strokeWidth, this))
                 .filter(function (d) {
@@ -88,10 +117,10 @@
                 .delay(this.transitionTime)
                 .each("interrupt", function () {
                     d3.select(this)
-                        .style("fill", _.bind(fill, that));
+                        .style("fill", _.bind(that.fill, that));
                 })
                 .duration(1500)
-                .style("fill", _.bind(fill, this));
+                .style("fill", _.bind(this.fill, this));
         },
 
         render: function () {
@@ -99,6 +128,7 @@
                 linkData = this.model.get("links"),
                 drag,
                 me = d3.select(this.el),
+                groups,
                 that = this;
 
             this.cola
@@ -118,6 +148,69 @@
                 d.fixed = true;
                 return d;
             });
+
+            this.links = me.select("g.links")
+                .selectAll("g.link")
+                .data(linkData, function (d) {
+                    return JSON.stringify([d.source.key, d.target.key]);
+                });
+
+            groups = this.links.enter()
+                .append("g")
+                .classed("link", true);
+
+            groups.append("line")
+                .style("stroke-width", 0)
+                .style("stroke", "black")
+                .style("stroke-dasharray", function (d) {
+                    return d.data && d.data.grouping ? "5,5" : "none";
+                })
+                .transition()
+                .duration(this.transitionTime)
+                .style("stroke-width", 1);
+
+            groups.append("line")
+                .classed("handle", true)
+                .style("stroke-width", 10)
+                .on("mouseenter", function () {
+                    d3.select(this)
+                        .classed("hovering", true);
+                })
+                .on("mouseout", function () {
+                    d3.select(this)
+                        .classed("hovering", false);
+                })
+                .on("mousedown", function () {
+                    d3.event.stopPropagation();
+                })
+                .on("mouseup", function (d) {
+                    var selected = d3.select(this).classed("selected");
+
+                    _.each(that.linkSelection.items(), function (key) {
+                        that.linkSelection.remove(key);
+                    });
+
+                    if (!selected) {
+                        that.linkSelection.add(clique.util.linkHash(d));
+                    }
+
+                    d3.select(that.el)
+                        .selectAll(".handle")
+                        .classed("selected", false);
+
+                    if (!selected) {
+                        d3.select(this)
+                            .classed("hovering", false)
+                            .classed("selected", true);
+                    }
+                });
+
+            this.links.exit()
+                .transition()
+                .duration(this.transitionTime)
+                .style("stroke-width", 0)
+                .style("opacity", 0)
+                .remove();
 
             this.nodes.enter()
                 .append("circle")
@@ -177,37 +270,12 @@
                 .style("opacity", 0)
                 .remove();
 
-            this.links = me.select("g.links")
-                .selectAll("line.link")
-                .data(linkData, function (d) {
-                    return JSON.stringify([d.source.key, d.target.key]);
-                });
-
-            this.links.enter()
-                .append("line")
-                .classed("link", true)
-                .style("stroke-width", 0)
-                .style("stroke", "black")
-                .style("stroke-dasharray", function (d) {
-                    return d.data && d.data.grouping ? "5,5" : "none";
-                })
-                .transition()
-                .duration(this.transitionTime)
-                .style("stroke-width", 1);
-
-            this.links.exit()
-                .transition()
-                .duration(this.transitionTime)
-                .style("stroke-width", 0)
-                .style("opacity", 0)
-                .remove();
-
             this.cola.on("tick", _.bind(function () {
                 this.nodes
                     .attr("cx", _.property("x"))
                     .attr("cy", _.property("y"));
 
-                this.links
+                this.links.selectAll("line")
                     .attr("x1", _.compose(_.property("x"), _.property("source")))
                     .attr("y1", _.compose(_.property("y"), _.property("source")))
                     .attr("x2", _.compose(_.property("x"), _.property("target")))

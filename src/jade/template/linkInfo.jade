@@ -1,0 +1,16 @@
+mixin item(key, value)
+    tr
+        td.text-right: strong= key
+        td= value
+
+.container.full-width
+    if _.isUndefined(link)
+        em (Selection is empty)
+    else
+        .container.full-width
+            .row
+                .col-md-1
+                    table.table.table-striped.table-bordered.select-ok
+                        +item("key", link.key())
+                        for item in link.getAllData()
+                            +item(item[0], item[1])
