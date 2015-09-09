@@ -206,9 +206,6 @@
                     d3.select(this)
                         .classed("hovering", false);
                 })
-                .on("mousedown", function () {
-                    d3.event.stopPropagation();
-                })
                 .on("click", function (d) {
                     if (d3.event.shiftKey) {
                         if (that.linkSelection.has(d.key)) {
@@ -478,6 +475,12 @@
                     active = true;
                     dragging = false;
 
+                    d3.event.preventDefault();
+
+                    // Disable pointer events (temporarily) on the menu panels.
+                    d3.selectAll(".panel-group")
+                        .style("pointer-events", "none");
+
                     // If shift is not held at the beginning of the operation,
                     // then remove the current selections.
                     if (!d3.event.shiftKey) {
@@ -560,6 +563,10 @@
                                 .remove();
                             selector = null;
                         }
+
+                        // Restore pointer events on the menu panels.
+                        d3.selectAll(".panel-group")
+                            .style("pointer-events", "auto");
 
                         // Transform the start and end coordinates of the
                         // selector box.
