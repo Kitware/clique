@@ -84,6 +84,9 @@ $(function () {
             errMsg,
             result;
 
+        // Remove any existing syntax error alert.
+        removeAlert("#syntaxerror");
+
         // Bail if there's no query.
         if (query === "") {
             return;
@@ -94,7 +97,7 @@ $(function () {
             result = parser.parse(query);
         } catch (e) {
             errMsg = "line " + e.location.start.line + ", column " + e.location.start.column + ": " + e.message;
-            console.log(errMsg);
+            createAlert("#syntaxerror", "<strong>Syntax error!</strong> " + errMsg);
             return;
         }
 
