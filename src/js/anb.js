@@ -26,7 +26,10 @@ $(function () {
             .append("div")
             .classed("alert", true)
             .classed("alert-danger", true)
-            .html(message);
+            .classed("alert-dismissible", true)
+            .classed("fade", true)
+            .classed("in", true)
+            .html("<a class=\"close\" data-dismiss=\"alert\">&times;</a>" + message);
     };
 
     $("#add").on("click", function () {
@@ -97,7 +100,7 @@ $(function () {
             result = parser.parse(query);
         } catch (e) {
             errMsg = "line " + e.location.start.line + ", column " + e.location.start.column + ": " + e.message;
-            createAlert("#syntaxerror", "<strong>Syntax error!</strong> " + errMsg);
+            createAlert("#syntaxerror", "<h4>Syntax error</h4> " + errMsg);
             return;
         }
 
