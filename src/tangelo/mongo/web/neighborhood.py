@@ -62,14 +62,15 @@ def run(host=None, db=None, coll=None, center=None, radius=None, deleted=json.du
                         new_frontier.add(frozen)
                         neighbor_nodes.add(frozen)
 
-                    if source:
-                        neighbor_link = {"source": str(id),
-                                         "target": str(frozen[0])}
-                    else:
-                        neighbor_link = {"source": str(frozen[0]),
-                                         "target": str(id)}
+                    neighbor_link = {"_id": link["_id"],
+                                     "data": link.get("data", {})}
 
-                    neighbor_link.update({"data": link.get("data", {})})
+                    if source:
+                        neighbor_link.update({"source": str(id),
+                                              "target": str(frozen[0])})
+                    else:
+                        neighbor_link.update({"source": str(frozen[0]),
+                                              "target": str(id)})
 
                     neighbor_links.append(neighbor_link)
 
@@ -78,4 +79,4 @@ def run(host=None, db=None, coll=None, center=None, radius=None, deleted=json.du
     processed = map(lambda x: json.loads(x[1]), neighbor_nodes)
 
     return {"nodes": processed,
-            "links": neighbor_links}
+            "links": json.loads(bson.json_util.dumps(neighbor_links))}

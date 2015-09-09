@@ -34,11 +34,23 @@ user-select(args...)
 
 .handle.hovering
     stroke gray
-    opacity 0.7
+    opacity 0.3
 
 .handle.selected
+    stroke gray
+    opacity 0.7
+
+.handle.selected.hovering
+    stroke gray
+    opacity 0.8
+
+.handle.focused
     stroke red
     opacity 0.5
+
+.handle.focused.hovering
+    stroke red
+    opacity 0.6
 
 .ui-autocomplete
     max-height 200px
