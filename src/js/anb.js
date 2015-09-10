@@ -177,13 +177,19 @@ $(function () {
                 return;
             }
 
-            if (filename) {
-                spec.filename = filename;
-            }
-
-            if (label) {
-                spec.label = label;
-            }
+            spec = {
+                logicOp: "and",
+                left: {
+                    queryOp: "==",
+                    field: "filename",
+                    value: filename
+                },
+                right: {
+                    queryOp: "==",
+                    field: "label",
+                    value: label
+                }
+            };
 
             graph.adapter.findNode(spec)
                 .then(function (center) {

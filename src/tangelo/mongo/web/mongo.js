@@ -45,10 +45,16 @@
                 }
                 }
 
-                result = {};
-                result["data." + spec.field] = value;
+                if (spec.field === "key") {
+                    result["_id"] = {
+                        $oid: value
+                    };
+                } else {
+                    result["data." + spec.field] = value;
+                }
             } else if (_.has(spec, "logicOp")) {
-                result = {};
+                // Otherwise, create a logic operator node and recurse down the
+                // operands.
                 result["$" + spec.logicOp] = [translateSpec(spec.left), translateSpec(spec.right)];
             }
 
@@ -58,7 +64,7 @@
         return _.extend({
             findNodes: function (spec) {
                 var data = _.extend({
-                    spec: JSON.stringify(spec)
+                    spec: JSON.stringify(translateSpec(spec))
                 }, mongoStore);
 
                 return $.getJSON(findNodesService, data)
@@ -67,7 +73,7 @@
 
             findNode: function (spec) {
                 var data = _.extend({
-                    spec: JSON.stringify(spec),
+                    spec: JSON.stringify(translateSpec(spec)),
                     singleton: JSON.stringify(true)
                 }, mongoStore);
 
@@ -82,6 +88,14 @@
                         def.resolve(result);
                         return def;
                     }, this));
+            },
+
+            findNodeByKey: function (key) {
+                return this.findNode({
+                    queryOp: "==",
+                    field: "key",
+                    value: key
+                });
             },
 
             findLinks: function (spec) {

@@ -129,20 +129,20 @@
                     };
                 });
 
-                this.graph.adapter.findNode({
-                    key: newKey
-                }).then(_.bind(function (groupNode) {
-                    return this.graph.addNode(groupNode)
-                        .then(_.bind(function () {
-                            this.model.add(groupNode.key());
+                this.graph.adapter.findNodeByKey(newKey)
+                    .then(_.bind(function (groupNode) {
+                        return this.graph.addNode(groupNode)
+                            .then(_.bind(function () {
+                                this.model.add(groupNode.key());
+                            }, this));
+                    }, this))
+                    .then(_.bind(function () {
+                        var children = _.map(mongoRecs, this.graph.adapter.getMutator, this.graph.adapter);
+                        _.each(children, _.bind(function (child) {
+                            child.setData("deleted", true);
+                            this.hideNode(child);
                         }, this));
-                }, this)).then(_.bind(function () {
-                    var children = _.map(mongoRecs, this.graph.adapter.getMutator, this.graph.adapter);
-                    _.each(children, _.bind(function (child) {
-                        child.setData("deleted", true);
-                        this.hideNode(child);
                     }, this));
-                }, this));
             }, this));
         },
 
@@ -155,15 +155,14 @@
                 this.graph.adapter.destroyNode(node.key());
 
                 _.each(links, _.bind(function (link) {
-                    this.graph.adapter.findNode({
-                        key: link.getTransient("target")
-                    }).then(_.bind(function (child) {
-                        child.clearData("deleted");
-                        this.graph.adapter.once("cleared:" + child.key(), _.bind(function () {
-                            this.model.add(child.key());
-                            this.graph.addNode(child);
+                    this.graph.adapter.findNodeByKey(link.getTransient("target"))
+                        .then(_.bind(function (child) {
+                            child.clearData("deleted");
+                            this.graph.adapter.once("cleared:" + child.key(), _.bind(function () {
+                                this.model.add(child.key());
+                                this.graph.addNode(child);
+                            }, this));
                         }, this));
-                    }, this));
                 }, this));
             }, this));
         },
@@ -190,19 +189,19 @@
                     }, this));
 
                 this.$("button.remove").on("click", _.bind(function () {
-                    this.graph.adapter.findNode({key: this.model.focused()})
+                    this.graph.adapter.findNodeByKey(this.model.focused())
                         .then(_.bind(this.hideNode, this));
                 }, this));
 
                 this.$("button.remove-sel").on("click", _.bind(function () {
                     _.each(this.model.items(), _.bind(function (key) {
-                        this.graph.adapter.findNode({key: key})
+                        this.graph.adapter.findNodeByKey(key)
                             .then(_.bind(this.hideNode, this));
                     }, this));
                 }, this));
 
                 this.$("button.delete").on("click", _.bind(function () {
-                    this.graph.adapter.findNode({key: this.model.focused()})
+                    this.graph.adapter.findNodeByKey(this.model.focused())
                         .then(_.bind(function (node) {
                             this.deleteNode(node, !node.getData("deleted"));
                         }, this));
@@ -210,19 +209,19 @@
 
                 this.$("button.delete-sel").on("click", _.bind(function () {
                     _.each(this.model.items(), _.bind(function (key) {
-                        this.graph.adapter.findNode({key: key})
+                        this.graph.adapter.findNodeByKey(key)
                             .then(_.bind(this.deleteNode, this, _, true));
                     }, this));
                 }, this));
 
                 this.$("button.expand").on("click", _.bind(function () {
-                    this.graph.adapter.findNode({key: this.model.focused()})
+                    this.graph.adapter.findNodeByKey(this.model.focused())
                         .then(_.bind(this.expandNode, this));
                 }, this));
 
                 this.$("button.expand-sel").on("click", _.bind(function () {
                     _.each(this.model.items(), _.bind(function (key) {
-                        this.graph.adapter.findNode({ key: key})
+                        this.graph.adapter.findNodeByKey(key)
                             .then(_.bind(this.expandNode, this));
                     }, this));
                 }, this));
@@ -238,7 +237,7 @@
                 }, this));
 
                 this.$("button.ungroup").on("click", _.bind(function () {
-                    this.graph.adapter.findNode({key: this.model.focused()})
+                    this.graph.adapter.findNodeByKey(this.model.focused())
                         .then(_.bind(this.ungroupNode, this));
                 }, this));
 
@@ -252,7 +251,7 @@
             if (!focused) {
                 renderTemplate(focused);
             } else {
-                this.graph.adapter.findNode({key: focused})
+                this.graph.adapter.findNodeByKey(focused)
                     .then(renderTemplate);
             }
         }
