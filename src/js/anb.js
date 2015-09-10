@@ -85,7 +85,7 @@ $(function () {
     $("#submit-adv").on("click", function () {
         var query = $("#query-string").val().trim(),
             errMsg,
-            result;
+            spec;
 
         // Remove any existing syntax error alert.
         removeAlert("#syntaxerror");
@@ -97,14 +97,19 @@ $(function () {
 
         // Attempt to parse the string.
         try {
-            result = parser.parse(query);
+            spec = parser.parse(query);
         } catch (e) {
             errMsg = "line " + e.location.start.line + ", column " + e.location.start.column + ": " + e.message;
             createAlert("#syntaxerror", "<h4>Syntax error</h4> " + errMsg);
             return;
         }
 
-        console.log(result);
+        graph.adapter.findNodes(spec)
+            .then(function (nodes) {
+                _.each(nodes, function (node) {
+                    graph.addNode(node);
+                });
+            });
     });
 
     var launch = function (cfg) {
