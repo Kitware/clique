@@ -15,10 +15,9 @@ def run(host=None, db=None, coll=None, spec=None, singleton=json.dumps(False)):
 
     spec.update({"type": "node"})
 
-    it = graph.find(spec)
-    try:
-        result = it.next() if singleton else list(it)
-    except StopIteration:
-        result = None
+    if singleton:
+        result = graph.find_one(spec)
+    else:
+        result = list(graph.find(spec))
 
     return bson.json_util.dumps(result)
