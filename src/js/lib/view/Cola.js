@@ -33,20 +33,6 @@
         };
     };
 
-    fill = function (d) {
-        this.model.adapter.getMutator({
-            _id: {
-                $oid: d.key
-            }
-        }).clearTransient("root");
-
-        if (d.key === this.focused) {
-            return "crimson";
-        } else {
-            return "limegreen";
-        }
-    };
-
     strokeWidth = function (d) {
         return this.selected.has(d.key) ? "2px" : "0px";
     };
