@@ -82,36 +82,6 @@ $(function () {
         $("#add-clause").modal("hide");
     });
 
-    $("#submit-adv").on("click", function () {
-        var query = $("#query-string").val().trim(),
-            errMsg,
-            spec;
-
-        // Remove any existing syntax error alert.
-        removeAlert("#syntaxerror");
-
-        // Bail if there's no query.
-        if (query === "") {
-            return;
-        }
-
-        // Attempt to parse the string.
-        try {
-            spec = parser.parse(query);
-        } catch (e) {
-            errMsg = "line " + e.location.start.line + ", column " + e.location.start.column + ": " + e.message;
-            createAlert("#syntaxerror", "<h4>Syntax error</h4> " + errMsg);
-            return;
-        }
-
-        graph.adapter.findNodes(spec)
-            .then(function (nodes) {
-                _.each(nodes, function (node) {
-                    graph.addNode(node);
-                });
-            });
-    });
-
     var launch = function (cfg) {
         var graph,
             view,
@@ -201,6 +171,36 @@ $(function () {
                     if (center) {
                         graph.addNode(center);
                     }
+                });
+        });
+
+        $("#submit-adv").on("click", function () {
+            var query = $("#query-string").val().trim(),
+                errMsg,
+                spec;
+
+            // Remove any existing syntax error alert.
+            removeAlert("#syntaxerror");
+
+            // Bail if there's no query.
+            if (query === "") {
+                return;
+            }
+
+            // Attempt to parse the string.
+            try {
+                spec = parser.parse(query);
+            } catch (e) {
+                errMsg = "line " + e.location.start.line + ", column " + e.location.start.column + ": " + e.message;
+                createAlert("#syntaxerror", "<h4>Syntax error</h4> " + errMsg);
+                return;
+            }
+
+            graph.adapter.findNodes(spec)
+                .then(function (nodes) {
+                    _.each(nodes, function (node) {
+                        graph.addNode(node);
+                    });
                 });
         });
 
