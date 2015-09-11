@@ -328,6 +328,7 @@
                             invLen,
                             offset,
                             thickness = 1.0,
+                            flip,
                             control,
                             path,
                             point;
@@ -337,6 +338,7 @@
                         };
 
                         multiplier = 0.15 * (d.linkRank % 2 === 0 ? -d.linkRank / 2 : (d.linkRank + 1) / 2);
+                        flip = d.linkRank % 2 === 0 ? -1.0 : 1.0;
 
                         dx = d.target.x - d.source.x;
                         dy = d.target.y - d.source.y;
@@ -348,8 +350,8 @@
 
                         invLen = 1.0 / Math.sqrt(dx*dx + dy*dy);
                         offset = {
-                            x: dy * invLen * 5,
-                            y: -dx * invLen * 5
+                            x: flip * dy * invLen * 5,
+                            y: flip * -dx * invLen * 5
                         };
 
                         if (d.linkRank === 0) {
