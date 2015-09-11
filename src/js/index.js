@@ -78,7 +78,7 @@ $(function () {
 
         $("#seed").on("click", function () {
             var name = $("#name").val().trim(),
-                spec = {},
+                spec,
                 radiusText = $("#radius").val().trim(),
                 radius = Number(radiusText),
                 delsearch = $("#delsearch").prop("checked");
@@ -87,7 +87,11 @@ $(function () {
                 return;
             }
 
-            spec[mode === "xdata" ? "username" : "name"] = name;
+            spec = {
+                queryOp: "==",
+                field: mode === "xdata" ? "username" : "name",
+                value: name
+            };
             graph.adapter.findNode(spec)
                 .then(function (center) {
                     if (center) {

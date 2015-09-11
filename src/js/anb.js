@@ -82,31 +82,6 @@ $(function () {
         $("#add-clause").modal("hide");
     });
 
-    $("#submit-adv").on("click", function () {
-        var query = $("#query-string").val().trim(),
-            errMsg,
-            result;
-
-        // Remove any existing syntax error alert.
-        removeAlert("#syntaxerror");
-
-        // Bail if there's no query.
-        if (query === "") {
-            return;
-        }
-
-        // Attempt to parse the string.
-        try {
-            result = parser.parse(query);
-        } catch (e) {
-            errMsg = "line " + e.location.start.line + ", column " + e.location.start.column + ": " + e.message;
-            createAlert("#syntaxerror", "<h4>Syntax error</h4> " + errMsg);
-            return;
-        }
-
-        console.log(result);
-    });
-
     var launch = function (cfg) {
         var graph,
             view,
@@ -177,19 +152,55 @@ $(function () {
                 return;
             }
 
-            if (filename) {
-                spec.filename = filename;
-            }
-
-            if (label) {
-                spec.label = label;
-            }
+            spec = {
+                logicOp: "and",
+                left: {
+                    queryOp: "==",
+                    field: "filename",
+                    value: filename
+                },
+                right: {
+                    queryOp: "==",
+                    field: "label",
+                    value: label
+                }
+            };
 
             graph.adapter.findNode(spec)
                 .then(function (center) {
                     if (center) {
                         graph.addNode(center);
                     }
+                });
+        });
+
+        $("#submit-adv").on("click", function () {
+            var query = $("#query-string").val().trim(),
+                errMsg,
+                spec;
+
+            // Remove any existing syntax error alert.
+            removeAlert("#syntaxerror");
+
+            // Bail if there's no query.
+            if (query === "") {
+                return;
+            }
+
+            // Attempt to parse the string.
+            try {
+                spec = parser.parse(query);
+            } catch (e) {
+                errMsg = "line " + e.location.start.line + ", column " + e.location.start.column + ": " + e.message;
+                createAlert("#syntaxerror", "<h4>Syntax error</h4> " + errMsg);
+                return;
+            }
+
+            graph.adapter.findNodes(spec)
+                .then(function (nodes) {
+                    _.each(nodes, function (node) {
+                        graph.addNode(node);
+                    });
                 });
         });
 

@@ -8,15 +8,63 @@
                 host: cfg.host || "localhost",
                 db: cfg.database,
                 coll: cfg.collection
-            };
+            },
+            translateSpec;
 
         clique.util.require(cfg.database, "database");
         clique.util.require(cfg.collection, "collection");
 
+        translateSpec = function (spec) {
+            var result = {},
+                value;
+
+            if (_.has(spec, "queryOp")) {
+                // If this is a "leaf node", translate it to a direct comparison
+                // query and return.
+                switch (spec.queryOp) {
+                case "==": {
+                    value = spec.value;
+                    break;
+                }
+
+                case "!=":
+                case ">":
+                case ">=":
+                case "<":
+                case "<=":
+                case "~~":
+                case "|~":
+                case "~|": {
+                    throw new Error("unimplemented");
+                    break;
+                }
+
+                default: {
+                    throw new Error("illegal value for queryOp: " + spec.queryOp);
+                    break;
+                }
+                }
+
+                if (spec.field === "key") {
+                    result["_id"] = {
+                        $oid: value
+                    };
+                } else {
+                    result["data." + spec.field] = value;
+                }
+            } else if (_.has(spec, "logicOp")) {
+                // Otherwise, create a logic operator node and recurse down the
+                // operands.
+                result["$" + spec.logicOp] = [translateSpec(spec.left), translateSpec(spec.right)];
+            }
+
+            return result;
+        };
+
         return _.extend({
             findNodes: function (spec) {
                 var data = _.extend({
-                    spec: JSON.stringify(spec)
+                    spec: JSON.stringify(translateSpec(spec))
                 }, mongoStore);
 
                 return $.getJSON(findNodesService, data)
@@ -25,7 +73,7 @@
 
             findNode: function (spec) {
                 var data = _.extend({
-                    spec: JSON.stringify(spec),
+                    spec: JSON.stringify(translateSpec(spec)),
                     singleton: JSON.stringify(true)
                 }, mongoStore);
 
@@ -40,6 +88,14 @@
                         def.resolve(result);
                         return def;
                     }, this));
+            },
+
+            findNodeByKey: function (key) {
+                return this.findNode({
+                    queryOp: "==",
+                    field: "key",
+                    value: key
+                });
             },
 
             findLinks: function (spec) {
