@@ -170,9 +170,9 @@
                 .classed("link", true);
 
             groups.append("path")
-                .style("fill", "none")
+                .style("fill", "lightslategray")
                 .style("stroke-width", 0)
-                .style("stroke", "black")
+                .style("stroke", "lightslategray")
                 .style("stroke-dasharray", function (d) {
                     return d.data && d.data.grouping ? "5,5" : "none";
                 })
@@ -183,7 +183,7 @@
             groups.append("path")
                 .style("fill", "none")
                 .classed("handle", true)
-                .style("stroke-width", 10)
+                .style("stroke-width", 7)
                 .on("mouseenter", function () {
                     d3.select(this)
                         .classed("hovering", true);
@@ -325,6 +325,9 @@
                         var multiplier,
                             dx,
                             dy,
+                            invLen,
+                            offset,
+                            thickness = 1.0,
                             control,
                             path,
                             point;
@@ -343,10 +346,26 @@
                             y: d.source.y + 0.5*dy + multiplier * -dx
                         };
 
-                        path = [
-                            "M", point(d.source.x, d.source.y),
-                            "Q", point(control.x, control.y), point(d.target.x, d.target.y)
-                        ];
+                        invLen = 1.0 / Math.sqrt(dx*dx + dy*dy);
+                        offset = {
+                            x: dy * invLen * 5,
+                            y: -dx * invLen * 5
+                        };
+
+                        if (d.linkRank === 0) {
+                            path = [
+                                "M", point(d.source.x + 0.5 * thickness * offset.x, d.source.y + 0.5 * thickness * offset.y),
+                                "L", point(d.target.x, d.target.y),
+                                "L", point(d.source.x - 0.5 * thickness * offset.x, d.source.y - 0.5 * thickness * offset.y)
+                            ];
+                        } else {
+                            path = [
+                                "M", point(d.source.x + thickness * offset.x, d.source.y + thickness * offset.y),
+                                "Q", point(control.x, control.y), point(d.target.x, d.target.y),
+                                "Q", point(control.x, control.y), point(d.source.x, d.source.y)
+                            ];
+                        }
+
                         return path.join(" ");
                     });
             }, this));
