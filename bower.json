@@ -17,6 +17,8 @@
     "backbone": "~1.2.3",
     "bootstrap": "~3.3.5",
     "bootswatch": "~3.3.5",
+    "jquery": "~1.11.2",
+    "jquery-ui": "~1.11.2",
     "pegjs": "~0.9.0",
     "underscore": "~1.8.3"
   }
