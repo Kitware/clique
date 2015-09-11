@@ -213,7 +213,7 @@ $(function () {
         linkInfo.render();
     };
 
-    $.get("assets/pegjs/query.pegjs", "text")
+    $.get("assets/query.pegjs", "text")
         .then(function (src) {
             parser = PEG.buildParser(src);
         });
