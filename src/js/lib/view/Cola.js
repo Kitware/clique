@@ -143,6 +143,11 @@
                 groups,
                 that = this;
 
+            linkData = _.filter(this.model.get("links"), function (link) {
+                // Filter away all "shadow" halves of bidirectional links.
+                return !(link.data && link.data.bidir && _.has(link.data || {}, "reference"));
+            });
+
             this.cola
                 .nodes(nodeData)
                 .links(linkData);
@@ -327,9 +332,9 @@
                             dy,
                             invLen,
                             offset,
-                            thickness = 1.0,
                             flip,
                             control,
+                            nControl,
                             path,
                             point;
 
@@ -355,17 +360,40 @@
                         };
 
                         if (d.linkRank === 0) {
-                            path = [
-                                "M", point(d.source.x + 0.5 * thickness * offset.x, d.source.y + 0.5 * thickness * offset.y),
-                                "L", point(d.target.x, d.target.y),
-                                "L", point(d.source.x - 0.5 * thickness * offset.x, d.source.y - 0.5 * thickness * offset.y)
-                            ];
+                            if (d.data.bidir) {
+                                path = [
+                                    "M", point(d.source.x + 0.25 * offset.x, d.source.y + 0.25 * offset.y),
+                                    "L", point(d.target.x + 0.25 * offset.x, d.target.y + 0.25 * offset.y),
+                                    "L", point(d.target.x - 0.25 * offset.x, d.target.y - 0.25 * offset.y),
+                                    "L", point(d.source.x - 0.25 * offset.x, d.source.y - 0.25 * offset.y)
+                                ];
+                            } else {
+                                path = [
+                                    "M", point(d.source.x + 0.5 * offset.x, d.source.y + 0.5 * offset.y),
+                                    "L", point(d.target.x, d.target.y),
+                                    "L", point(d.source.x - 0.5 * offset.x, d.source.y - 0.5 * offset.y)
+                                ];
+                            }
                         } else {
-                            path = [
-                                "M", point(d.source.x + thickness * offset.x, d.source.y + thickness * offset.y),
-                                "Q", point(control.x, control.y), point(d.target.x, d.target.y),
-                                "Q", point(control.x, control.y), point(d.source.x, d.source.y)
-                            ];
+                            if (d.data.bidir) {
+                                nControl = {
+                                    x: d.source.x + 0.5*dx - multiplier * dy,
+                                    y: d.source.y + 0.5*dy - multiplier * -dx
+                                };
+
+                                path = [
+                                    "M", point(d.source.x + 0.5 * offset.x, d.source.y + 0.5 * offset.y),
+                                    "Q", point(control.x, control.y), point(d.target.x + 0.5 * offset.x, d.target.y + 0.5 * offset.y),
+                                    "L", point(d.target.x, d.target.y),
+                                    "Q", point(control.x - 0.5 * offset.x, control.y - 0.5 * offset.y), point(d.source.x, d.source.y)
+                                ];
+                            } else {
+                                path = [
+                                    "M", point(d.source.x + offset.x, d.source.y + offset.y),
+                                    "Q", point(control.x, control.y), point(d.target.x, d.target.y),
+                                    "Q", point(control.x, control.y), point(d.source.x, d.source.y)
+                                ];
+                            }
                         }
 
                         return path.join(" ");
