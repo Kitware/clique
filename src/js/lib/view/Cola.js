@@ -176,14 +176,15 @@
 
             groups.append("path")
                 .style("fill", "lightslategray")
-                .style("stroke-width", 0)
+                .style("opacity", 0.0)
+                .style("stroke-width", 1)
                 .style("stroke", "lightslategray")
                 .style("stroke-dasharray", function (d) {
                     return d.data && d.data.grouping ? "5,5" : "none";
                 })
                 .transition()
                 .duration(this.transitionTime)
-                .style("stroke-width", 1);
+                .style("opacity", 1.0);
 
             groups.append("path")
                 .style("fill", "none")
