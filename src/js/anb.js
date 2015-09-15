@@ -6,7 +6,8 @@ $(function () {
 
     var parser,
         removeAlert,
-        createAlert;
+        createAlert,
+        cfg;
 
     $("#add-clause").on("show.bs.modal", function () {
         var emptyQuery;
@@ -16,6 +17,21 @@ $(function () {
         emptyQuery = _.size($("#query-string").val().trim()) === 0;
         d3.select("#clause-type")
             .style("display", emptyQuery ? "none" : null);
+
+        // Query the database for all available field names, and construct an
+        // autocomplete menu from them.
+        $.getJSON("assets/tangelo/anb/get_fieldnames", {
+            host: cfg.host,
+            db: cfg.database,
+            coll: cfg.collection
+        }).then(function (fields) {
+            $("#fieldname").autocomplete({
+                source: fields,
+                minLength: 0
+            }).focus(function () {
+                $(this).autocomplete("search", $(this).val());
+            });
+        });
     });
 
     removeAlert = function (selector) {
@@ -85,11 +101,13 @@ $(function () {
         $("#add-clause").modal("hide");
     });
 
-    var launch = function (cfg) {
+    var launch = function (_cfg) {
         var graph,
             view,
             info,
             linkInfo;
+
+        cfg = _cfg;
 
         window.graph = graph = new clique.Graph({
             adapter: tangelo.getPlugin("mongo").Mongo,
