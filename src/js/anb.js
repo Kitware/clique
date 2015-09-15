@@ -45,21 +45,30 @@ $(function () {
                 field = $("#fieldname").val();
             }
 
-            // Pass the field name to the value service in order to get a list
-            // of possible values.
-            $.getJSON("assets/tangelo/anb/get_values", {
-                host: cfg.host,
-                db: cfg.database,
-                coll: cfg.collection,
-                field: field
-            }).then(function (values) {
-                $("#value").autocomplete({
-                    source: values,
-                    minLength: 0
-                }).focus(function () {
-                    $(this).autocomplete("search", $(this).val());
+            field = field.trim();
+            if (field !== "") {
+                // Pass the field name to the value service in order to get a
+                // list of possible values.
+                $.getJSON("assets/tangelo/anb/get_values", {
+                    host: cfg.host,
+                    db: cfg.database,
+                    coll: cfg.collection,
+                    field: field
+                }).then(function (values) {
+                    $("#value").autocomplete({
+                        source: values,
+                        minLength: 0
+                    }).focus(function () {
+                        var $this = $(this);
+
+                        if ($this.data("ui-autocomplete")) {
+                            $(this).autocomplete("search", $(this).val());
+                        }
+                    });
                 });
-            });
+            } else {
+                $("#value").autocomplete("destroy");
+            }
         }, 200);
 
         // Trigger the secondary autocomplete population on both manual typing
