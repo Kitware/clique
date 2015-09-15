@@ -10,7 +10,8 @@ $(function () {
         cfg;
 
     $("#add-clause").on("show.bs.modal", function () {
-        var emptyQuery;
+        var emptyQuery,
+            secondary;
 
         // If the query string is currently empty, then remove the logical
         // connective from the UI.
@@ -32,6 +33,39 @@ $(function () {
                 $(this).autocomplete("search", $(this).val());
             });
         });
+
+        // This function extracts the field name from the appropriate place - it
+        // winds up in different locations for different triggering events.
+        secondary = _.debounce(function (evt, ui) {
+            var field;
+
+            if (ui) {
+                field = ui.item.value;
+            } else {
+                field = $("#fieldname").val();
+            }
+
+            // Pass the field name to the value service in order to get a list
+            // of possible values.
+            $.getJSON("assets/tangelo/anb/get_values", {
+                host: cfg.host,
+                db: cfg.database,
+                coll: cfg.collection,
+                field: field
+            }).then(function (values) {
+                $("#value").autocomplete({
+                    source: values,
+                    minLength: 0
+                }).focus(function () {
+                    $(this).autocomplete("search", $(this).val());
+                });
+            });
+        }, 200);
+
+        // Trigger the secondary autocomplete population on both manual typing
+        // and selecting a choice from the primary autocomplete menu.
+        $("#fieldname").on("input", secondary);
+        $("#fieldname").on("autocompleteselect", secondary);
     });
 
     removeAlert = function (selector) {
