@@ -6,13 +6,75 @@ $(function () {
 
     var parser,
         removeAlert,
-        createAlert;
+        createAlert,
+        cfg;
 
     $("#add-clause").on("show.bs.modal", function () {
-        var emptyQuery = _.size($("#query-string").val().trim()) === 0;
+        var emptyQuery,
+            secondary;
 
+        // If the query string is currently empty, then remove the logical
+        // connective from the UI.
+        emptyQuery = _.size($("#query-string").val().trim()) === 0;
         d3.select("#clause-type")
             .style("display", emptyQuery ? "none" : null);
+
+        // Query the database for all available field names, and construct an
+        // autocomplete menu from them.
+        $.getJSON("assets/tangelo/anb/get_fieldnames", {
+            host: cfg.host,
+            db: cfg.database,
+            coll: cfg.collection
+        }).then(function (fields) {
+            $("#fieldname").autocomplete({
+                source: fields,
+                minLength: 0
+            }).focus(function () {
+                $(this).autocomplete("search", $(this).val());
+            });
+        });
+
+        // This function extracts the field name from the appropriate place - it
+        // winds up in different locations for different triggering events.
+        secondary = _.debounce(function (evt, ui) {
+            var field;
+
+            if (ui) {
+                field = ui.item.value;
+            } else {
+                field = $("#fieldname").val();
+            }
+
+            field = field.trim();
+            if (field !== "") {
+                // Pass the field name to the value service in order to get a
+                // list of possible values.
+                $.getJSON("assets/tangelo/anb/get_values", {
+                    host: cfg.host,
+                    db: cfg.database,
+                    coll: cfg.collection,
+                    field: field
+                }).then(function (values) {
+                    $("#value").autocomplete({
+                        source: values,
+                        minLength: 0
+                    }).focus(function () {
+                        var $this = $(this);
+
+                        if ($this.data("ui-autocomplete")) {
+                            $(this).autocomplete("search", $(this).val());
+                        }
+                    });
+                });
+            } else {
+                $("#value").autocomplete("destroy");
+            }
+        }, 200);
+
+        // Trigger the secondary autocomplete population on both manual typing
+        // and selecting a choice from the primary autocomplete menu.
+        $("#fieldname").on("input", secondary);
+        $("#fieldname").on("autocompleteselect", secondary);
     });
 
     removeAlert = function (selector) {
@@ -82,11 +144,13 @@ $(function () {
         $("#add-clause").modal("hide");
     });
 
-    var launch = function (cfg) {
+    var launch = function (_cfg) {
         var graph,
             view,
             info,
             linkInfo;
+
+        cfg = _cfg;
 
         window.graph = graph = new clique.Graph({
             adapter: tangelo.getPlugin("mongo").Mongo,
