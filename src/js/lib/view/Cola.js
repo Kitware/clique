@@ -143,6 +143,11 @@
                 groups,
                 that = this;
 
+            linkData = _.filter(this.model.get("links"), function (link) {
+                // Filter away all "shadow" halves of bidirectional links.
+                return !(link.data && link.data.bidir && _.has(link.data || {}, "reference"));
+            });
+
             this.cola
                 .nodes(nodeData)
                 .links(linkData);
@@ -170,20 +175,21 @@
                 .classed("link", true);
 
             groups.append("path")
-                .style("fill", "none")
-                .style("stroke-width", 0)
-                .style("stroke", "black")
+                .style("fill", "lightslategray")
+                .style("opacity", 0.0)
+                .style("stroke-width", 1)
+                .style("stroke", "lightslategray")
                 .style("stroke-dasharray", function (d) {
                     return d.data && d.data.grouping ? "5,5" : "none";
                 })
                 .transition()
                 .duration(this.transitionTime)
-                .style("stroke-width", 1);
+                .style("opacity", 1.0);
 
             groups.append("path")
                 .style("fill", "none")
                 .classed("handle", true)
-                .style("stroke-width", 10)
+                .style("stroke-width", 7)
                 .on("mouseenter", function () {
                     d3.select(this)
                         .classed("hovering", true);
@@ -325,7 +331,11 @@
                         var multiplier,
                             dx,
                             dy,
+                            invLen,
+                            offset,
+                            flip,
                             control,
+                            nControl,
                             path,
                             point;
 
@@ -334,6 +344,7 @@
                         };
 
                         multiplier = 0.15 * (d.linkRank % 2 === 0 ? -d.linkRank / 2 : (d.linkRank + 1) / 2);
+                        flip = d.linkRank % 2 === 0 ? -1.0 : 1.0;
 
                         dx = d.target.x - d.source.x;
                         dy = d.target.y - d.source.y;
@@ -343,10 +354,49 @@
                             y: d.source.y + 0.5*dy + multiplier * -dx
                         };
 
-                        path = [
-                            "M", point(d.source.x, d.source.y),
-                            "Q", point(control.x, control.y), point(d.target.x, d.target.y)
-                        ];
+                        invLen = 1.0 / Math.sqrt(dx*dx + dy*dy);
+                        offset = {
+                            x: flip * dy * invLen * 5,
+                            y: flip * -dx * invLen * 5
+                        };
+
+                        if (d.linkRank === 0) {
+                            if (d.data.bidir) {
+                                path = [
+                                    "M", point(d.source.x + 0.25 * offset.x, d.source.y + 0.25 * offset.y),
+                                    "L", point(d.target.x + 0.25 * offset.x, d.target.y + 0.25 * offset.y),
+                                    "L", point(d.target.x - 0.25 * offset.x, d.target.y - 0.25 * offset.y),
+                                    "L", point(d.source.x - 0.25 * offset.x, d.source.y - 0.25 * offset.y)
+                                ];
+                            } else {
+                                path = [
+                                    "M", point(d.source.x + 0.5 * offset.x, d.source.y + 0.5 * offset.y),
+                                    "L", point(d.target.x, d.target.y),
+                                    "L", point(d.source.x - 0.5 * offset.x, d.source.y - 0.5 * offset.y)
+                                ];
+                            }
+                        } else {
+                            if (d.data.bidir) {
+                                nControl = {
+                                    x: d.source.x + 0.5*dx - multiplier * dy,
+                                    y: d.source.y + 0.5*dy - multiplier * -dx
+                                };
+
+                                path = [
+                                    "M", point(d.source.x + 0.5 * offset.x, d.source.y + 0.5 * offset.y),
+                                    "Q", point(control.x, control.y), point(d.target.x + 0.5 * offset.x, d.target.y + 0.5 * offset.y),
+                                    "L", point(d.target.x, d.target.y),
+                                    "Q", point(control.x - 0.5 * offset.x, control.y - 0.5 * offset.y), point(d.source.x, d.source.y)
+                                ];
+                            } else {
+                                path = [
+                                    "M", point(d.source.x + offset.x, d.source.y + offset.y),
+                                    "Q", point(control.x, control.y), point(d.target.x, d.target.y),
+                                    "Q", point(control.x, control.y), point(d.source.x, d.source.y)
+                                ];
+                            }
+                        }
+
                         return path.join(" ");
                     });
             }, this));

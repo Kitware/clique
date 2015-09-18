@@ -17,18 +17,24 @@ def emit_node(node):
 
 
 def emit_link(link, source, target, bi=False):
-    print bson.json_util.dumps({"_id": ObjectId(),
-                                "type": "link",
-                                "source": source,
-                                "target": target,
-                                "data": link})
+    oid = ObjectId()
+    output = {"_id": oid,
+              "type": "link",
+              "source": source,
+              "target": target,
+              "data": link}
+    if bi:
+        output["data"]["bidir"] = True
+
+    print bson.json_util.dumps(output)
 
     if bi:
         print bson.json_util.dumps({"_id": ObjectId(),
                                     "type": "link",
+                                    "data": {"bidir": True,
+                                             "reference": oid},
                                     "source": target,
-                                    "target": source,
-                                    "data": link})
+                                    "target": source})
 
 
 def make_node_record(filename=None, label=None, semtype=None, card=None, attr=None):
