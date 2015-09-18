@@ -2,7 +2,6 @@
     "use strict";
 
     var prefill,
-        fill,
         strokeWidth;
 
     prefill = function (cmap) {
@@ -17,29 +16,14 @@
         };
     };
 
-    fill = function (cmap) {
-        return function (d) {
-            this.model.adapter.getMutator({
-                _id: {
-                    $oid: d.key
-                }
-            }).clearTransient("root");
-
-            if (d.key === this.focused) {
-                return "pink";
-            } else {
-                return cmap(d);
-            }
-        };
-    };
-
     strokeWidth = function (d) {
         return this.selected.has(d.key) ? "2px" : "0px";
     };
 
     clique.view.Cola = Backbone.View.extend({
         initialize: function (options) {
-            var cmap;
+            var cmap,
+                userFill;
 
             clique.util.require(this.model, "model");
             clique.util.require(this.el, "el");
@@ -59,7 +43,27 @@
             };
 
             this.prefill = prefill(this.colormap);
-            this.fill = fill(this.colormap);
+
+            userFill = options.fill || "blue";
+            if (!_.isFunction(userFill)) {
+                userFill = _.constant(userFill);
+            }
+
+            this.fill = _.bind(function (d) {
+                var initial;
+
+                this.model.adapter.getMutator({
+                    _id: {
+                        $oid: d.key
+                    }
+                }).clearTransient("root");
+
+                if (d.key === this.focused) {
+                    initial = "pink";
+                }
+
+                return initial ? initial : userFill(d);
+            }, this);
 
             this.cola = cola.d3adaptor()
                 .linkDistance(options.linkDistance || 100)
