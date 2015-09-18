@@ -1,20 +1,7 @@
 (function (clique, Backbone, _, d3, cola) {
     "use strict";
 
-    var prefill,
-        strokeWidth;
-
-    prefill = function (cmap) {
-        return function (d) {
-            if (d.key === this.focused) {
-                return "pink";
-            } else if (d.root) {
-                return "gold";
-            } else {
-                return cmap(d);
-            }
-        };
-    };
+    var strokeWidth;
 
     strokeWidth = function (d) {
         return this.selected.has(d.key) ? "2px" : "0px";
@@ -22,8 +9,8 @@
 
     clique.view.Cola = Backbone.View.extend({
         initialize: function (options) {
-            var cmap,
-                userFill;
+            var userFill,
+                userPrefill;
 
             clique.util.require(this.model, "model");
             clique.util.require(this.el, "el");
@@ -36,13 +23,6 @@
             };
 
             this.transitionTime = 500;
-
-            cmap = d3.scale.category10();
-            this.colormap = function (d) {
-                return cmap((d.data || {}).type || "no type");
-            };
-
-            this.prefill = prefill(this.colormap);
 
             userFill = options.fill || "blue";
             if (!_.isFunction(userFill)) {
@@ -60,6 +40,18 @@
 
                 if (d.key === this.focused) {
                     initial = "pink";
+                }
+
+                return initial ? initial : userFill(d);
+            }, this);
+
+            this.prefill = _.bind(function (d) {
+                var initial;
+
+                if (d.key === this.focused) {
+                    initial = "pink";
+                } else if (d.root) {
+                    initial = "gold";
                 }
 
                 return initial ? initial : userFill(d);
