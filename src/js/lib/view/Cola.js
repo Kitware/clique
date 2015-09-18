@@ -10,16 +10,22 @@
     clique.view.Cola = Backbone.View.extend({
         initialize: function (options) {
             var userFill,
-                userPrefill;
+                userNodeRadius;
 
             clique.util.require(this.model, "model");
             clique.util.require(this.el, "el");
 
             options = options || {};
 
+            this.baseNodeRadius = 7.5;
+            userNodeRadius = options.nodeRadius || function (_, r) {
+                return r;
+            };
+            if (!_.isFunction(userNodeRadius)) {
+                userNodeRadius = _.constant(userNodeRadius);
+            }
             this.nodeRadius = function (d) {
-                var r = options.nodeRadius || 7.5;
-                return d.data && d.data.grouped ? 2*r : r;
+                return userNodeRadius(d, this.baseNodeRadius);
             };
 
             this.transitionTime = 500;
@@ -303,7 +309,7 @@
                 .call(drag)
                 .transition()
                 .duration(this.transitionTime)
-                .attr("r", this.nodeRadius);
+                .attr("r", _.bind(this.nodeRadius, this));
 
             this.renderNodes();
 

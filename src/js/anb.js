@@ -275,6 +275,9 @@ $(function () {
             el: "#content",
             fill: function (d) {
                 return colormap((d.data || {}).type || "no type");
+            },
+            nodeRadius: function (d, r) {
+                return d.data && d.data.grouped ? 2*r : r;
             }
         });
 
