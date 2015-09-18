@@ -30,6 +30,9 @@
 
             this.transitionTime = options.transitionTime || 500;
 
+            this.focusColor = _.isUndefined(options.focusColor) ? "pink" : options.focusColor;
+            this.rootColor = _.isUndefined(options.rootColor) ? "gold" : options.rootColor;
+
             userFill = options.fill || "blue";
             if (!_.isFunction(userFill)) {
                 userFill = _.constant(userFill);
@@ -45,7 +48,7 @@
                 }).clearTransient("root");
 
                 if (d.key === this.focused) {
-                    initial = "pink";
+                    initial = this.focusColor;
                 }
 
                 return initial ? initial : userFill(d);
@@ -55,9 +58,9 @@
                 var initial;
 
                 if (d.key === this.focused) {
-                    initial = "pink";
+                    initial = this.focusColor;
                 } else if (d.root) {
-                    initial = "gold";
+                    initial = this.rootColor;
                 }
 
                 return initial ? initial : userFill(d);
