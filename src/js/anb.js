@@ -278,7 +278,8 @@ $(function () {
             },
             nodeRadius: function (d, r) {
                 return d.data && d.data.grouped ? 2*r : r;
-            }
+            },
+            transitionTime: 500
         });
 
         window.info = info = new clique.view.SelectionInfo({

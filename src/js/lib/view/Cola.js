@@ -28,7 +28,7 @@
                 return userNodeRadius(d, this.baseNodeRadius);
             };
 
-            this.transitionTime = 500;
+            this.transitionTime = options.transitionTime || 500;
 
             userFill = options.fill || "blue";
             if (!_.isFunction(userFill)) {
@@ -128,12 +128,12 @@
                     return d.root;
                 })
                 .transition()
-                .delay(this.transitionTime)
+                .delay(this.transitionTime * 2)
                 .each("interrupt", function () {
                     d3.select(this)
                         .style("fill", _.bind(that.fill, that));
                 })
-                .duration(1500)
+                .duration(this.transitionTime * 2)
                 .style("fill", _.bind(this.fill, this));
         },
 
