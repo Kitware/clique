@@ -9,7 +9,8 @@
 
     clique.view.Cola = Backbone.View.extend({
         initialize: function (options) {
-            var userFill,
+            var group,
+                userFill,
                 userNodeRadius;
 
             clique.util.require(this.model, "model");
@@ -77,7 +78,23 @@
             this.selection = new clique.model.Selection();
             this.linkSelection = new clique.model.Selection();
 
-            this.$el.html(clique.template.cola());
+            // Empty the target element.
+            d3.select(this.el)
+                .selectAll("*")
+                .remove();
+
+            // Place a group element in the target element.
+            group = d3.select(this.el)
+                .append("g");
+
+            // Place two more group elements in the group element - one for
+            // nodes and one for links (the links go first so they are drawn
+            // "under" the nodes).
+            group.append("g")
+                .classed("links", true);
+            group.append("g")
+                .classed("nodes", true);
+
             this.listenTo(this.model, "change", _.debounce(this.render, 100));
             this.listenTo(this.selection, "focused", function (focused) {
                 this.focused = focused;

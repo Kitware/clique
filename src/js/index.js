@@ -1,5 +1,5 @@
 /*jshint browser: true, jquery: true */
-/*global clique, _, tangelo */
+/*global app, clique, _, tangelo */
 
 function randomGraph(n, pct) {
     "use strict";
@@ -113,7 +113,7 @@ $(function () {
             el: "#content"
         });
 
-        window.info = info = new clique.view.SelectionInfo({
+        window.info = info = new app.view.SelectionInfo({
             model: view.selection,
             el: "#info",
             graph: graph
