@@ -279,6 +279,11 @@ $(function () {
             nodeRadius: function (d, r) {
                 return d.data && d.data.grouped ? 2*r : r;
             },
+            postLinkAdd: function (s) {
+                s.style("stroke-dasharray", function (d) {
+                    return d.data && d.data.grouping ? "5,5" : "none";
+                });
+            },
             transitionTime: 500,
             focusColor: "pink",
             rootColor: "gold"

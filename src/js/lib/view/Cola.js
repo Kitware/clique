@@ -17,6 +17,8 @@
 
             options = options || {};
 
+            this.postLinkAdd = options.postLinkAdd || _.noop;
+
             this.baseNodeRadius = 7.5;
             userNodeRadius = options.nodeRadius || function (_, r) {
                 return r;
@@ -146,6 +148,7 @@
                 drag,
                 me = d3.select(this.el),
                 groups,
+                sel,
                 that = this;
 
             linkData = _.filter(this.model.get("links"), function (link) {
@@ -179,15 +182,15 @@
                 .append("g")
                 .classed("link", true);
 
-            groups.append("path")
+            sel = groups.append("path")
                 .style("fill", "lightslategray")
                 .style("opacity", 0.0)
                 .style("stroke-width", 1)
-                .style("stroke", "lightslategray")
-                .style("stroke-dasharray", function (d) {
-                    return d.data && d.data.grouping ? "5,5" : "none";
-                })
-                .transition()
+                .style("stroke", "lightslategray");
+
+            this.postLinkAdd(sel);
+
+            sel.transition()
                 .duration(this.transitionTime)
                 .style("opacity", 1.0);
 
