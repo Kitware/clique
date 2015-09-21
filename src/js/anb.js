@@ -148,7 +148,8 @@ $(function () {
         var graph,
             view,
             info,
-            linkInfo;
+            linkInfo,
+            colormap;
 
         cfg = _cfg;
 
@@ -268,9 +269,24 @@ $(function () {
                 });
         });
 
+        colormap = d3.scale.category10();
         window.view = view = new clique.view.Cola({
             model: graph,
-            el: "#content"
+            el: "#content",
+            fill: function (d) {
+                return colormap((d.data || {}).type || "no type");
+            },
+            nodeRadius: function (d, r) {
+                return d.data && d.data.grouped ? 2*r : r;
+            },
+            postLinkAdd: function (s) {
+                s.style("stroke-dasharray", function (d) {
+                    return d.data && d.data.grouping ? "5,5" : "none";
+                });
+            },
+            transitionTime: 500,
+            focusColor: "pink",
+            rootColor: "gold"
         });
 
         window.info = info = new clique.view.SelectionInfo({

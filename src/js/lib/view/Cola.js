@@ -1,37 +1,7 @@
 (function (clique, Backbone, _, d3, cola) {
     "use strict";
 
-    var prefill,
-        fill,
-        strokeWidth;
-
-    prefill = function (cmap) {
-        return function (d) {
-            if (d.key === this.focused) {
-                return "pink";
-            } else if (d.root) {
-                return "gold";
-            } else {
-                return cmap(d);
-            }
-        };
-    };
-
-    fill = function (cmap) {
-        return function (d) {
-            this.model.adapter.getMutator({
-                _id: {
-                    $oid: d.key
-                }
-            }).clearTransient("root");
-
-            if (d.key === this.focused) {
-                return "pink";
-            } else {
-                return cmap(d);
-            }
-        };
-    };
+    var strokeWidth;
 
     strokeWidth = function (d) {
         return this.selected.has(d.key) ? "2px" : "0px";
@@ -39,27 +9,64 @@
 
     clique.view.Cola = Backbone.View.extend({
         initialize: function (options) {
-            var cmap;
+            var userFill,
+                userNodeRadius;
 
             clique.util.require(this.model, "model");
             clique.util.require(this.el, "el");
 
             options = options || {};
 
+            this.postLinkAdd = options.postLinkAdd || _.noop;
+
+            this.baseNodeRadius = 7.5;
+            userNodeRadius = options.nodeRadius || function (_, r) {
+                return r;
+            };
+            if (!_.isFunction(userNodeRadius)) {
+                userNodeRadius = _.constant(userNodeRadius);
+            }
             this.nodeRadius = function (d) {
-                var r = options.nodeRadius || 7.5;
-                return d.data && d.data.grouped ? 2*r : r;
+                return userNodeRadius(d, this.baseNodeRadius);
             };
 
-            this.transitionTime = 500;
+            this.transitionTime = options.transitionTime || 500;
 
-            cmap = d3.scale.category10();
-            this.colormap = function (d) {
-                return cmap((d.data || {}).type || "no type");
-            };
+            this.focusColor = _.isUndefined(options.focusColor) ? "pink" : options.focusColor;
+            this.rootColor = _.isUndefined(options.rootColor) ? "gold" : options.rootColor;
 
-            this.prefill = prefill(this.colormap);
-            this.fill = fill(this.colormap);
+            userFill = options.fill || "blue";
+            if (!_.isFunction(userFill)) {
+                userFill = _.constant(userFill);
+            }
+
+            this.fill = _.bind(function (d) {
+                var initial;
+
+                this.model.adapter.getMutator({
+                    _id: {
+                        $oid: d.key
+                    }
+                }).clearTransient("root");
+
+                if (d.key === this.focused) {
+                    initial = this.focusColor;
+                }
+
+                return initial ? initial : userFill(d);
+            }, this);
+
+            this.prefill = _.bind(function (d) {
+                var initial;
+
+                if (d.key === this.focused) {
+                    initial = this.focusColor;
+                } else if (d.root) {
+                    initial = this.rootColor;
+                }
+
+                return initial ? initial : userFill(d);
+            }, this);
 
             this.cola = cola.d3adaptor()
                 .linkDistance(options.linkDistance || 100)
@@ -126,12 +133,12 @@
                     return d.root;
                 })
                 .transition()
-                .delay(this.transitionTime)
+                .delay(this.transitionTime * 2)
                 .each("interrupt", function () {
                     d3.select(this)
                         .style("fill", _.bind(that.fill, that));
                 })
-                .duration(1500)
+                .duration(this.transitionTime * 2)
                 .style("fill", _.bind(this.fill, this));
         },
 
@@ -141,6 +148,7 @@
                 drag,
                 me = d3.select(this.el),
                 groups,
+                sel,
                 that = this;
 
             linkData = _.filter(this.model.get("links"), function (link) {
@@ -174,15 +182,15 @@
                 .append("g")
                 .classed("link", true);
 
-            groups.append("path")
+            sel = groups.append("path")
                 .style("fill", "lightslategray")
                 .style("opacity", 0.0)
                 .style("stroke-width", 1)
-                .style("stroke", "lightslategray")
-                .style("stroke-dasharray", function (d) {
-                    return d.data && d.data.grouping ? "5,5" : "none";
-                })
-                .transition()
+                .style("stroke", "lightslategray");
+
+            this.postLinkAdd(sel);
+
+            sel.transition()
                 .duration(this.transitionTime)
                 .style("opacity", 1.0);
 
@@ -307,7 +315,7 @@
                 .call(drag)
                 .transition()
                 .duration(this.transitionTime)
-                .attr("r", this.nodeRadius);
+                .attr("r", _.bind(this.nodeRadius, this));
 
             this.renderNodes();
 
