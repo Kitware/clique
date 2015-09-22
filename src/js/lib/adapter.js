@@ -6,7 +6,6 @@
     clique.adapter.NodeLinkList = function (cfg) {
         var nodes = clique.util.deepCopy(cfg.nodes),
             links = clique.util.deepCopy(cfg.links),
-            orig = cfg,
             nodeIndex = {},
             sourceIndex = {},
             targetIndex = {},
@@ -31,28 +30,36 @@
             return mutators[key];
         };
 
-        window.matchmaker = matchmaker = function (spec) {
-            var key,
-                m,
-                matcher,
-                spec2;
+        matchmaker = function (spec) {
+            if (spec.queryOp) {
+                if (spec.queryOp !== "==") {
+                    throw new Error("query operators besides == are not supported in this adapter");
+                }
 
-            if (_.has(spec, "key")) {
-                key = spec.key;
-
-                spec2 = clique.util.deepCopy(spec);
-                delete spec2.key;
-
-                m = _.matcher(spec2);
-
-                matcher = function (obj) {
-                    return m(obj.data) && obj.key === key;
-                };
+                if (spec.field === "key") {
+                    return function (obj) {
+                        return obj.key === spec.value;
+                    };
+                } else {
+                    return function (obj) {
+                        return (obj.data || {})[spec.field] === spec.value;
+                    };
+                }
+            } else if (spec.logicOp) {
+                if (spec.logicOp === "and") {
+                    return function (obj) {
+                        return matchmaker(spec.left)(obj) && matchmaker(spec.right)(obj);
+                    };
+                } else if (spec.logicOp === "or") {
+                    return function (obj) {
+                        return matchmaker(spec.left)(obj) || matchmaker(spec.right)(obj);
+                    };
+                } else {
+                    throw new Error("illegal logic operator '" + spec.logicOp + "'");
+                }
             } else {
-                matcher = _.compose(_.matcher(spec), _.property("data"));
+                throw new Error("query expression must have either a logicOp or queryOp field");
             }
-
-            return matcher;
         };
 
         _.each(nodes, function (n) {
@@ -154,13 +161,21 @@
                         // deleted nodes are specifically allowed).
                         _.each(sourceIndex[nodeKey], function (neighborKey) {
                             if (options.deleted || !nodeIndex[neighborKey].data.deleted) {
-                                neighborLinks.add(JSON.stringify([nodeKey, neighborKey]));
+                                neighborLinks.add(JSON.stringify({
+                                    key: clique.util.md5(JSON.stringify([nodeKey, neighborKey]) + _.unique()),
+                                    source: nodeKey,
+                                    target: neighborKey
+                                }));
                             }
                         });
 
                         _.each(targetIndex[nodeKey], function (neighborKey) {
                             if (options.deleted || !nodeIndex[neighborKey].data.deleted) {
-                                neighborLinks.add(JSON.stringify([neighborKey, nodeKey]));
+                                neighborLinks.add(JSON.stringify({
+                                    key: clique.util.md5(JSON.stringify([neighborKey, nodeKey]) + _.unique()),
+                                    source: neighborKey,
+                                    target: nodeKey
+                                }));
                             }
                         });
                     });
@@ -169,16 +184,16 @@
                     _.each(neighborLinks.items(), function (link) {
                         link = JSON.parse(link);
 
-                        if (!neighborNodes.has(link[0])) {
-                            newFrontier.add(link[0]);
+                        if (!neighborNodes.has(link.source)) {
+                            newFrontier.add(link.source);
                         }
 
-                        if (!neighborNodes.has(link[1])) {
-                            newFrontier.add(link[1]);
+                        if (!neighborNodes.has(link.target)) {
+                            newFrontier.add(link.target);
                         }
 
-                        neighborNodes.add(link[0]);
-                        neighborNodes.add(link[1]);
+                        neighborNodes.add(link.source);
+                        neighborNodes.add(link.target);
                     });
 
                     frontier = newFrontier;
@@ -186,21 +201,12 @@
 
                 def.resolve({
                     nodes: _.map(neighborNodes.items(), _.propertyOf(nodeIndex)),
-                    links: _.map(neighborLinks.items(), function (link) {
-                        link = JSON.parse(link);
-
-                        return {
-                            source: link[0],
-                            target: link[1]
-                        };
-                    })
+                    links: _.map(neighborLinks.items(), JSON.parse)
                 });
                 return def;
             },
 
-            sync: function () {
-                orig.nodes = clique.util.deepCopy(_.pluck(nodes, "data"));
-            }
+            getMutator: getMutator
         };
     };
 }(window.clique, window._, window.jQuery));

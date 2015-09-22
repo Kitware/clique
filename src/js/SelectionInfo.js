@@ -132,7 +132,7 @@
                     };
                 });
 
-                this.graph.adapter.findNodeByKey(newKey)
+                this.graph.adapter.findNode(newKey)
                     .then(_.bind(function (groupNode) {
                         return this.graph.addNode(groupNode)
                             .then(_.bind(function () {
@@ -158,7 +158,7 @@
                 this.graph.adapter.destroyNode(node.key());
 
                 _.each(links, _.bind(function (link) {
-                    this.graph.adapter.findNodeByKey(link.getTransient("target"))
+                    this.graph.adapter.findNode({queryOp: "==", field: "key", value: link.getTransient("target")})
                         .then(_.bind(function (child) {
                             child.clearData("deleted");
                             this.graph.adapter.once("cleared:" + child.key(), _.bind(function () {
@@ -192,19 +192,19 @@
                     }, this));
 
                 this.$("button.remove").on("click", _.bind(function () {
-                    this.graph.adapter.findNodeByKey(this.model.focused())
+                    this.graph.adapter.findNode({queryOp: "==", field: "key", value: this.model.focused()})
                         .then(_.bind(this.hideNode, this));
                 }, this));
 
                 this.$("button.remove-sel").on("click", _.bind(function () {
                     _.each(this.model.items(), _.bind(function (key) {
-                        this.graph.adapter.findNodeByKey(key)
+                        this.graph.adapter.findNode({queryOp: "==", field: "key", value: key})
                             .then(_.bind(this.hideNode, this));
                     }, this));
                 }, this));
 
                 this.$("button.delete").on("click", _.bind(function () {
-                    this.graph.adapter.findNodeByKey(this.model.focused())
+                    this.graph.adapter.findNode({queryOp: "==", field: "key", value: this.model.focused()})
                         .then(_.bind(function (node) {
                             this.deleteNode(node, !node.getData("deleted"));
                         }, this));
@@ -212,19 +212,19 @@
 
                 this.$("button.delete-sel").on("click", _.bind(function () {
                     _.each(this.model.items(), _.bind(function (key) {
-                        this.graph.adapter.findNodeByKey(key)
+                        this.graph.adapter.findNode({queryOp: "==", field: "key", value: key})
                             .then(_.bind(this.deleteNode, this, _, true));
                     }, this));
                 }, this));
 
                 this.$("button.expand").on("click", _.bind(function () {
-                    this.graph.adapter.findNodeByKey(this.model.focused())
+                    this.graph.adapter.findNode({queryOp: "==", field: "key", value: this.model.focused()})
                         .then(_.bind(this.expandNode, this));
                 }, this));
 
                 this.$("button.expand-sel").on("click", _.bind(function () {
                     _.each(this.model.items(), _.bind(function (key) {
-                        this.graph.adapter.findNodeByKey(key)
+                        this.graph.adapter.findNode({queryOp: "==", field: "key", value: key})
                             .then(_.bind(this.expandNode, this));
                     }, this));
                 }, this));
@@ -240,7 +240,7 @@
                 }, this));
 
                 this.$("button.ungroup").on("click", _.bind(function () {
-                    this.graph.adapter.findNodeByKey(this.model.focused())
+                    this.graph.adapter.findNode({queryOp: "==", field: "key", value: this.model.focused()})
                         .then(_.bind(this.ungroupNode, this));
                 }, this));
 
@@ -254,7 +254,7 @@
             if (!focused) {
                 renderTemplate(focused);
             } else {
-                this.graph.adapter.findNodeByKey(focused)
+                this.graph.adapter.findNode({queryOp: "==", field: "key", value: focused})
                     .then(renderTemplate);
             }
         }
