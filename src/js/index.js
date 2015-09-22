@@ -46,7 +46,7 @@ $(function () {
         if (mode === "demo") {
             mode = "demo";
 
-            graphData = randomGraph(26, 0.20);
+            window.graphData = graphData = randomGraph(26, 0.20);
 
             window.graph = graph = new clique.Graph({
                 adapter: clique.adapter.NodeLinkList,

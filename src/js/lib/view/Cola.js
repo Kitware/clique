@@ -44,11 +44,8 @@
             this.fill = _.bind(function (d) {
                 var initial;
 
-                this.model.adapter.getMutator({
-                    _id: {
-                        $oid: d.key
-                    }
-                }).clearTransient("root");
+                this.model.adapter.getMutator(d.key)
+                    .clearTransient("root");
 
                 if (d.key === this.focused) {
                     initial = this.focusColor;
@@ -362,7 +359,10 @@
                             control,
                             nControl,
                             path,
-                            point;
+                            point,
+                            data;
+
+                        data = d.data || {};
 
                         point = function (x, y) {
                             return x + "," + y;
@@ -386,7 +386,7 @@
                         };
 
                         if (d.linkRank === 0) {
-                            if (d.data.bidir) {
+                            if (data.bidir) {
                                 path = [
                                     "M", point(d.source.x + 0.25 * offset.x, d.source.y + 0.25 * offset.y),
                                     "L", point(d.target.x + 0.25 * offset.x, d.target.y + 0.25 * offset.y),
@@ -401,7 +401,7 @@
                                 ];
                             }
                         } else {
-                            if (d.data.bidir) {
+                            if (data.bidir) {
                                 nControl = {
                                     x: d.source.x + 0.5*dx - multiplier * dy,
                                     y: d.source.y + 0.5*dy - multiplier * -dx

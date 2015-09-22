@@ -162,13 +162,21 @@
                         // deleted nodes are specifically allowed).
                         _.each(sourceIndex[nodeKey], function (neighborKey) {
                             if (options.deleted || !nodeIndex[neighborKey].data.deleted) {
-                                neighborLinks.add(JSON.stringify([nodeKey, neighborKey]));
+                                neighborLinks.add(JSON.stringify({
+                                    key: clique.util.md5(JSON.stringify([nodeKey, neighborKey]) + _.unique()),
+                                    source: nodeKey,
+                                    target: neighborKey
+                                }));
                             }
                         });
 
                         _.each(targetIndex[nodeKey], function (neighborKey) {
                             if (options.deleted || !nodeIndex[neighborKey].data.deleted) {
-                                neighborLinks.add(JSON.stringify([neighborKey, nodeKey]));
+                                neighborLinks.add(JSON.stringify({
+                                    key: clique.util.md5(JSON.stringify([neighborKey, nodeKey]) + _.unique()),
+                                    source: neighborKey,
+                                    target: nodeKey
+                                }));
                             }
                         });
                     });
@@ -177,16 +185,16 @@
                     _.each(neighborLinks.items(), function (link) {
                         link = JSON.parse(link);
 
-                        if (!neighborNodes.has(link[0])) {
-                            newFrontier.add(link[0]);
+                        if (!neighborNodes.has(link.source)) {
+                            newFrontier.add(link.source);
                         }
 
-                        if (!neighborNodes.has(link[1])) {
-                            newFrontier.add(link[1]);
+                        if (!neighborNodes.has(link.target)) {
+                            newFrontier.add(link.target);
                         }
 
-                        neighborNodes.add(link[0]);
-                        neighborNodes.add(link[1]);
+                        neighborNodes.add(link.source);
+                        neighborNodes.add(link.target);
                     });
 
                     frontier = newFrontier;
@@ -194,14 +202,7 @@
 
                 def.resolve({
                     nodes: _.map(neighborNodes.items(), _.propertyOf(nodeIndex)),
-                    links: _.map(neighborLinks.items(), function (link) {
-                        link = JSON.parse(link);
-
-                        return {
-                            source: link[0],
-                            target: link[1]
-                        };
-                    })
+                    links: _.map(neighborLinks.items(), JSON.parse)
                 });
                 return def;
             },
