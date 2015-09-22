@@ -34,23 +34,15 @@ body
             .col-md-12
                 h4 Add neighborhood
                 .row
-                    .col-md-2 Name
-                    .col-md-1 #[input#name]
+                    .col-md-12 #[input.form-control(placeholder="Letter")#name]
                 .row
-                    .col-md-2 Radius
-                    .col-md-1 #[input#radius]
+                    .col-md-12 #[input.form-control(placeholder="Radius")#radius]
                 .row
                     .col-md-12.col-md-offset-1
                         label #[input(type="checkbox")#delsearch] Include deleted nodes
                 .row
                     .col-md-1
                         a.btn.btn-default#seed Query
-        .row
-            .col-md-12
-                h4 Graph operations
-                .row
-                    .col-md-1
-                        button(type="button")#save.btn.btn-info.btn-xs Save #[span.glyphicon.glyphicon-save]
         .row
             .col-md-12
                 h4 Selection Operations

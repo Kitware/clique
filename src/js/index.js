@@ -73,10 +73,6 @@ $(function () {
             });
     });
 
-    $("#save").on("click", function () {
-        graph.adapter.sync();
-    });
-
     view = new clique.view.Cola({
         model: graph,
         el: "#content",

@@ -6,7 +6,6 @@
     clique.adapter.NodeLinkList = function (cfg) {
         var nodes = clique.util.deepCopy(cfg.nodes),
             links = clique.util.deepCopy(cfg.links),
-            orig = cfg,
             nodeIndex = {},
             sourceIndex = {},
             targetIndex = {},
@@ -207,11 +206,7 @@
                 return def;
             },
 
-            getMutator: getMutator,
-
-            sync: function () {
-                orig.nodes = clique.util.deepCopy(_.pluck(nodes, "data"));
-            }
+            getMutator: getMutator
         };
     };
 }(window.clique, window._, window.jQuery));
