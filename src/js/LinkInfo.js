@@ -1,7 +1,10 @@
-(function (clique, Backbone, _) {
+(function (clique, Backbone, _, template) {
     "use strict";
 
-    clique.view.LinkInfo = Backbone.View.extend({
+    window.app = window.app || {};
+    window.app.view = window.app.view || {};
+
+    window.app.view.LinkInfo = Backbone.View.extend({
         initialize: function (options) {
             var debRender;
 
@@ -22,7 +25,7 @@
                 doRender;
 
             doRender = _.bind(function (link) {
-                this.$el.html(clique.template.linkInfo({
+                this.$el.html(template.linkInfo({
                     link: link
                 }));
 
@@ -45,4 +48,4 @@
             }
         }
     });
-}(window.clique, window.Backbone, window._));
+}(window.clique, window.Backbone, window._, window.template));

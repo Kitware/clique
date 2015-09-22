@@ -1,9 +1,12 @@
-(function (clique, Backbone, _) {
+(function (clique, Backbone, _, template) {
     "use strict";
+
+    window.app = window.app || {};
+    window.app.view = window.app.view || {};
 
     var $ = Backbone.$;
 
-    clique.view.SelectionInfo = Backbone.View.extend({
+    window.app.view.SelectionInfo = Backbone.View.extend({
         initialize: function (options) {
             var debRender;
 
@@ -172,7 +175,7 @@
                 renderTemplate;
 
             renderTemplate = _.bind(function (node) {
-                this.$el.html(clique.template.selectionInfo({
+                this.$el.html(template.selectionInfo({
                     node: node,
                     degree: node ? this.graph.degree(node.key()) : -1,
                     selectionSize: this.model.size()
@@ -256,4 +259,4 @@
             }
         }
     });
-}(window.clique, window.Backbone, window._));
+}(window.clique, window.Backbone, window._, window.template));
