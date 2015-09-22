@@ -31,28 +31,36 @@
             return mutators[key];
         };
 
-        window.matchmaker = matchmaker = function (spec) {
-            var key,
-                m,
-                matcher,
-                spec2;
+        matchmaker = function (spec) {
+            if (spec.queryOp) {
+                if (spec.queryOp !== "==") {
+                    throw new Error("query operators besides == are not supported in this adapter");
+                }
 
-            if (_.has(spec, "key")) {
-                key = spec.key;
-
-                spec2 = clique.util.deepCopy(spec);
-                delete spec2.key;
-
-                m = _.matcher(spec2);
-
-                matcher = function (obj) {
-                    return m(obj.data) && obj.key === key;
-                };
+                if (spec.field === "key") {
+                    return function (obj) {
+                        return obj.key === spec.value;
+                    };
+                } else {
+                    return function (obj) {
+                        return (obj.data || {})[spec.field] === spec.value;
+                    };
+                }
+            } else if(spec.logicOp) {
+                if (spec.logicOp === "and") {
+                    return function (obj) {
+                        matchmaker(spec.left)(obj) && matchmaker(spec.right)(obj);
+                    };
+                } else if (spec.logicOp == "or") {
+                    return function (obj) {
+                        matchmaker(spec.left)(obj) || matchmaker(spec.right)(obj);
+                    };
+                } else {
+                    throw new Error("illegal logic operator '" + spec.logicOp + "'");
+                }
             } else {
-                matcher = _.compose(_.matcher(spec), _.property("data"));
+                throw new Error("query expression must have either a logicOp or queryOp field");
             }
-
-            return matcher;
         };
 
         _.each(nodes, function (n) {
@@ -197,6 +205,8 @@
                 });
                 return def;
             },
+
+            getMutator: getMutator,
 
             sync: function () {
                 orig.nodes = clique.util.deepCopy(_.pluck(nodes, "data"));
