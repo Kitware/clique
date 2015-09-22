@@ -1,19 +1,6 @@
 from bson.objectid import ObjectId
+import json
 from pymongo import MongoClient
-
-
-def readValue(value):
-    try:
-        return float(value)
-    except ValueError:
-        pass
-
-    try:
-        return int(value)
-    except ValueError:
-        pass
-
-    return value
 
 
 def run(host=None, db=None, coll=None, key=None, prop=None, value=None):
@@ -22,6 +9,6 @@ def run(host=None, db=None, coll=None, key=None, prop=None, value=None):
     db = client[db]
     graph = db[coll]
 
-    value = readValue(value)
+    value = json.loads(value)
 
     graph.update({"_id": ObjectId(key)}, {"$set": {"data.%s" % (prop): value}})

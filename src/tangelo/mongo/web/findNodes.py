@@ -10,20 +10,14 @@ def run(host=None, db=None, coll=None, spec=None, singleton=json.dumps(False)):
     db = client[db]
     graph = db[coll]
 
-    spec = json.loads(spec)
+    spec = bson.json_util.loads(spec)
     singleton = json.loads(singleton)
 
-    matcher = {"type": "node"}
-    for field, value in spec.iteritems():
-        if field == "key":
-            matcher["_id"] = ObjectId(value)
-        else:
-            matcher["data.%s" % (field)] = value
+    spec.update({"type": "node"})
 
-    it = graph.find(matcher)
-    try:
-        result = it.next() if singleton else list(it)
-    except StopIteration:
-        result = None
+    if singleton:
+        result = graph.find_one(spec)
+    else:
+        result = list(graph.find(spec))
 
     return bson.json_util.dumps(result)
