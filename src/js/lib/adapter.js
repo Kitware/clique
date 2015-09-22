@@ -46,14 +46,14 @@
                         return (obj.data || {})[spec.field] === spec.value;
                     };
                 }
-            } else if(spec.logicOp) {
+            } else if (spec.logicOp) {
                 if (spec.logicOp === "and") {
                     return function (obj) {
-                        matchmaker(spec.left)(obj) && matchmaker(spec.right)(obj);
+                        return matchmaker(spec.left)(obj) && matchmaker(spec.right)(obj);
                     };
-                } else if (spec.logicOp == "or") {
+                } else if (spec.logicOp === "or") {
                     return function (obj) {
-                        matchmaker(spec.left)(obj) || matchmaker(spec.right)(obj);
+                        return matchmaker(spec.left)(obj) || matchmaker(spec.right)(obj);
                     };
                 } else {
                     throw new Error("illegal logic operator '" + spec.logicOp + "'");
