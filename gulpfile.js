@@ -96,7 +96,8 @@ gulp.task("uglify-templates", function () {
 gulp.task("uglify-clique", function () {
     "use strict";
 
-    var dest = _.bind(gulp.dest, gulp, "build/site");
+    var dest1 = _.bind(gulp.dest, gulp, "build/site"),
+        dest2 = _.bind(gulp.dest, gulp, ".");
 
     return gulp.src([
         "node_modules/jshashes/hashes.js",
@@ -105,10 +106,12 @@ gulp.task("uglify-clique", function () {
         "src/js/lib/**/*.js"
     ])
         .pipe(concat("clique.js"))
-        .pipe(dest())
+        .pipe(dest1())
+        .pipe(dest2())
         .pipe(uglify())
         .pipe(rename("clique.min.js"))
-        .pipe(dest());
+        .pipe(dest1())
+        .pipe(dest2());
 });
 
 gulp.task("lint", function () {

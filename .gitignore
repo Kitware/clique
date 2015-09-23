@@ -3,3 +3,5 @@
 build
 node_modules
 bower_components
+clique.js
+clique.min.js
