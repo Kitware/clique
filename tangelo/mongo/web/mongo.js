@@ -158,12 +158,7 @@
                 }, mongoStore);
 
                 return $.getJSON("plugin/mongo/findLinks", data)
-                    .then(_.bind(function (results) {
-                        var def = new $.Deferred();
-
-                        def.resolve(_.map(results, this.getMutator, this));
-                        return def;
-                    }, this));
+                    .then(_.partial(_.map, _, addMutator, this));
             },
 
             findLink: function (spec) {
@@ -176,7 +171,11 @@
                     .then(_.bind(function (result) {
                         var def = new $.Deferred();
 
-                        def.resolve(result && this.getMutator(result));
+                        if (result) {
+                            result = _.bind(addMutator, this)(result);
+                        }
+
+                        def.resolve(result);
                         return def;
                     }, this));
             },
@@ -216,6 +215,8 @@
                 return $.getJSON("plugin/mongo/neighborhood", options)
                     .then(_.bind(function (results) {
                         _.each(results.nodes, addMutator, this);
+                        _.each(results.links, addMutator, this);
+
                         return results;
                     }, this))
                     .then(_.bind(function (results) {
@@ -232,7 +233,7 @@
                         }, this));
 
                        _.each(results.links, _.bind(function (link, i) {
-                           var mut = this.getMutator(link);
+                           var mut = this.getMutator(link._id.$oid);
                            results.links[i] = mut.getTarget();
                        }, this));
 
