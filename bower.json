@@ -8,10 +8,17 @@
   "license": "Apache v2",
   "ignore": [
     "**/.*",
-    "node_modules",
     "bower_components",
-    "test",
-    "tests"
+    "bower.json",
+    "build",
+    "clique",
+    "gulpfile.js",
+    "LICENSE",
+    "node_modules",
+    "package.json",
+    "README.md",
+    "src",
+    "tangelo-config.yaml"
   ],
   "devDependencies": {
     "backbone": "~1.2.3",
