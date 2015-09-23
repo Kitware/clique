@@ -105,20 +105,14 @@
         }
     };
 
-    clique.util.Mutator = function (cfg) {
-        var target = cfg.target,
-            disallowed = cfg.disallowed || [];
+    clique.util.Mutator = function (target) {
+        var disallowed = new clique.util.Set();
 
-        clique.util.require(target, "target");
+        target.data = target.data || {};
 
-        (function () {
-            var disallowedList = disallowed;
-
-            disallowed = new clique.util.Set();
-            _.each(disallowedList, function (d) {
-                disallowed.add(d);
-            });
-        }());
+        _.each(["key", "source", "target"], function (d) {
+            disallowed.add(d);
+        });
 
         return _.extend({
             key: function () {
@@ -134,11 +128,14 @@
             },
 
             getTransient: function (prop) {
+                if (disallowed.has(prop)) {
+                    return;
+                }
                 return target[prop];
             },
 
             setTransient: function (prop, value) {
-                if (prop === "key" || disallowed.has(prop)) {
+                if (disallowed.has(prop)) {
                     return false;
                 }
 
