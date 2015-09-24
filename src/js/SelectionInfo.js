@@ -59,13 +59,7 @@
             }, this);
 
             // Extract the mutator objects for these nodes.
-            mutators = _.map(loners, function (key) {
-                return this.graph.adapter.getMutator({
-                    _id: {
-                        $oid: key
-                    }
-                });
-            }, this);
+            mutators = _.map(loners, this.graph.adapter.getMutator, this.graph.adapter);
 
             // Hide them.
             _.each(mutators, _.partial(this.hideNode, _, false), this);
@@ -124,14 +118,6 @@
 
                 return $.when.apply($, addLinks);
             }, this)).then(_.bind(function () {
-                var mongoRecs = _.map(nodeSet.items(), function (key) {
-                    return {
-                        _id: {
-                            $oid: key
-                        }
-                    };
-                });
-
                 this.graph.adapter.findNode(newKey)
                     .then(_.bind(function (groupNode) {
                         return this.graph.addNode(groupNode)
@@ -140,7 +126,7 @@
                             }, this));
                     }, this))
                     .then(_.bind(function () {
-                        var children = _.map(mongoRecs, this.graph.adapter.getMutator, this.graph.adapter);
+                        var children = _.map(nodeSet.items(), this.graph.adapter.getMutator, this.graph.adapter);
                         _.each(children, _.bind(function (child) {
                             child.setData("deleted", true);
                             this.hideNode(child);

@@ -9,6 +9,7 @@
                 db: cfg.database,
                 coll: cfg.collection
             },
+            addMutator,
             translateSpec;
 
         clique.util.require(cfg.database, "database");
@@ -61,14 +62,65 @@
             return result;
         };
 
+        addMutator = function (mongoRec) {
+            var target,
+                mutator,
+                key;
+
+            key = mongoRec._id.$oid;
+
+            if (!_.has(mutators, key)) {
+                target = {
+                    key: key,
+                    data: mongoRec.data || {}
+                };
+
+                if (mongoRec.source) {
+                    target.source = mongoRec.source;
+                }
+
+                if (mongoRec.target) {
+                    target.target = mongoRec.target;
+                }
+
+                mutator = new clique.util.Mutator(target);
+
+                this.listenTo(mutator, "changed", function (mutator, prop, value) {
+                    $.getJSON("plugin/mongo/update", _.extend({
+                        key: mutator.key(),
+                        prop: prop,
+                        value: JSON.stringify(value)
+                    }, mongoStore));
+                });
+
+                this.listenTo(mutator, "cleared", function (mutator, prop) {
+                    $.getJSON("plugin/mongo/clear", _.extend({
+                        key: mutator.key(),
+                        prop: prop
+                    }, mongoStore)).then(_.bind(function () {
+                        this.trigger("cleared:" + mutator.key(), mutator, prop);
+                    }, this));
+                });
+
+                mutators[key] = mutator;
+            }
+
+            return mutators[key];
+        };
+
         return _.extend({
             findNodes: function (spec) {
-                var data = _.extend({
+                var targets,
+                    data;
+
+                data = _.extend({
                     spec: JSON.stringify(translateSpec(spec))
                 }, mongoStore);
 
                 return $.getJSON(findNodesService, data)
-                   .then(_.partial(_.map, _, _.bind(this.getMutator, this)));
+                    .then(_.partial(_.map, _, function (r) {
+                        return _.bind(addMutator, this)(r);
+                    }));
             },
 
             findNode: function (spec) {
@@ -79,10 +131,11 @@
 
                 return $.getJSON(findNodesService, data)
                     .then(_.bind(function (result) {
-                        var def = new $.Deferred();
+                        var def = new $.Deferred(),
+                            target;
 
                         if (result) {
-                            result = this.getMutator(result);
+                            result = _.bind(addMutator, this)(result);
                         }
 
                         def.resolve(result);
@@ -105,12 +158,7 @@
                 }, mongoStore);
 
                 return $.getJSON("plugin/mongo/findLinks", data)
-                    .then(_.bind(function (results) {
-                        var def = new $.Deferred();
-
-                        def.resolve(_.map(results, this.getMutator, this));
-                        return def;
-                    }, this));
+                    .then(_.partial(_.map, _, addMutator, this));
             },
 
             findLink: function (spec) {
@@ -123,7 +171,11 @@
                     .then(_.bind(function (result) {
                         var def = new $.Deferred();
 
-                        def.resolve(result && this.getMutator(result));
+                        if (result) {
+                            result = _.bind(addMutator, this)(result);
+                        }
+
+                        def.resolve(result);
                         return def;
                     }, this));
             },
@@ -161,11 +213,17 @@
                 options = _.extend(options, mongoStore);
 
                 return $.getJSON("plugin/mongo/neighborhood", options)
-                   .then(_.bind(function (results) {
+                    .then(_.bind(function (results) {
+                        _.each(results.nodes, addMutator, this);
+                        _.each(results.links, addMutator, this);
+
+                        return results;
+                    }, this))
+                    .then(_.bind(function (results) {
                        var def = new $.Deferred();
 
                        _.each(results.nodes, _.bind(function (node, i) {
-                            var mut = this.getMutator(node);
+                            var mut = this.getMutator(node._id.$oid);
 
                             if (mut.key() === options.center) {
                                 mut.setTransient("root", true);
@@ -175,7 +233,7 @@
                         }, this));
 
                        _.each(results.links, _.bind(function (link, i) {
-                           var mut = this.getMutator(link);
+                           var mut = this.getMutator(link._id.$oid);
                            results.links[i] = mut.getTarget();
                        }, this));
 
@@ -190,47 +248,7 @@
                 return def;
             },
 
-            getMutator: function (mongoRec) {
-                var key = mongoRec._id.$oid;
-
-                if (!_.has(mutators, key)) {
-                    var target = {
-                        key: key,
-                        data: mongoRec.data
-                    };
-
-                    if (mongoRec.source) {
-                        target.source = mongoRec.source;
-                    }
-
-                    if (mongoRec.target) {
-                        target.target = mongoRec.target;
-                    }
-
-                    mutators[key] = new clique.util.Mutator({
-                        target: target
-                    });
-
-                    this.listenTo(mutators[key], "changed", function (mutator, prop, value) {
-                        $.getJSON("plugin/mongo/update", _.extend({
-                            key: mutator.key(),
-                            prop: prop,
-                            value: JSON.stringify(value)
-                        }, mongoStore));
-                    });
-
-                    this.listenTo(mutators[key], "cleared", function (mutator, prop) {
-                        $.getJSON("plugin/mongo/clear", _.extend({
-                            key: mutator.key(),
-                            prop: prop
-                        }, mongoStore)).then(_.bind(function () {
-                            this.trigger("cleared:" + mutator.key(), mutator, prop);
-                        }, this));
-                    });
-                }
-
-                return mutators[key];
-            }
+            getMutator: _.propertyOf(mutators)
         }, Backbone.Events);
     };
 }(window.clique, window.jQuery, window._, window.Backbone, window.tangelo));

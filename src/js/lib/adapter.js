@@ -22,9 +22,7 @@
             }
 
             if (!_.has(mutators, key)) {
-                mutators[key] = new clique.util.Mutator({
-                    target: nodeIndex[key]
-                });
+                mutators[key] = new clique.util.Mutator(nodeIndex[key]);
             }
 
             return mutators[key];
