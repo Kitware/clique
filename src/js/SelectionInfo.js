@@ -63,39 +63,6 @@
             });
         },
 
-        deleteNode: function (node, deleted) {
-            if (deleted) {
-                node.setData("deleted", true);
-                this.hideNode(node);
-            } else {
-                node.clearData("deleted");
-                this.render();
-            }
-        },
-
-        expandNode: function (node) {
-            this.graph.addNeighborhood({
-                center: node,
-                radius: 1
-            });
-        },
-
-        collapseNode: function (node) {
-            var loners,
-                mutators;
-
-            // Find all neighbors of the node that have exactly one neighbor.
-            loners = _.filter(this.graph.neighbors(node), function (nbr) {
-                return _.size(this.graph.neighbors(nbr)) === 1;
-            }, this);
-
-            // Extract the mutator objects for these nodes.
-            mutators = _.map(loners, this.graph.adapter.getMutator, this.graph.adapter);
-
-            // Hide them.
-            _.each(mutators, _.partial(this.hideNode, _, false), this);
-        },
-
         groupNodes: function (nodes) {
             var nodeSet,
                 newKey;
