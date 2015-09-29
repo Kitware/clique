@@ -31,7 +31,7 @@ mixin button(spec)
                             for item in node.getAllData()
                                 +item(item[0], item[1])
             .row
-                h5.nodeButtons Node
+                h5 Node
                 each buttonSpec in nodeButtons
                     +button(buttonSpec)
 
