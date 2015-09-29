@@ -35,7 +35,8 @@
                     cssClass: _.uniqueId("ident-"),
                     color: colors[button.color] || "default",
                     icon: button.icon,
-                    callback: button.callback || _.noop
+                    callback: button.callback || _.noop,
+                    show: _.isFunction(button.show) ? button.show : _.constant(_.isUndefined(button.show) ? true : button.show)
                 };
             });
 
@@ -212,23 +213,11 @@
                         this.model.focusRight();
                     }, this));
 
-                this.$("button.remove").on("click", _.bind(function () {
-                    this.graph.adapter.findNode({queryOp: "==", field: "key", value: this.model.focused()})
-                        .then(_.bind(this.hideNode, this));
-                }, this));
-
                 this.$("button.remove-sel").on("click", _.bind(function () {
                     _.each(this.model.items(), _.bind(function (key) {
                         this.graph.adapter.findNode({queryOp: "==", field: "key", value: key})
                             .then(_.bind(this.hideNode, this));
                     }, this));
-                }, this));
-
-                this.$("button.delete").on("click", _.bind(function () {
-                    this.graph.adapter.findNode({queryOp: "==", field: "key", value: this.model.focused()})
-                        .then(_.bind(function (node) {
-                            this.deleteNode(node, !node.getData("deleted"));
-                        }, this));
                 }, this));
 
                 this.$("button.delete-sel").on("click", _.bind(function () {
@@ -238,20 +227,11 @@
                     }, this));
                 }, this));
 
-                this.$("button.expand").on("click", _.bind(function () {
-                    this.graph.adapter.findNode({queryOp: "==", field: "key", value: this.model.focused()})
-                        .then(_.bind(this.expandNode, this));
-                }, this));
-
                 this.$("button.expand-sel").on("click", _.bind(function () {
                     _.each(this.model.items(), _.bind(function (key) {
                         this.graph.adapter.findNode({queryOp: "==", field: "key", value: key})
                             .then(_.bind(this.expandNode, this));
                     }, this));
-                }, this));
-
-                this.$("button.collapser").on("click", _.bind(function () {
-                    this.collapseNode(this.model.focused());
                 }, this));
 
                 this.$("button.collapser-sel").on("click", _.bind(function () {

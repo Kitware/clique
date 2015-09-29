@@ -135,6 +135,50 @@ $(function () {
 
                     return !doDelete;
                 }
+            },
+            {
+                label: "Ungroup",
+                color: "blue",
+                icon: "scissors",
+                callback: function (node) {
+                    console.log(node);
+                },
+                show: function (node) {
+                    return node.getData("grouped");
+                }
+
+            },
+            {
+                label: "Expand",
+                color: "blue",
+                icon: "fullscreen",
+                callback: function (node) {
+                    this.graph.addNeighborhood({
+                        center: node,
+                        radius: 1
+                    });
+                }
+            },
+            {
+                label: "Collapse",
+                color: "blue",
+                icon: "resize-small",
+                callback: function (node) {
+                    var loners,
+                        mutators;
+
+                    // Find all neighbors of the node that have exactly one
+                    // neighbor.
+                    loners = _.filter(this.graph.neighbors(node.key()), function (nbr) {
+                        return _.size(this.graph.neighbors(nbr)) === 1;
+                    }, this);
+
+                    // Extract the mutator objects for these nodes.
+                    mutators = _.map(loners, this.graph.adapter.getMutator, this.graph.adapter);
+
+                    // Hide them.
+                    _.each(mutators, hideNode, this);
+                }
             }
         ],
         selectionButtons: [
