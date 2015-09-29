@@ -240,19 +240,6 @@
                         this.model.focusRight();
                     }, this));
 
-                this.$("button.expand-sel").on("click", _.bind(function () {
-                    _.each(this.model.items(), _.bind(function (key) {
-                        this.graph.adapter.findNode({queryOp: "==", field: "key", value: key})
-                            .then(_.bind(this.expandNode, this));
-                    }, this));
-                }, this));
-
-                this.$("button.collapser-sel").on("click", _.bind(function () {
-                    _.each(this.model.items(), function (key) {
-                        this.collapseNode(key);
-                    }, this);
-                }, this));
-
                 this.$("button.ungroup").on("click", _.bind(function () {
                     this.graph.adapter.findNode({queryOp: "==", field: "key", value: this.model.focused()})
                         .then(_.bind(this.ungroupNode, this));

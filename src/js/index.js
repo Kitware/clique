@@ -39,7 +39,9 @@ $(function () {
         view,
         info,
         hideNode,
-        deleteNode;
+        deleteNode,
+        expandNode,
+        collapseNode;
 
     graphData = randomGraph(26, 0.20);
     graph = new clique.Graph({
@@ -118,6 +120,30 @@ $(function () {
         return !doDelete;
     };
 
+    expandNode = function (node) {
+        this.graph.addNeighborhood({
+            center: node,
+            radius: 1
+        });
+    };
+
+    collapseNode = function (node) {
+        var loners,
+            mutators;
+
+        // Find all neighbors of the node that have exactly one
+        // neighbor.
+        loners = _.filter(this.graph.neighbors(node.key()), function (nbr) {
+            return _.size(this.graph.neighbors(nbr)) === 1;
+        }, this);
+
+        // Extract the mutator objects for these nodes.
+        mutators = _.map(loners, this.graph.adapter.getMutator, this.graph.adapter);
+
+        // Hide them.
+        _.each(mutators, hideNode, this);
+    };
+
     info = new app.view.SelectionInfo({
         model: view.selection,
         el: "#info",
@@ -158,10 +184,7 @@ $(function () {
                 color: "blue",
                 icon: "fullscreen",
                 callback: function (node) {
-                    this.graph.addNeighborhood({
-                        center: node,
-                        radius: 1
-                    });
+                    _.bind(expandNode, this)(node);
                 }
             },
             {
@@ -169,20 +192,7 @@ $(function () {
                 color: "blue",
                 icon: "resize-small",
                 callback: function (node) {
-                    var loners,
-                        mutators;
-
-                    // Find all neighbors of the node that have exactly one
-                    // neighbor.
-                    loners = _.filter(this.graph.neighbors(node.key()), function (nbr) {
-                        return _.size(this.graph.neighbors(nbr)) === 1;
-                    }, this);
-
-                    // Extract the mutator objects for these nodes.
-                    mutators = _.map(loners, this.graph.adapter.getMutator, this.graph.adapter);
-
-                    // Hide them.
-                    _.each(mutators, hideNode, this);
+                    _.bind(collapseNode, this)(node);
                 }
             }
         ],
@@ -203,6 +213,24 @@ $(function () {
                 repeat: true,
                 callback: function (node) {
                     return _.bind(deleteNode, this)(node);
+                }
+            },
+            {
+                label: "Expand",
+                color: "blue",
+                icon: "fullscreen",
+                repeat: true,
+                callback: function (node) {
+                    _.bind(expandNode, this)(node);
+                }
+            },
+            {
+                label: "Collapse",
+                color: "blue",
+                icon: "resize-small",
+                repeat: true,
+                callback: function (node) {
+                    _.bind(collapseNode, this)(node);
                 }
             }
         ]
