@@ -240,13 +240,6 @@
                         this.model.focusRight();
                     }, this));
 
-                this.$("button.delete-sel").on("click", _.bind(function () {
-                    _.each(this.model.items(), _.bind(function (key) {
-                        this.graph.adapter.findNode({queryOp: "==", field: "key", value: key})
-                            .then(_.bind(this.deleteNode, this, _, true));
-                    }, this));
-                }, this));
-
                 this.$("button.expand-sel").on("click", _.bind(function () {
                     _.each(this.model.items(), _.bind(function (key) {
                         this.graph.adapter.findNode({queryOp: "==", field: "key", value: key})
