@@ -182,7 +182,15 @@ $(function () {
             }
         ],
         selectionButtons: [
-
+            {
+                label: "Hide",
+                color: "purple",
+                icon: "eye-close",
+                repeat: true,
+                callback: function (node) {
+                    _.bind(hideNode, this)(node);
+                }
+            }
         ]
     });
     info.render();

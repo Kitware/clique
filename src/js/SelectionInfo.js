@@ -5,7 +5,8 @@
     window.app.view = window.app.view || {};
 
     var $ = Backbone.$,
-        colors;
+        colors,
+        processButtons;
 
     colors = {
         white: "default",
@@ -15,6 +16,20 @@
         orange: "warning",
         red: "danger",
         clear: "link"
+    };
+
+    processButtons = function (specs) {
+        return _.map(specs || [], function (button) {
+            return {
+                label: _.isFunction(button.label) ? button.label : _.constant(button.label),
+                cssClass: _.uniqueId("ident-"),
+                color: colors[button.color] || "default",
+                icon: button.icon,
+                repeat: _.isUndefined(button.repeat) ? false : button.repeat,
+                callback: button.callback || _.noop,
+                show: _.isFunction(button.show) ? button.show : _.constant(_.isUndefined(button.show) ? true : button.show)
+            };
+        });
     };
 
     window.app.view.SelectionInfo = Backbone.View.extend({
@@ -29,16 +44,8 @@
             this.nav = _.isUndefined(options.nav) ? true : options.nav;
             this.metadata = _.isUndefined(options.metadata) ? true : options.metadata;
 
-            this.nodeButtons = _.map(options.nodeButtons || [], function (button) {
-                return {
-                    label: _.isFunction(button.label) ? button.label : _.constant(button.label),
-                    cssClass: _.uniqueId("ident-"),
-                    color: colors[button.color] || "default",
-                    icon: button.icon,
-                    callback: button.callback || _.noop,
-                    show: _.isFunction(button.show) ? button.show : _.constant(_.isUndefined(button.show) ? true : button.show)
-                };
-            });
+            this.nodeButtons = processButtons(options.nodeButtons);
+            this.selectionButtons = processButtons(options.selectionButtons);
 
             debRender = _.debounce(this.render, 100);
 
@@ -191,12 +198,32 @@
                     selectionSize: this.model.size(),
                     nav: this.nav,
                     metadata: this.metadata,
-                    nodeButtons: this.nodeButtons
+                    nodeButtons: this.nodeButtons,
+                    selectionButtons: this.selectionButtons
                 }));
 
                 _.each(this.nodeButtons, _.bind(function (spec) {
                     this.$("button." + spec.cssClass).on("click", _.bind(function () {
                         var render = _.bind(spec.callback, this)(this.graph.adapter.getMutator(this.model.focused()));
+                        if (render) {
+                            this.render();
+                        }
+                    }, this));
+                }, this));
+
+                _.each(this.selectionButtons, _.bind(function (spec) {
+                    this.$("button." + spec.cssClass).on("click", _.bind(function () {
+                        var render,
+                            selectionMutators;
+
+                        selectionMutators = _.map(this.model.items(), this.graph.adapter.getMutator, this.graph.adapter);
+
+                        if (spec.repeat) {
+                            render = _.any(_.map(selectionMutators, _.bind(spec.callback, this)));
+                        } else {
+                            render = _.bind(spec.callback, this)(selectionMutators, this.graph.adapter.getMutator(this.model.focused()));
+                        }
+
                         if (render) {
                             this.render();
                         }
@@ -212,13 +239,6 @@
                     .on("click", _.bind(function () {
                         this.model.focusRight();
                     }, this));
-
-                this.$("button.remove-sel").on("click", _.bind(function () {
-                    _.each(this.model.items(), _.bind(function (key) {
-                        this.graph.adapter.findNode({queryOp: "==", field: "key", value: key})
-                            .then(_.bind(this.hideNode, this));
-                    }, this));
-                }, this));
 
                 this.$("button.delete-sel").on("click", _.bind(function () {
                     _.each(this.model.items(), _.bind(function (key) {
