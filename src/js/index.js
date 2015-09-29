@@ -37,7 +37,8 @@ $(function () {
     var graphData,
         graph,
         view,
-        info;
+        info,
+        hideNode;
 
     graphData = randomGraph(26, 0.20);
     graph = new clique.Graph({
@@ -95,10 +96,48 @@ $(function () {
         }
     });
 
+    hideNode = function (node) {
+        node.setTransient("selected", false);
+        node.clearTransient("root");
+        this.graph.removeNeighborhood({
+            center: node,
+            radius: 0
+        });
+    };
+
     info = new app.view.SelectionInfo({
         model: view.selection,
         el: "#info",
-        graph: graph
+        graph: graph,
+        nodeButtons: [
+            {
+                label: "Hide",
+                color: "purple",
+                icon: "eye-close",
+                callback: function (node) {
+                    _.bind(hideNode, this)(node);
+                }
+            },
+            {
+                label: "Delete",
+                color: "red",
+                icon: "remove",
+                callback: function (node) {
+                    var doDelete = !node.getData("deleted");
+                    if (doDelete) {
+                        node.setData("deleted", true);
+                        _.bind(hideNode, this)(node);
+                    } else {
+                        node.clearData("deleted");
+                    }
+
+                    return true;
+                }
+            }
+        ],
+        selectionButtons: [
+
+        ]
     });
     info.render();
 });

@@ -4,7 +4,18 @@
     window.app = window.app || {};
     window.app.view = window.app.view || {};
 
-    var $ = Backbone.$;
+    var $ = Backbone.$,
+        colors;
+
+    colors = {
+        white: "default",
+        blue: "primary",
+        green: "success",
+        purple: "info",
+        orange: "warning",
+        red: "danger",
+        clear: "link"
+    };
 
     window.app.view.SelectionInfo = Backbone.View.extend({
         initialize: function (options) {
@@ -17,6 +28,16 @@
             this.graph = options.graph;
             this.nav = _.isUndefined(options.nav) ? true : options.nav;
             this.metadata = _.isUndefined(options.metadata) ? true : options.metadata;
+
+            this.nodeButtons = _.map(options.nodeButtons || [], function (button) {
+                return {
+                    label: button.label,
+                    cssClass: _.uniqueId("ident-"),
+                    color: colors[button.color] || "default",
+                    icon: button.icon,
+                    callback: button.callback || _.noop
+                };
+            });
 
             debRender = _.debounce(this.render, 100);
 
@@ -168,8 +189,15 @@
                     degree: node ? this.graph.degree(node.key()) : -1,
                     selectionSize: this.model.size(),
                     nav: this.nav,
-                    metadata: this.metadata
+                    metadata: this.metadata,
+                    nodeButtons: this.nodeButtons
                 }));
+
+                _.each(this.nodeButtons, _.bind(function (spec) {
+                    this.$("button." + spec.cssClass).on("click", _.bind(function () {
+                        _.bind(spec.callback, this)(this.graph.adapter.getMutator(this.model.focused()));
+                    }, this));
+                }, this));
 
                 this.$("a.prev")
                     .on("click", _.bind(function () {

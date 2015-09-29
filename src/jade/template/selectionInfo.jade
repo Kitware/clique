@@ -3,6 +3,12 @@ mixin item(key, value)
         td.text-right: strong= key
         td= value
 
+mixin button(spec)
+    if spec.icon
+        button.btn.btn-xs(type="button" class=["btn-" + spec.color, spec.cssClass]) #{spec.label} #[span.glyphicon(class="glyphicon-" + spec.icon)]
+    else
+        button.btn.btn-xs(type="button" class=["btn-" + spec.color, spec.cssClass]) #{spec.label}
+
 .container.full-width
     if _.isUndefined(node)
         em (Selection is empty)
@@ -25,6 +31,10 @@ mixin item(key, value)
                             for item in node.getAllData()
                                 +item(item[0], item[1])
             .row
+                h5.nodeButtons Node
+                each buttonSpec in nodeButtons
+                    +button(buttonSpec)
+
                 h5 Node
                 button(type="button").space-right.btn.btn-info.btn-xs.remove Hide #[span.glyphicon.glyphicon-eye-close]
                 if node.getData("deleted")
