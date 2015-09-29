@@ -3,11 +3,11 @@ mixin item(key, value)
         td.text-right: strong= key
         td= value
 
-mixin button(spec)
+mixin button(spec, node)
     if spec.icon
-        button.btn.btn-xs(type="button" class=["btn-" + spec.color, spec.cssClass]) #{spec.label} #[span.glyphicon(class="glyphicon-" + spec.icon)]
+        button.btn.btn-xs(type="button" class=["btn-" + spec.color, spec.cssClass]) #{spec.label(node)} #[span.glyphicon(class="glyphicon-" + spec.icon)]
     else
-        button.btn.btn-xs(type="button" class=["btn-" + spec.color, spec.cssClass]) #{spec.label}
+        button.btn.btn-xs(type="button" class=["btn-" + spec.color, spec.cssClass]) #{spec.label(node)}
 
 .container.full-width
     if _.isUndefined(node)
@@ -33,7 +33,7 @@ mixin button(spec)
             .row
                 h5 Node
                 each buttonSpec in nodeButtons
-                    +button(buttonSpec)
+                    +button(buttonSpec, node)
 
                 h5 Node
                 button(type="button").space-right.btn.btn-info.btn-xs.remove Hide #[span.glyphicon.glyphicon-eye-close]

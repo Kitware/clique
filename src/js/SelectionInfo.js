@@ -31,7 +31,7 @@
 
             this.nodeButtons = _.map(options.nodeButtons || [], function (button) {
                 return {
-                    label: button.label,
+                    label: _.isFunction(button.label) ? button.label : _.constant(button.label),
                     cssClass: _.uniqueId("ident-"),
                     color: colors[button.color] || "default",
                     icon: button.icon,
@@ -195,7 +195,10 @@
 
                 _.each(this.nodeButtons, _.bind(function (spec) {
                     this.$("button." + spec.cssClass).on("click", _.bind(function () {
-                        _.bind(spec.callback, this)(this.graph.adapter.getMutator(this.model.focused()));
+                        var render = _.bind(spec.callback, this)(this.graph.adapter.getMutator(this.model.focused()));
+                        if (render) {
+                            this.render();
+                        }
                     }, this));
                 }, this));
 

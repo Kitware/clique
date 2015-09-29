@@ -119,7 +119,9 @@ $(function () {
                 }
             },
             {
-                label: "Delete",
+                label: function (node) {
+                    return node.getData("deleted") ? "Undelete" : "Delete";
+                },
                 color: "red",
                 icon: "remove",
                 callback: function (node) {
@@ -131,7 +133,7 @@ $(function () {
                         node.clearData("deleted");
                     }
 
-                    return true;
+                    return !doDelete;
                 }
             }
         ],
