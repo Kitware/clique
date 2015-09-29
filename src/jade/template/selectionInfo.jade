@@ -7,21 +7,23 @@ mixin item(key, value)
     if _.isUndefined(node)
         em (Selection is empty)
     else
-        nav
-            ul.pagination
-                li.prev
-                    a(aria-label="Previous").virtual-link.prev
-                        span(aria-hidden="true") &laquo;
-                li.next
-                    a(aria-label="Next").virtual-link.next
-                        span(aria-hidden="true") &raquo;
+        if nav
+            nav
+                ul.pagination
+                    li.prev
+                        a(aria-label="Previous").virtual-link.prev
+                            span(aria-hidden="true") &laquo;
+                    li.next
+                        a(aria-label="Next").virtual-link.next
+                            span(aria-hidden="true") &raquo;
         .container.full-width
-            .row
-                .col-md-1
-                    table.table.table-striped.table-bordered.select-ok
-                        +item("key", node.key())
-                        for item in node.getAllData()
-                            +item(item[0], item[1])
+            if metadata
+                .row
+                    .col-md-1
+                        table.table.table-striped.table-bordered.select-ok
+                            +item("key", node.key())
+                            for item in node.getAllData()
+                                +item(item[0], item[1])
             .row
                 h5 Node
                 button(type="button").space-right.btn.btn-info.btn-xs.remove Hide #[span.glyphicon.glyphicon-eye-close]

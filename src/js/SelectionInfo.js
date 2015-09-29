@@ -15,6 +15,8 @@
 
             options = options || {};
             this.graph = options.graph;
+            this.nav = _.isUndefined(options.nav) ? true : options.nav;
+            this.metadata = _.isUndefined(options.metadata) ? true : options.metadata;
 
             debRender = _.debounce(this.render, 100);
 
@@ -164,7 +166,9 @@
                 this.$el.html(template.selectionInfo({
                     node: node,
                     degree: node ? this.graph.degree(node.key()) : -1,
-                    selectionSize: this.model.size()
+                    selectionSize: this.model.size(),
+                    nav: this.nav,
+                    metadata: this.metadata
                 }));
 
                 this.$("a.prev")
