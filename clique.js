@@ -2441,7 +2441,7 @@ exports.DebugItem = function DebugItem(lineno, filename) {
         initialize: function (attributes, options) {
             clique.util.require(options.adapter, "adapter");
 
-            this.adapter = new options.adapter(options.options);
+            this.adapter = options.adapter;
 
             this.nodes = {};
             this.links = new clique.util.Set();

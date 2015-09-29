@@ -41,8 +41,7 @@ $(function () {
 
     graphData = randomGraph(26, 0.20);
     graph = new clique.Graph({
-        adapter: clique.adapter.NodeLinkList,
-        options: graphData
+        adapter: new clique.adapter.NodeLinkList(graphData)
     });
 
     $("#seed").on("click", function () {
