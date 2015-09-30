@@ -6,9 +6,9 @@ mixin item(key, value)
 mixin button(spec, node)
     if spec.show(node)
         if spec.icon
-            button.btn.btn-xs(type="button" class=["btn-" + spec.color, spec.cssClass]) #{spec.label(node)} #[span.glyphicon(class="glyphicon-" + spec.icon)]
+            button.btn.btn-xs(type="button" class=["btn-" + spec.color, spec.cssClass] style="margin-right: 3px;") #{spec.label(node)} #[span.glyphicon(class="glyphicon-" + spec.icon)]
         else
-            button.btn.btn-xs(type="button" class=["btn-" + spec.color, spec.cssClass]) #{spec.label(node)}
+            button.btn.btn-xs(type="button" class=["btn-" + spec.color, spec.cssClass] style="margin-right: 3px;") #{spec.label(node)}
 
 .container.full-width
     if _.isUndefined(node)
