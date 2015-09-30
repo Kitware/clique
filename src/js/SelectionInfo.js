@@ -1,8 +1,7 @@
-(function (clique, Backbone, _, template) {
+(function (clique, Backbone, _) {
     "use strict";
 
-    window.app = window.app || {};
-    window.app.view = window.app.view || {};
+    clique.view = clique.view || {};
 
     var $ = Backbone.$,
         colors,
@@ -32,7 +31,7 @@
         });
     };
 
-    window.app.view.SelectionInfo = Backbone.View.extend({
+    clique.view.SelectionInfo = Backbone.View.extend({
         initialize: function (options) {
             var debRender;
 
@@ -159,7 +158,7 @@
                 renderTemplate;
 
             renderTemplate = _.bind(function (node) {
-                this.$el.html(template.selectionInfo({
+                this.$el.html(clique.jade.selectionInfo({
                     node: node,
                     degree: node ? this.graph.degree(node.key()) : -1,
                     selectionSize: this.model.size(),

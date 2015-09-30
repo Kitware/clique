@@ -1,5 +1,5 @@
 /*jshint browser: true, jquery: true */
-/*global app, clique, _ */
+/*global clique, _ */
 
 function randomGraph(n, pct) {
     "use strict";
@@ -144,7 +144,7 @@ $(function () {
         _.each(mutators, hideNode, this);
     };
 
-    info = new app.view.SelectionInfo({
+    info = new clique.view.SelectionInfo({
         model: view.selection,
         el: "#info",
         graph: graph,
