@@ -476,7 +476,8 @@ buf.push("</div>");}.call(this,"_" in locals_for_with?locals_for_with._:typeof _
 
     var $ = Backbone.$,
         colors,
-        processButtons;
+        processButtons,
+        SelectionInfo;
 
     colors = {
         white: "default",
@@ -502,7 +503,7 @@ buf.push("</div>");}.call(this,"_" in locals_for_with?locals_for_with._:typeof _
         });
     };
 
-    clique.view.SelectionInfo = Backbone.View.extend({
+    clique.view.SelectionInfo = SelectionInfo = Backbone.View.extend({
         initialize: function (options) {
             var debRender;
 
@@ -697,4 +698,49 @@ buf.push("</div>");}.call(this,"_" in locals_for_with?locals_for_with._:typeof _
             }
         }
     });
+
+    SelectionInfo.hideNode = function (node) {
+        node.setTransient("selected", false);
+        node.clearTransient("root");
+        this.graph.removeNeighborhood({
+            center: node,
+            radius: 0
+        });
+    };
+
+    SelectionInfo.deleteNode = function (node) {
+        var doDelete = !node.getData("deleted");
+        if (doDelete) {
+            node.setData("deleted", true);
+            _.bind(SelectionInfo.hideNode, this)(node);
+        } else {
+            node.clearData("deleted");
+        }
+
+        return !doDelete;
+    };
+
+    SelectionInfo.expandNode = function (node) {
+        this.graph.addNeighborhood({
+            center: node,
+            radius: 1
+        });
+    };
+
+    SelectionInfo.collapseNode = function (node) {
+        var loners,
+            mutators;
+
+        // Find all neighbors of the node that have exactly one
+        // neighbor.
+        loners = _.filter(this.graph.neighbors(node.key()), function (nbr) {
+            return _.size(this.graph.neighbors(nbr)) === 1;
+        }, this);
+
+        // Extract the mutator objects for these nodes.
+        mutators = _.map(loners, this.graph.adapter.getMutator, this.graph.adapter);
+
+        // Hide them.
+        _.each(mutators, SelectionInfo.hideNode, this);
+    };
 }(window.clique, window.Backbone, window._, window.template));

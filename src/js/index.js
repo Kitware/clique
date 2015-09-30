@@ -37,11 +37,7 @@ $(function () {
     var graphData,
         graph,
         view,
-        info,
-        hideNode,
-        deleteNode,
-        expandNode,
-        collapseNode;
+        info;
 
     graphData = randomGraph(26, 0.20);
     graph = new clique.Graph({
@@ -99,51 +95,6 @@ $(function () {
         }
     });
 
-    hideNode = function (node) {
-        node.setTransient("selected", false);
-        node.clearTransient("root");
-        this.graph.removeNeighborhood({
-            center: node,
-            radius: 0
-        });
-    };
-
-    deleteNode = function (node) {
-        var doDelete = !node.getData("deleted");
-        if (doDelete) {
-            node.setData("deleted", true);
-            _.bind(hideNode, this)(node);
-        } else {
-            node.clearData("deleted");
-        }
-
-        return !doDelete;
-    };
-
-    expandNode = function (node) {
-        this.graph.addNeighborhood({
-            center: node,
-            radius: 1
-        });
-    };
-
-    collapseNode = function (node) {
-        var loners,
-            mutators;
-
-        // Find all neighbors of the node that have exactly one
-        // neighbor.
-        loners = _.filter(this.graph.neighbors(node.key()), function (nbr) {
-            return _.size(this.graph.neighbors(nbr)) === 1;
-        }, this);
-
-        // Extract the mutator objects for these nodes.
-        mutators = _.map(loners, this.graph.adapter.getMutator, this.graph.adapter);
-
-        // Hide them.
-        _.each(mutators, hideNode, this);
-    };
-
     info = new clique.view.SelectionInfo({
         model: view.selection,
         el: "#info",
@@ -154,7 +105,7 @@ $(function () {
                 color: "purple",
                 icon: "eye-close",
                 callback: function (node) {
-                    _.bind(hideNode, this)(node);
+                    _.bind(clique.view.SelectionInfo.hideNode, this)(node);
                 }
             },
             {
@@ -164,7 +115,7 @@ $(function () {
                 color: "red",
                 icon: "remove",
                 callback: function (node) {
-                    _.bind(deleteNode, this)(node);
+                    _.bind(clique.view.SelectionInfo.deleteNode, this)(node);
                 }
             },
             {
@@ -184,7 +135,7 @@ $(function () {
                 color: "blue",
                 icon: "fullscreen",
                 callback: function (node) {
-                    _.bind(expandNode, this)(node);
+                    _.bind(clique.view.SelectionInfo.expandNode, this)(node);
                 }
             },
             {
@@ -192,7 +143,7 @@ $(function () {
                 color: "blue",
                 icon: "resize-small",
                 callback: function (node) {
-                    _.bind(collapseNode, this)(node);
+                    _.bind(clique.view.SelectionInfo.collapseNode, this)(node);
                 }
             }
         ],
@@ -203,7 +154,7 @@ $(function () {
                 icon: "eye-close",
                 repeat: true,
                 callback: function (node) {
-                    _.bind(hideNode, this)(node);
+                    _.bind(clique.view.SelectionInfo.hideNode, this)(node);
                 }
             },
             {
@@ -212,7 +163,7 @@ $(function () {
                 icon: "remove",
                 repeat: true,
                 callback: function (node) {
-                    return _.bind(deleteNode, this)(node);
+                    return _.bind(clique.view.SelectionInfo.deleteNode, this)(node);
                 }
             },
             {
@@ -221,7 +172,7 @@ $(function () {
                 icon: "fullscreen",
                 repeat: true,
                 callback: function (node) {
-                    _.bind(expandNode, this)(node);
+                    _.bind(clique.view.SelectionInfo.expandNode, this)(node);
                 }
             },
             {
@@ -230,7 +181,7 @@ $(function () {
                 icon: "resize-small",
                 repeat: true,
                 callback: function (node) {
-                    _.bind(collapseNode, this)(node);
+                    _.bind(clique.view.SelectionInfo.collapseNode, this)(node);
                 }
             }
         ]
