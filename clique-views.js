@@ -314,11 +314,11 @@ if ( spec.show(node))
 {
 if ( spec.icon)
 {
-buf.push("<button type=\"button\"" + (jade.cls(['btn','btn-xs',["btn-" + spec.color, spec.cssClass]], [null,null,true])) + ">" + (jade.escape((jade_interp = spec.label(node)) == null ? '' : jade_interp)) + " <span" + (jade.cls(['glyphicon',"glyphicon-" + spec.icon], [null,true])) + "></span></button>");
+buf.push("<button type=\"button\" style=\"margin-right: 3px;\"" + (jade.cls(['btn','btn-xs',["btn-" + spec.color, spec.cssClass]], [null,null,true])) + ">" + (jade.escape((jade_interp = spec.label(node)) == null ? '' : jade_interp)) + " <span" + (jade.cls(['glyphicon',"glyphicon-" + spec.icon], [null,true])) + "></span></button>");
 }
 else
 {
-buf.push("<button type=\"button\"" + (jade.cls(['btn','btn-xs',["btn-" + spec.color, spec.cssClass]], [null,null,true])) + ">" + (jade.escape((jade_interp = spec.label(node)) == null ? '' : jade_interp)) + "</button>");
+buf.push("<button type=\"button\" style=\"margin-right: 3px;\"" + (jade.cls(['btn','btn-xs',["btn-" + spec.color, spec.cssClass]], [null,null,true])) + ">" + (jade.escape((jade_interp = spec.label(node)) == null ? '' : jade_interp)) + "</button>");
 }
 }
 };
@@ -411,7 +411,7 @@ jade_mixins["button"](buttonSpec);
   }
 }).call(this);
 
-buf.push("</div><div class=\"row\"><h5>Selection</h5><button type=\"button\" class=\"btn btn-primary btn-xs group-sel\">Group <span class=\"glyphicon glyphicon-paperclip\"></span></button></div>");
+buf.push("</div>");
 }
 buf.push("</div>");
 }
@@ -474,8 +474,7 @@ buf.push("</div>");}.call(this,"_" in locals_for_with?locals_for_with._:typeof _
 
     clique.view = clique.view || {};
 
-    var $ = Backbone.$,
-        colors,
+    var colors,
         processButtons,
         SelectionInfo;
 
@@ -523,106 +522,6 @@ buf.push("</div>");}.call(this,"_" in locals_for_with?locals_for_with._:typeof _
             this.listenTo(this.model, "change", debRender);
             this.listenTo(this.model, "focused", debRender);
             this.listenTo(this.graph, "change", debRender);
-        },
-
-        hideNode: function (node) {
-            node.setTransient("selected", false);
-            node.clearTransient("root");
-            this.graph.removeNeighborhood({
-                center: node,
-                radius: 0
-            });
-        },
-
-        groupNodes: function (nodes) {
-            var nodeSet,
-                newKey;
-
-            // Construct a new node with special properties.
-            this.graph.adapter.newNode({
-                grouped: true
-            }).then(_.bind(function (mongoRec) {
-                newKey = mongoRec._id.$oid;
-
-                // Find all links to/from the nodes in the group.
-                return $.when.apply($, _.flatten(_.map(nodes, _.bind(function (node) {
-                    return [
-                        this.graph.adapter.findLinks({
-                            source: node
-                        }),
-                        this.graph.adapter.findLinks({
-                            target: node
-                        })
-                    ];
-                }, this)), true));
-            }, this)).then(_.bind(function () {
-                var links,
-                    addLinks = [];
-
-                links = Array.prototype.concat.apply([], Array.prototype.slice.call(arguments));
-
-                nodeSet = new clique.util.Set();
-                _.each(nodes, _.bind(function (node) {
-                    nodeSet.add(node);
-
-                    // Add an "inclusion" link between the group node and
-                    // constituents.
-                    addLinks.push(this.graph.adapter.newLink(newKey, node, {
-                        grouping: true
-                    }));
-                }, this));
-
-                _.each(links, _.bind(function (link) {
-                    var source = link.getTransient("source"),
-                        target = link.getTransient("target");
-
-                    if (!nodeSet.has(source)) {
-                        addLinks.push(this.graph.adapter.newLink(newKey, source));
-                    }
-
-                    if (!nodeSet.has(link.getTransient("target"))) {
-                        addLinks.push(this.graph.adapter.newLink(newKey, target));
-                    }
-                }, this));
-
-                return $.when.apply($, addLinks);
-            }, this)).then(_.bind(function () {
-                this.graph.adapter.findNode(newKey)
-                    .then(_.bind(function (groupNode) {
-                        return this.graph.addNode(groupNode)
-                            .then(_.bind(function () {
-                                this.model.add(groupNode.key());
-                            }, this));
-                    }, this))
-                    .then(_.bind(function () {
-                        var children = _.map(nodeSet.items(), this.graph.adapter.getMutator, this.graph.adapter);
-                        _.each(children, _.bind(function (child) {
-                            child.setData("deleted", true);
-                            this.hideNode(child);
-                        }, this));
-                    }, this));
-            }, this));
-        },
-
-        ungroupNode: function (node) {
-            this.graph.adapter.findLinks({
-                source: node.key(),
-                grouping: true
-            }).then(_.bind(function (links) {
-                this.hideNode(node);
-                this.graph.adapter.destroyNode(node.key());
-
-                _.each(links, _.bind(function (link) {
-                    this.graph.adapter.findNode({queryOp: "==", field: "key", value: link.getTransient("target")})
-                        .then(_.bind(function (child) {
-                            child.clearData("deleted");
-                            this.graph.adapter.once("cleared:" + child.key(), _.bind(function () {
-                                this.model.add(child.key());
-                                this.graph.addNode(child);
-                            }, this));
-                        }, this));
-                }, this));
-            }, this));
         },
 
         render: function () {
@@ -677,15 +576,6 @@ buf.push("</div>");}.call(this,"_" in locals_for_with?locals_for_with._:typeof _
                     .on("click", _.bind(function () {
                         this.model.focusRight();
                     }, this));
-
-                this.$("button.ungroup").on("click", _.bind(function () {
-                    this.graph.adapter.findNode({queryOp: "==", field: "key", value: this.model.focused()})
-                        .then(_.bind(this.ungroupNode, this));
-                }, this));
-
-                this.$("button.group-sel").on("click", _.bind(function () {
-                    this.groupNodes(this.model.items());
-                }, this));
             }, this);
 
             focused = this.model.focused();
