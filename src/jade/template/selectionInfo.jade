@@ -3,44 +3,41 @@ mixin item(key, value)
         td.text-right: strong= key
         td= value
 
+mixin button(spec, node)
+    if spec.show(node)
+        if spec.icon
+            button.btn.btn-xs(type="button" class=["btn-" + spec.color, spec.cssClass] style="margin-right: 3px;") #{spec.label(node)} #[span.glyphicon(class="glyphicon-" + spec.icon)]
+        else
+            button.btn.btn-xs(type="button" class=["btn-" + spec.color, spec.cssClass] style="margin-right: 3px;") #{spec.label(node)}
+
 .container.full-width
     if _.isUndefined(node)
         em (Selection is empty)
     else
-        nav
-            ul.pagination
-                li.prev
-                    a(aria-label="Previous").virtual-link.prev
-                        span(aria-hidden="true") &laquo;
-                li.next
-                    a(aria-label="Next").virtual-link.next
-                        span(aria-hidden="true") &raquo;
+        if nav
+            nav
+                ul.pagination
+                    li.prev
+                        a(aria-label="Previous").virtual-link.prev
+                            span(aria-hidden="true") &laquo;
+                    li.next
+                        a(aria-label="Next").virtual-link.next
+                            span(aria-hidden="true") &raquo;
         .container.full-width
-            .row
-                .col-md-1
-                    table.table.table-striped.table-bordered.select-ok
-                        +item("key", node.key())
-                        for item in node.getAllData()
-                            +item(item[0], item[1])
+            if metadata
+                .row
+                    .col-md-1
+                        table.table.table-striped.table-bordered.select-ok
+                            +item("key", node.key())
+                            for item in node.getAllData()
+                                +item(item[0], item[1])
             .row
                 h5 Node
-                button(type="button").space-right.btn.btn-info.btn-xs.remove Hide #[span.glyphicon.glyphicon-eye-close]
-                if node.getData("deleted")
-                    button(type="button").space-right.btn.btn-danger.btn-xs.delete Undelete #[span.glyphicon.glyphicon-remove]
-                else
-                    button(type="button").space-right.btn.btn-danger.btn-xs.delete Delete #[span.glyphicon.glyphicon-remove]
-                button(type="button").space-right.btn.btn-primary.btn-xs.expand Expand #[span.glyphicon.glyphicon-fullscreen]
-                if node.getData("grouped")
-                    button(type="button").space-right.btn.btn-primary.btn-xs.collapser Collapse #[span.glyphicon.glyphicon-resize-small]
-                    button(type="button").btn.btn-primary.btn-xs.ungroup Ungroup #[span.glyphicon.glyphicon-scissors]
-                else
-                    button(type="button").btn.btn-primary.btn-xs.collapser Collapse #[span.glyphicon.glyphicon-resize-small]
+                each buttonSpec in nodeButtons
+                    +button(buttonSpec, node)
 
             if selectionSize > 1
                 .row
                     h5 Selection
-                    button(type="button").space-right.btn.btn-info.btn-xs.remove-sel Hide #[span.glyphicon.glyphicon-eye-close]
-                    button(type="button").space-right.btn.btn-danger.btn-xs.delete-sel Delete #[span.glyphicon.glyphicon-remove]
-                    button(type="button").space-right.btn.btn-primary.btn-xs.expand-sel Expand #[span.glyphicon.glyphicon-fullscreen]
-                    button(type="button").space-right.btn.btn-primary.btn-xs.collapser-sel Collapse #[span.glyphicon.glyphicon-resize-small]
-                    button(type="button").btn.btn-primary.btn-xs.group-sel Group #[span.glyphicon.glyphicon-paperclip]
+                    each buttonSpec in selectionButtons
+                        +button(buttonSpec)

@@ -47,10 +47,10 @@ gulp.task("jade-templates", function () {
             client: true
         }))
         .pipe(job({
-            namespace: "template"
+            namespace: "clique.jade"
         }))
         .pipe(concat("jade-templates.js"))
-        .pipe(gulp.dest("./build/site/"));
+        .pipe(gulp.dest("./build/jade/"));
 });
 
 gulp.task("stylus", function () {
@@ -75,43 +75,49 @@ gulp.task("uglify-index", function () {
         .pipe(dest());
 });
 
-gulp.task("uglify-templates", function () {
+gulp.task("uglify-templates", ["jade-templates"], function () {
     "use strict";
 
     var dest = _.bind(gulp.dest, gulp, "build/site");
 
-    gulp.src("src/js/LinkInfo.js")
+    gulp.src(["node_modules/jade/runtime.js",
+              "build/jade/jade-templates.js",
+              "src/js/LinkInfo.js",
+              "src/js/SelectionInfo.js"])
+        .pipe(concat("clique-views.js"))
         .pipe(dest())
         .pipe(uglify())
-        .pipe(rename("LinkInfo.min.js"))
-        .pipe(dest());
-
-    gulp.src("src/js/SelectionInfo.js")
-        .pipe(dest())
-        .pipe(uglify())
-        .pipe(rename("SelectionInfo.min.js"))
+        .pipe(rename("clique-views.min.js"))
         .pipe(dest());
 });
 
 gulp.task("uglify-clique", function () {
     "use strict";
 
-    var dest1 = _.bind(gulp.dest, gulp, "build/site"),
-        dest2 = _.bind(gulp.dest, gulp, ".");
+    var dest = _.bind(gulp.dest, gulp, "build/site");
 
     return gulp.src([
         "node_modules/jshashes/hashes.js",
-        "node_modules/jade/runtime.js",
         "src/js/lib/preamble.js",
         "src/js/lib/**/*.js"
     ])
         .pipe(concat("clique.js"))
-        .pipe(dest1())
-        .pipe(dest2())
+        .pipe(dest())
         .pipe(uglify())
         .pipe(rename("clique.min.js"))
-        .pipe(dest1())
-        .pipe(dest2());
+        .pipe(dest());
+});
+
+gulp.task("dist", ["uglify-clique"], function () {
+    "use strict";
+
+    return gulp.src([
+        "build/site/clique.js",
+        "build/site/clique.min.js",
+        "build/site/clique-views.js",
+        "build/site/clique-views.min.js"
+    ])
+        .pipe(gulp.dest("."));
 });
 
 gulp.task("lint", function () {
@@ -168,7 +174,6 @@ gulp.task("default", [
     "lint",
     "style",
     "stylus",
-    "jade-templates",
     "uglify",
     "jade",
     "assets",

@@ -1,5 +1,5 @@
 /*jshint browser: true, jquery: true */
-/*global app, clique, _ */
+/*global clique, _ */
 
 function randomGraph(n, pct) {
     "use strict";
@@ -95,10 +95,96 @@ $(function () {
         }
     });
 
-    info = new app.view.SelectionInfo({
+    info = new clique.view.SelectionInfo({
         model: view.selection,
         el: "#info",
-        graph: graph
+        graph: graph,
+        nodeButtons: [
+            {
+                label: "Hide",
+                color: "purple",
+                icon: "eye-close",
+                callback: function (node) {
+                    _.bind(clique.view.SelectionInfo.hideNode, this)(node);
+                }
+            },
+            {
+                label: function (node) {
+                    return node.getData("deleted") ? "Undelete" : "Delete";
+                },
+                color: "red",
+                icon: "remove",
+                callback: function (node) {
+                    _.bind(clique.view.SelectionInfo.deleteNode, this)(node);
+                }
+            },
+            {
+                label: "Ungroup",
+                color: "blue",
+                icon: "scissors",
+                callback: function (node) {
+                    console.log(node);
+                },
+                show: function (node) {
+                    return node.getData("grouped");
+                }
+
+            },
+            {
+                label: "Expand",
+                color: "blue",
+                icon: "fullscreen",
+                callback: function (node) {
+                    _.bind(clique.view.SelectionInfo.expandNode, this)(node);
+                }
+            },
+            {
+                label: "Collapse",
+                color: "blue",
+                icon: "resize-small",
+                callback: function (node) {
+                    _.bind(clique.view.SelectionInfo.collapseNode, this)(node);
+                }
+            }
+        ],
+        selectionButtons: [
+            {
+                label: "Hide",
+                color: "purple",
+                icon: "eye-close",
+                repeat: true,
+                callback: function (node) {
+                    _.bind(clique.view.SelectionInfo.hideNode, this)(node);
+                }
+            },
+            {
+                label: "Delete",
+                color: "red",
+                icon: "remove",
+                repeat: true,
+                callback: function (node) {
+                    return _.bind(clique.view.SelectionInfo.deleteNode, this)(node);
+                }
+            },
+            {
+                label: "Expand",
+                color: "blue",
+                icon: "fullscreen",
+                repeat: true,
+                callback: function (node) {
+                    _.bind(clique.view.SelectionInfo.expandNode, this)(node);
+                }
+            },
+            {
+                label: "Collapse",
+                color: "blue",
+                icon: "resize-small",
+                repeat: true,
+                callback: function (node) {
+                    _.bind(clique.view.SelectionInfo.collapseNode, this)(node);
+                }
+            }
+        ]
     });
     info.render();
 });
