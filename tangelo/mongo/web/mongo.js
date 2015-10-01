@@ -65,9 +65,21 @@
         addMutator = function (mongoRec) {
             var target,
                 mutator,
-                key;
+                key,
+                source,
+                targetNode;
 
             key = mongoRec._id.$oid;
+
+            source = mongoRec.source;
+            if (_.isObject(source)) {
+                source = source.$oid;
+            }
+
+            targetNode = mongoRec.target;
+            if (_.isObject(targetNode)) {
+                targetNode = targetNode.$oid;
+            }
 
             if (!_.has(mutators, key)) {
                 target = {
@@ -76,11 +88,11 @@
                 };
 
                 if (mongoRec.source) {
-                    target.source = mongoRec.source;
+                    target.source = source;
                 }
 
                 if (mongoRec.target) {
-                    target.target = mongoRec.target;
+                    target.target = targetNode;
                 }
 
                 mutator = new clique.util.Mutator(target);
@@ -184,7 +196,8 @@
                 var data = _.extend({
                     data: metadata ? JSON.stringify(metadata) : "{}"
                 }, mongoStore);
-                return $.getJSON("plugin/mongo/newNode", data);
+                return $.getJSON("plugin/mongo/newNode", data)
+                    .then(_.bind(addMutator, this));
             },
 
             newLink: function (source, target, metadata) {
@@ -194,7 +207,8 @@
                     data: metadata ? JSON.stringify(metadata) : "{}"
                 }, mongoStore);
 
-                return $.getJSON("plugin/mongo/newLink", data);
+                return $.getJSON("plugin/mongo/newLink", data)
+                    .then(_.bind(addMutator, this));
             },
 
             destroyNode: function (key) {

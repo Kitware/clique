@@ -2121,11 +2121,11 @@
             },
 
             source: function () {
-                return target.source;
+                return target.source.key;
             },
 
             target: function () {
-                return target.target;
+                return target.target.key;
             },
 
             getTransient: function (prop) {
