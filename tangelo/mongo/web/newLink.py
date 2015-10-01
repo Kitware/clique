@@ -3,7 +3,6 @@ import json
 import bson.json_util
 from bson.objectid import ObjectId
 from pymongo import MongoClient
-import tangelo
 
 from tangelo.plugin.mongo import readValue
 
