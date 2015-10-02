@@ -2224,6 +2224,14 @@
                             this.forward.add(link.source, link.target);
                             this.back.add(link.target, link.source);
 
+                            if (!_.has(this.nodes, link.source)) {
+                                console.log("no source!", key);
+                            }
+
+                            if (!_.has(this.nodes, link.target)) {
+                                console.log("no target!", key);
+                            }
+
                             link.source = this.nodes[link.source];
                             link.target = this.nodes[link.target];
 
