@@ -2121,11 +2121,11 @@
             },
 
             source: function () {
-                return target.source.key;
+                return target.source.key || target.source;
             },
 
             target: function () {
-                return target.target.key;
+                return target.target.key || target.target;
             },
 
             getTransient: function (prop) {
@@ -2239,6 +2239,82 @@
         },
 
         addNode: function (node) {
+            var fromReq,
+                toReq;
+
+            console.log("addNode");
+
+            // Find all links to/from node.
+            fromReq = this.adapter.findLinks({
+                source: node.key()
+            });
+
+            toReq = this.adapter.findLinks({
+                target: node.key()
+            });
+
+            return Backbone.$.when(fromReq, toReq).then(_.bind(function (from, to) {
+                var newLinks;
+
+                console.log("me", node.key());
+
+                console.log("from key", _.invoke(from, "key"));
+                console.log("from source", _.invoke(from, "source"));
+                console.log("from target", _.invoke(from, "target"));
+
+                console.log("to key", _.invoke(to, "key"));
+                console.log("to source", _.invoke(to, "source"));
+                console.log("to target", _.invoke(to, "target"));
+
+                // Filter away the links that end in nodes not in the current
+                // graph.
+                from = _.filter(from, function (link) {
+                    return _.has(this.nodes, link.target());
+                }, this);
+
+                to = _.filter(to, function (link) {
+                    return _.has(this.nodes, link.source());
+                }, this);
+
+                console.log("from key", _.invoke(from, "key"));
+                console.log("from source", _.invoke(from, "source"));
+                console.log("from target", _.invoke(from, "target"));
+
+                console.log("to key", _.invoke(to, "key"));
+                console.log("to source", _.invoke(to, "source"));
+                console.log("to target", _.invoke(to, "target"));
+
+                // Add node to the graph.
+                if (!_.has(this.nodes, node.key())) {
+                    this.nodes[node.key()] = node.getTarget();
+                }
+
+                // Add the links to the graph.
+                newLinks = _.compact(_.map(from.concat(to), _.bind(function (link) {
+                    var key = link.key();
+                    if (!this.links.has(key)) {
+                        this.links.add(key);
+
+                        this.forward.add(link.source(), link.target());
+                        this.back.add(link.target(), link.source());
+
+                        link.getTarget().source = this.nodes[link.source()];
+                        link.getTarget().target = this.nodes[link.target()];
+
+                        console.log(link.getTarget());
+
+                        return link.getTarget();
+                    }
+                }, this)));
+
+                this.set({
+                    nodes: this.get("nodes").concat([node.getTarget()]),
+                    links: this.get("links").concat(newLinks)
+                });
+            }, this));
+        },
+
+        addNode2: function (node) {
             return this.adapter.neighborhood({
                 center: node,
                 radius: 1

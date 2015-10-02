@@ -120,11 +120,11 @@
             },
 
             source: function () {
-                return target.source.key;
+                return target.source.key || target.source;
             },
 
             target: function () {
-                return target.target.key;
+                return target.target.key || target.target;
             },
 
             getTransient: function (prop) {
