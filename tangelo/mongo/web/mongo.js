@@ -215,7 +215,14 @@
                 var data = _.extend({
                     key: key
                 }, mongoStore);
-                return $.getJSON("plugin/mongo/destroyNode", data);
+                return $.get("plugin/mongo/destroyNode", data);
+            },
+
+            destroyLink: function (key) {
+                var data = _.extend({
+                    key: key
+                }, mongoStore);
+                return $.get("plugin/mongo/destroyLink", data);
             },
 
             neighborhood: function (options) {
