@@ -42,43 +42,32 @@
 
             nextFrontier = _.bind(function (frontier) {
                 var from,
-                    to;
+                    to,
+                    getNeighbors;
 
-                from = $.when.apply($, _.map(frontier, function (node) {
-                    return this.adapter.findLinks({
-                        source: node.key()
+                getNeighbors = _.bind(function (which) {
+                    return $.when.apply($, _.map(frontier, function (node) {
+                        var spec = {};
+                        spec[which] = node.key();
+
+                        return this.adapter.findLinks(spec);
+                    }, this)).then(_.bind(function () {
+                        var links,
+                            reqs;
+
+                        // Pipe the node keys through findNode() in order to get
+                        // mutators for them.
+                        links = _.flatten(_.toArray(arguments));
+                        reqs = _.map(_.invoke(links, which === "source" ? "target" : "source"), this.adapter.findNodeByKey, this.adapter);
+
+                        return $.when.apply($, reqs);
+                    }, this)).then(function () {
+                        return _.toArray(arguments);
                     });
-                }, this)).then(_.bind(function () {
-                    var links,
-                        reqs;
+                }, this);
 
-                    // Pipe the node keys through findNode() in order to get
-                    // mutators for them.
-                    links = _.flatten(_.toArray(arguments));
-                    reqs = _.map(_.invoke(links, "target"), this.adapter.findNodeByKey, this.adapter);
-
-                    return $.when.apply($, reqs);
-                }, this)).then(function () {
-                    return _.toArray(arguments);
-                });
-
-                to = $.when.apply($, _.map(frontier, function (node) {
-                    return this.adapter.findLinks({
-                        target: node.key()
-                    });
-                }, this)).then(_.bind(function () {
-                    var links,
-                        reqs;
-
-                    // Pipe the node keys through findNode() in order to get
-                    // mutators for them.
-                    links = _.flatten(_.toArray(arguments));
-                    reqs = _.map(_.invoke(links, "source"), this.adapter.findNodeByKey, this.adapter);
-
-                    return $.when.apply($, reqs);
-                }, this)).then(function () {
-                    return _.toArray(arguments);
-                });
+                from = getNeighbors("source");
+                to = getNeighbors("target");
 
                 return $.when(from, to).then(function (fromNodes, toNodes) {
                     var all = fromNodes.concat(toNodes);
