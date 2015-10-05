@@ -159,6 +159,13 @@
             return clique.util.jqSequence(reqs);
         },
 
+        removeNode: function (node) {
+            this.removeNeighborhood({
+                center: node,
+                radius: 0
+            });
+        },
+
         removeNeighborhood: function (options) {
             var center,
                 radius,
