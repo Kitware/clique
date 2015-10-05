@@ -24,38 +24,97 @@
         },
 
         addNeighborhood: function (options) {
-            return this.adapter.neighborhood(options)
-                .then(_.bind(function (nbd) {
-                    var newNodes = [],
-                        newLinks = [];
+            var $ = Backbone.$,
+                center,
+                radius,
+                linkOpts,
+                nodeOpts,
+                chain,
+                nextFrontier;
 
-                    _.each(nbd.nodes, _.bind(function (node) {
-                        if (!_.has(this.nodes, node.key)) {
-                            this.nodes[node.key] = node;
-                            newNodes.push(node);
-                        }
-                    }, this));
+            clique.util.require(options.center, "center");
+            clique.util.require(options.radius, "radius");
 
-                    _.each(nbd.links, _.bind(function (link) {
-                        var key = link.key;
-                        if (!this.links.has(key)) {
-                            this.links.add(key);
+            center = options.center;
+            radius = options.radius;
+            linkOpts = options.linkOpts || {};
+            nodeOpts = options.nodeOpts || {};
 
-                            this.forward.add(link.source, link.target);
-                            this.back.add(link.target, link.source);
+            nextFrontier = _.bind(function (frontier) {
+                var from,
+                    to;
 
-                            link.source = this.nodes[link.source];
-                            link.target = this.nodes[link.target];
+                from = $.when.apply($, _.map(frontier, function (node) {
+                    return this.adapter.findLinks({
+                        source: node.key()
+                    });
+                }, this)).then(_.bind(function () {
+                    var links,
+                        reqs;
 
-                            newLinks.push(link);
-                        }
-                    }, this));
+                    // Pipe the node keys through findNode() in order to get
+                    // mutators for them.
+                    links = _.flatten(_.toArray(arguments));
+                    reqs = _.map(_.invoke(links, "target"), this.adapter.findNodeByKey, this.adapter);
 
-                    this.set({
-                        nodes: this.get("nodes").concat(newNodes),
-                        links: this.get("links").concat(newLinks)
+                    return $.when.apply($, reqs);
+                }, this)).then(_.bind(function () {
+                    var nodes;
+
+                    nodes = _.filter(_.toArray(arguments), function (node) {
+                        return !_.has(this.nodes, node.key());
+                    }, this);
+
+                    return nodes;
+                }, this));
+
+                to = $.when.apply($, _.map(frontier, function (node) {
+                    return this.adapter.findLinks({
+                        target: node.key()
+                    });
+                }, this)).then(_.bind(function () {
+                    var links,
+                        reqs;
+
+                    // Pipe the node keys through findNode() in order to get
+                    // mutators for them.
+                    links = _.flatten(_.toArray(arguments));
+                    reqs = _.map(_.invoke(links, "source"), this.adapter.findNodeByKey, this.adapter);
+
+                    return $.when.apply($, reqs);
+                }, this)).then(_.bind(function () {
+                    var nodes;
+
+                    nodes = _.filter(_.toArray(arguments), function (node) {
+                        return !_.has(this.nodes, node.key());
+                    }, this);
+
+                    return nodes;
+                }, this));
+
+                return $.when(from, to).then(function (fromNodes, toNodes) {
+                    var all = fromNodes.concat(toNodes);
+
+                    // Eliminate duplicates.
+                    return _.uniq(all, function (i) {
+                        return i.key();
+                    });
+                }).then(_.bind(function (newFrontier) {
+                    return this.addNodes(newFrontier).then(function () {
+                        return newFrontier;
                     });
                 }, this));
+            }, this);
+
+            chain = $.Deferred();
+            chain.resolve([center]);
+            this.addNode(center);
+
+            _.times(radius, function () {
+                chain = chain.then(nextFrontier);
+            });
+
+            return chain;
         },
 
         addNode: function (node) {
@@ -110,7 +169,13 @@
                     links: this.get("links").concat(newLinks)
                 });
             }, this));
-        }
+        },
+
+        addNodes: function (nodes) {
+            var reqs = _.map(nodes, this.addNode, this);
+
+            return clique.util.jqSequence(reqs);
+        },
 
         removeNeighborhood: function (options) {
             var center,
