@@ -58,15 +58,9 @@
                     reqs = _.map(_.invoke(links, "target"), this.adapter.findNodeByKey, this.adapter);
 
                     return $.when.apply($, reqs);
-                }, this)).then(_.bind(function () {
-                    var nodes;
-
-                    nodes = _.filter(_.toArray(arguments), function (node) {
-                        return !_.has(this.nodes, node.key());
-                    }, this);
-
-                    return nodes;
-                }, this));
+                }, this)).then(function () {
+                    return _.toArray(arguments);
+                });
 
                 to = $.when.apply($, _.map(frontier, function (node) {
                     return this.adapter.findLinks({
@@ -82,15 +76,9 @@
                     reqs = _.map(_.invoke(links, "source"), this.adapter.findNodeByKey, this.adapter);
 
                     return $.when.apply($, reqs);
-                }, this)).then(_.bind(function () {
-                    var nodes;
-
-                    nodes = _.filter(_.toArray(arguments), function (node) {
-                        return !_.has(this.nodes, node.key());
-                    }, this);
-
-                    return nodes;
-                }, this));
+                }, this)).then(function () {
+                    return _.toArray(arguments);
+                });
 
                 return $.when(from, to).then(function (fromNodes, toNodes) {
                     var all = fromNodes.concat(toNodes);
@@ -120,6 +108,11 @@
         addNode: function (node) {
             var fromReq,
                 toReq;
+
+            // Bail if node is already in graph.
+            if (_.has(this.nodes, node.key())) {
+                return;
+            }
 
             // Find all links to/from node.
             fromReq = this.adapter.findLinks({
