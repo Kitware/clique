@@ -22,7 +22,13 @@ def run(host=None, db=None, coll=None, spec=None, singleton=json.dumps(False)):
         else:
             matcher["data.%s" % (field)] = value
 
-    it = graph.find(matcher)
+    # Formulate an exception for the shadow-halves of bidirectional links.
+    no_shadow = {"$or": [{"data.bidir": {"$ne": True}},
+                         {"data.reference": {"$not": {"$exists": True}}}]}
+
+    query = {"$and": [matcher, no_shadow]}
+
+    it = graph.find(query)
     try:
         result = it.next() if singleton else list(it)
     except StopIteration:
