@@ -2036,6 +2036,28 @@
         return JSON.parse(JSON.stringify(o));
     };
 
+    clique.util.jqSequence = function (reqs) {
+        var helper,
+            chain;
+
+        helper = function (reqs, accum, i) {
+            if (i === _.size(reqs)) {
+                return accum;
+            } else {
+                accum = accum.then(function () {
+                    return reqs[i];
+                });
+
+                return helper(reqs, accum, i+1);
+            }
+        };
+
+        chain = Backbone.$.Deferred();
+        chain.resolve();
+
+        return helper(reqs, chain, 0);
+    };
+
     clique.util.Set = function () {
         var items = {};
 
@@ -2121,11 +2143,11 @@
             },
 
             source: function () {
-                return target.source.key;
+                return target.source.key || target.source;
             },
 
             target: function () {
-                return target.target.key;
+                return target.target.key || target.target;
             },
 
             getTransient: function (prop) {
@@ -2204,71 +2226,146 @@
         },
 
         addNeighborhood: function (options) {
-            return this.adapter.neighborhood(options)
-                .then(_.bind(function (nbd) {
-                    var newNodes = [],
-                        newLinks = [];
+            var $ = Backbone.$,
+                center,
+                radius,
+                linkOpts,
+                nodeOpts,
+                chain,
+                nextFrontier;
 
-                    _.each(nbd.nodes, _.bind(function (node) {
-                        if (!_.has(this.nodes, node.key)) {
-                            this.nodes[node.key] = node;
-                            newNodes.push(node);
-                        }
-                    }, this));
+            clique.util.require(options.center, "center");
+            clique.util.require(options.radius, "radius");
 
-                    _.each(nbd.links, _.bind(function (link) {
-                        var key = link.key;
-                        if (!this.links.has(key)) {
-                            this.links.add(key);
+            center = options.center;
+            radius = options.radius;
+            linkOpts = options.linkOpts || {};
+            nodeOpts = options.nodeOpts || {};
 
-                            this.forward.add(link.source, link.target);
-                            this.back.add(link.target, link.source);
+            nextFrontier = _.bind(function (frontier) {
+                var from,
+                    to,
+                    getNeighbors;
 
-                            link.source = this.nodes[link.source];
-                            link.target = this.nodes[link.target];
+                getNeighbors = _.bind(function (which) {
+                    return $.when.apply($, _.map(frontier, function (node) {
+                        var spec = {};
+                        spec[which] = node.key();
 
-                            newLinks.push(link);
-                        }
-                    }, this));
+                        return this.adapter.findLinks(spec);
+                    }, this)).then(_.bind(function () {
+                        var links,
+                            reqs;
 
-                    this.set({
-                        nodes: this.get("nodes").concat(newNodes),
-                        links: this.get("links").concat(newLinks)
+                        // Pipe the node keys through findNode() in order to get
+                        // mutators for them.
+                        links = _.flatten(_.toArray(arguments));
+                        reqs = _.map(_.invoke(links, which === "source" ? "target" : "source"), this.adapter.findNodeByKey, this.adapter);
+
+                        return $.when.apply($, reqs);
+                    }, this)).then(function () {
+                        return _.toArray(arguments);
+                    });
+                }, this);
+
+                from = getNeighbors("source");
+                to = getNeighbors("target");
+
+                return $.when(from, to).then(function (fromNodes, toNodes) {
+                    var all = fromNodes.concat(toNodes);
+
+                    // Eliminate duplicates.
+                    return _.uniq(all, function (i) {
+                        return i.key();
+                    });
+                }).then(_.bind(function (newFrontier) {
+                    return this.addNodes(newFrontier).then(function () {
+                        return newFrontier;
                     });
                 }, this));
+            }, this);
+
+            chain = $.Deferred();
+            chain.resolve([center]);
+            this.addNode(center);
+
+            _.times(radius, function () {
+                chain = chain.then(nextFrontier);
+            });
+
+            return chain;
         },
 
         addNode: function (node) {
-            return this.adapter.neighborhood({
-                center: node,
-                radius: 1
-            }).then(_.bind(function (nbd) {
-                var newLinks = [];
+            var fromReq,
+                toReq;
 
+            // Bail if node is already in graph.
+            if (_.has(this.nodes, node.key())) {
+                return;
+            }
+
+            // Find all links to/from node.
+            fromReq = this.adapter.findLinks({
+                source: node.key()
+            });
+
+            toReq = this.adapter.findLinks({
+                target: node.key()
+            });
+
+            return Backbone.$.when(fromReq, toReq).then(_.bind(function (from, to) {
+                var newLinks;
+
+                // Filter away the links that end in nodes not in the current
+                // graph.
+                from = _.filter(from, function (link) {
+                    return _.has(this.nodes, link.target());
+                }, this);
+
+                to = _.filter(to, function (link) {
+                    return _.has(this.nodes, link.source());
+                }, this);
+
+                // Add node to the graph.
                 if (!_.has(this.nodes, node.key())) {
                     this.nodes[node.key()] = node.getTarget();
                 }
 
-                _.each(nbd.links, _.bind(function (link) {
-                    var key = link.key;
-                    if (!this.links.has(key) && _.has(this.nodes, link.source) && _.has(this.nodes, link.target)) {
+                // Add the links to the graph.
+                newLinks = _.compact(_.map(from.concat(to), _.bind(function (link) {
+                    var key = link.key();
+                    if (!this.links.has(key)) {
                         this.links.add(key);
 
-                        this.forward.add(link.source, link.target);
-                        this.back.add(link.target, link.source);
+                        this.forward.add(link.source(), link.target());
+                        this.back.add(link.target(), link.source());
 
-                        link.source = this.nodes[link.source];
-                        link.target = this.nodes[link.target];
+                        link.getTarget().source = this.nodes[link.source()];
+                        link.getTarget().target = this.nodes[link.target()];
 
-                        newLinks.push(link);
+                        return link.getTarget();
                     }
-                }, this));
+                }, this)));
 
                 this.set({
                     nodes: this.get("nodes").concat([node.getTarget()]),
                     links: this.get("links").concat(newLinks)
                 });
             }, this));
+        },
+
+        addNodes: function (nodes) {
+            var reqs = _.map(nodes, this.addNode, this);
+
+            return clique.util.jqSequence(reqs);
+        },
+
+        removeNode: function (node) {
+            this.removeNeighborhood({
+                center: node,
+                radius: 0
+            });
         },
 
         removeNeighborhood: function (options) {

@@ -66,20 +66,12 @@
             var target,
                 mutator,
                 key,
+                type,
                 source,
                 targetNode;
 
             key = mongoRec._id.$oid;
-
-            source = mongoRec.source;
-            if (_.isObject(source)) {
-                source = source.$oid;
-            }
-
-            targetNode = mongoRec.target;
-            if (_.isObject(targetNode)) {
-                targetNode = targetNode.$oid;
-            }
+            type = mongoRec.type;
 
             if (!_.has(mutators, key)) {
                 target = {
@@ -87,11 +79,19 @@
                     data: mongoRec.data || {}
                 };
 
-                if (mongoRec.source) {
-                    target.source = source;
-                }
+                if (type === "link") {
+                    source = mongoRec.source;
+                    if (_.isObject(source)) {
+                        source = source.$oid;
+                    }
 
-                if (mongoRec.target) {
+                    target.source = source;
+
+                    targetNode = mongoRec.target;
+                    if (_.isObject(targetNode)) {
+                        targetNode = targetNode.$oid;
+                    }
+
                     target.target = targetNode;
                 }
 

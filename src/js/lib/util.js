@@ -35,6 +35,28 @@
         return JSON.parse(JSON.stringify(o));
     };
 
+    clique.util.jqSequence = function (reqs) {
+        var helper,
+            chain;
+
+        helper = function (reqs, accum, i) {
+            if (i === _.size(reqs)) {
+                return accum;
+            } else {
+                accum = accum.then(function () {
+                    return reqs[i];
+                });
+
+                return helper(reqs, accum, i+1);
+            }
+        };
+
+        chain = Backbone.$.Deferred();
+        chain.resolve();
+
+        return helper(reqs, chain, 0);
+    };
+
     clique.util.Set = function () {
         var items = {};
 
@@ -120,11 +142,11 @@
             },
 
             source: function () {
-                return target.source.key;
+                return target.source.key || target.source;
             },
 
             target: function () {
-                return target.target.key;
+                return target.target.key || target.target;
             },
 
             getTransient: function (prop) {
