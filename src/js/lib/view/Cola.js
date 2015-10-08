@@ -19,6 +19,7 @@
             options = options || {};
 
             this.label = options.label || _.constant("foobar");
+            this.mode = "node";
 
             this.postLinkAdd = options.postLinkAdd || _.noop;
 
@@ -188,6 +189,22 @@
                 .transition()
                 .duration(phase / 2)
                 .style("opacity", 0.0);
+        },
+
+        toggleLabels: function () {
+            if (this.mode === "node") {
+                this.mode = "label";
+            } else if (this.mode === "label") {
+                this.mode = "node";
+            } else {
+                throw new Error("illegal state for mode: '" + this.mode + "'");
+            }
+
+            if (this.mode === "node") {
+                this.hideLabels();
+            } else if (this.mode === "label") {
+                this.showLabels();
+            }
         },
 
         renderNodes: function (cfg) {
