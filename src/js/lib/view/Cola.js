@@ -287,15 +287,18 @@
                 .remove();
 
             groups = this.nodes.enter()
-                .append("g");
+                .append("g")
+                .call(drag);
 
             groups.append("circle")
                 .classed("node", true)
                 .attr("r", 0)
                 .style("fill", "limegreen")
-                .on("mousedown.signal", _.bind(function () {
-                    d3.event.stopPropagation();
-                }, this))
+                .on("mousedown.signal", function () {
+                    // This flag prevents the selection action from occurring
+                    // when we're just picking and moving nodes around.
+                    that.movingNode = true;
+                })
                 .on("click", function (d) {
                     if (!that.dragging) {
                         if (d3.event.shiftKey) {
@@ -329,7 +332,9 @@
                     }
                     that.dragging = false;
                 })
-                .call(drag)
+                .on("mouseup.signal", function () {
+                    that.movingNode = false;
+                })
                 .transition()
                 .duration(this.transitionTime)
                 .attr("r", _.bind(this.nodeRadius, this));
@@ -348,9 +353,9 @@
 
             this.cola.on("tick", _.bind(function () {
                 this.nodes
-                    .selectAll("circle.node")
-                    .attr("cx", _.property("x"))
-                    .attr("cy", _.property("y"));
+                    .attr("transform", function (d) {
+                        return "translate(" + d.x + " " + d.y + ")";
+                    });
 
                 this.links.selectAll("path")
                     .attr("d", function (d) {
@@ -532,7 +537,7 @@
                     };
 
                 me.on("mousedown.select", function () {
-                    if (d3.event.which !== 1) {
+                    if (d3.event.which !== 1 || that.movingNode) {
                         // Only select on left mouse click.
                         return;
                     }
