@@ -230,6 +230,15 @@
                 })
                 .duration(this.transitionTime * 2)
                 .style("fill", _.bind(this.fill, this));
+
+            this.nodes
+                .selectAll("rect")
+                .style("fill", _.bind(function (d) {
+                    return d.key === this.focused ? "pink" : "lightgray";
+                }, this))
+                .style("stroke", _.bind(function (d) {
+                    return this.selected.has(d.key) ? "blue" : _.bind(this.fill, this, d)();
+                }, this));
         },
 
         render: function () {
@@ -365,12 +374,6 @@
             groups = this.nodes.enter()
                 .append("g")
                 .classed("node", true)
-                .call(drag);
-
-            groups.append("circle")
-                .classed("node", true)
-                .attr("r", 0)
-                .style("fill", "limegreen")
                 .on("mousedown.signal", function () {
                     // This flag prevents the selection action from occurring
                     // when we're just picking and moving nodes around.
@@ -412,6 +415,12 @@
                 .on("mouseup.signal", function () {
                     that.movingNode = false;
                 })
+                .call(drag);
+
+            groups.append("circle")
+                .classed("node", true)
+                .attr("r", 0)
+                .style("fill", "limegreen")
                 .transition()
                 .duration(this.transitionTime)
                 .attr("r", _.bind(this.nodeRadius, this));
