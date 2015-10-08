@@ -140,6 +140,7 @@
             }
 
             this.nodes
+                .selectAll("circle.node")
                 .style("fill", _.bind(this.prefill, this))
                 .style("stroke", "blue")
                 .style("stroke-width", _.bind(strokeWidth, this))
@@ -175,7 +176,7 @@
                 .links(linkData);
 
             this.nodes = me.select("g.nodes")
-                .selectAll("circle.node")
+                .selectAll("g")
                 .data(nodeData, _.property("key"));
 
             drag = this.cola.drag()
@@ -285,8 +286,10 @@
                 .style("opacity", 0)
                 .remove();
 
-            this.nodes.enter()
-                .append("circle")
+            groups = this.nodes.enter()
+                .append("g");
+
+            groups.append("circle")
                 .classed("node", true)
                 .attr("r", 0)
                 .style("fill", "limegreen")
@@ -345,6 +348,7 @@
 
             this.cola.on("tick", _.bind(function () {
                 this.nodes
+                    .selectAll("circle.node")
                     .attr("cx", _.property("x"))
                     .attr("cy", _.property("y"));
 
