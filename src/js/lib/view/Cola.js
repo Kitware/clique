@@ -200,6 +200,10 @@
                 throw new Error("illegal state for mode: '" + this.mode + "'");
             }
 
+            this.renderLabels();
+        },
+
+        renderLabels: function () {
             if (this.mode === "node") {
                 this.hideLabels();
             } else if (this.mode === "label") {
@@ -239,6 +243,8 @@
                 .style("stroke", _.bind(function (d) {
                     return this.selected.has(d.key) ? "blue" : _.bind(this.fill, this, d)();
                 }, this));
+
+            this.renderLabels();
         },
 
         render: function () {

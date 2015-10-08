@@ -2776,6 +2776,10 @@
                 throw new Error("illegal state for mode: '" + this.mode + "'");
             }
 
+            this.renderLabels();
+        },
+
+        renderLabels: function () {
             if (this.mode === "node") {
                 this.hideLabels();
             } else if (this.mode === "label") {
@@ -2815,6 +2819,8 @@
                 .style("stroke", _.bind(function (d) {
                     return this.selected.has(d.key) ? "blue" : _.bind(this.fill, this, d)();
                 }, this));
+
+            this.renderLabels();
         },
 
         render: function () {
@@ -3008,6 +3014,8 @@
                 .attr("y", 0)
                 .attr("width", 0)
                 .attr("height", 0)
+                .attr("rx", 5)
+                .attr("ry", 5)
                 .style("pointer-events", "none")
                 .style("stroke-width", "2px")
                 .style("stroke", _.bind(this.fill, this))
