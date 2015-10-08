@@ -432,6 +432,8 @@
                 .attr("y", 0)
                 .attr("width", 0)
                 .attr("height", 0)
+                .attr("rx", 5)
+                .attr("ry", 5)
                 .style("pointer-events", "none")
                 .style("stroke-width", "2px")
                 .style("stroke", _.bind(this.fill, this))
