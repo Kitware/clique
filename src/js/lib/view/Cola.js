@@ -18,6 +18,8 @@
 
             options = options || {};
 
+            this.label = options.label || _.constant("foobar");
+
             this.postLinkAdd = options.postLinkAdd || _.noop;
 
             this.baseNodeRadius = 7.5;
@@ -132,6 +134,62 @@
             });
         },
 
+        showLabels: function () {
+            var phase = 500;
+
+            this.nodes.selectAll("rect")
+                .style("pointer-events", null)
+                .transition()
+                .delay(function (d, i, j) {
+                    return j * 10;
+                })
+                .duration(phase)
+                .attr("x", function (d) {
+                    return -d.textBBox.width / 2;
+                })
+                .attr("y", function (d) {
+                    return -d.textBBox.height / 2;
+                })
+                .attr("width", function (d) {
+                    return d.textBBox.width;
+                })
+                .attr("height", function (d) {
+                    return d.textBBox.height;
+                });
+
+            this.nodes.selectAll("text")
+                .style("pointer-events", null)
+                .transition()
+                .delay(phase / 2)
+                .duration(phase / 2)
+                .style("opacity", 1.0);
+        },
+
+        hideLabels: function () {
+            var cards,
+                phase = 500;
+
+            cards = this.nodes
+                .selectAll("g");
+
+            cards.selectAll("rect")
+                .transition()
+                .delay(function (d, i, j) {
+                    return j * 10;
+                })
+                .duration(phase)
+                .attr("x", 0.0)
+                .attr("y", 0.0)
+                .attr("width", 0.0)
+                .attr("height", 0.0);
+
+            cards.selectAll("text")
+                .style("pointer-events", "none")
+                .transition()
+                .duration(phase / 2)
+                .style("opacity", 0.0);
+        },
+
         renderNodes: function (cfg) {
             var that = this;
 
@@ -163,8 +221,13 @@
                 drag,
                 me = d3.select(this.el),
                 groups,
+                labels,
                 sel,
                 that = this;
+
+            this.nodes = me.select("g.nodes")
+                .selectAll("g.node")
+                .data(nodeData, _.property("key"));
 
             linkData = _.filter(this.model.get("links"), function (link) {
                 // Filter away all "shadow" halves of bidirectional links.
@@ -174,10 +237,6 @@
             this.cola
                 .nodes(nodeData)
                 .links(linkData);
-
-            this.nodes = me.select("g.nodes")
-                .selectAll("g")
-                .data(nodeData, _.property("key"));
 
             drag = this.cola.drag()
                 .on("drag", _.bind(function () {
@@ -288,6 +347,7 @@
 
             groups = this.nodes.enter()
                 .append("g")
+                .classed("node", true)
                 .call(drag);
 
             groups.append("circle")
@@ -338,6 +398,34 @@
                 .transition()
                 .duration(this.transitionTime)
                 .attr("r", _.bind(this.nodeRadius, this));
+
+            labels = groups.append("g");
+
+            labels.append("rect")
+                .attr("x", 0)
+                .attr("y", 0)
+                .attr("width", 0)
+                .attr("height", 0)
+                .style("pointer-events", "none")
+                .style("stroke-width", "2px")
+                .style("stroke", _.bind(this.fill, this))
+                .style("fill", "lightgray");
+
+            labels.append("text")
+                .text(this.label)
+                .datum(function (d) {
+                    d.textBBox = this.getBBox();
+                    return d;
+                })
+                .attr("x", function (d) {
+                    return -d.textBBox.width / 2;
+                })
+                .attr("y", function (d) {
+                    return d.textBBox.height / 4;
+                })
+                .style("opacity", 0.0)
+                .style("pointer-events", "none")
+                .style("cursor", "default");
 
             this.renderNodes();
 
