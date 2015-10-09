@@ -18,7 +18,10 @@
 
             options = options || {};
 
-            this.label = options.label || _.constant("");
+            this.label = options.label || "";
+            if (!_.isFunction(this.label)) {
+                this.label = _.constant(this.label);
+            }
             this.mode = "node";
 
             this.postLinkAdd = options.postLinkAdd || _.noop;
