@@ -130,9 +130,9 @@
                 }, mongoStore);
 
                 return $.getJSON(findNodesService, data)
-                    .then(_.partial(_.map, _, function (r) {
+                    .then(_.partial(_.map, _, _.bind(function (r) {
                         return _.bind(addMutator, this)(r);
-                    }));
+                    }, this)));
             },
 
             findNode: function (spec) {
