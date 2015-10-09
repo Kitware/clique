@@ -18,7 +18,7 @@
 
             options = options || {};
 
-            this.label = options.label || _.constant("foobar");
+            this.label = options.label || _.constant("");
             this.mode = "node";
 
             this.postLinkAdd = options.postLinkAdd || _.noop;
@@ -138,6 +138,7 @@
             var phase = 500;
 
             this.nodes.selectAll("circle.node")
+                .filter(this.label)
                 .transition()
                 .delay(function (d, i, j) {
                     return j * 10;
