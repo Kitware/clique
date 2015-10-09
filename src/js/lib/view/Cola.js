@@ -71,7 +71,6 @@
 
             this.cola = cola.d3adaptor()
                 .linkDistance(options.linkDistance || 100)
-                .avoidOverlaps(true)
                 .size([this.$el.width(), this.$el.height()])
                 .start();
 
