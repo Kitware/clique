@@ -137,12 +137,18 @@
         showLabels: function () {
             var phase = 500;
 
-            this.nodes.selectAll("rect")
-                .style("pointer-events", null)
+            this.nodes.selectAll("circle.node")
                 .transition()
                 .delay(function (d, i, j) {
                     return j * 10;
                 })
+                .duration(phase)
+                .attr("r", 2);
+
+            this.nodes.selectAll("rect")
+                .style("pointer-events", null)
+                .transition()
+                .delay(phase)
                 .duration(phase)
                 .attr("x", function (d) {
                     return -d.textBBox.width / 2;
@@ -160,7 +166,7 @@
             this.nodes.selectAll("text")
                 .style("pointer-events", null)
                 .transition()
-                .delay(phase / 2)
+                .delay(phase + phase / 2)
                 .duration(phase / 2)
                 .style("opacity", 1.0);
         },
@@ -188,6 +194,12 @@
                 .transition()
                 .duration(phase / 2)
                 .style("opacity", 0.0);
+
+            this.nodes.selectAll("circle.node")
+                .transition()
+                .delay(phase)
+                .duration(phase)
+                .attr("r", _.bind(this.nodeRadius, this));
         },
 
         toggleLabels: function () {
