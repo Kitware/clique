@@ -159,6 +159,7 @@
         render: function () {
             var nodeData = this.model.get("nodes"),
                 linkData = this.model.get("links"),
+                count,
                 drag,
                 me = d3.select(this.el),
                 groups,
@@ -243,37 +244,63 @@
                 });
 
             (function () {
-                var count = {},
-                    key,
+                var key,
                     bumpCount;
 
                 key = function (source, target) {
                     var min,
-                        max;
+                        max,
+                        reverse = false;
 
                     if (source < target) {
                         min = source;
                         max = target;
                     } else {
+                        reverse = true;
+
                         min = target;
                         max = source;
                     }
 
-                    return min + "," + max;
+                    return {
+                        name: min + "," + max,
+                        reverse: reverse
+                    };
                 };
 
-                bumpCount = function (source, target) {
-                    var name = key(source, target);
-                    if (!_.has(count, name)) {
-                        count[name] = 0;
+                count = {};
+
+                bumpCount = function (source, target, bidir) {
+                    var info = key(source, target),
+                        name = info.name,
+                        tier;
+
+                    if (bidir) {
+                        tier = "bidir";
+                    } else if (info.reverse) {
+                        tier = "back";
+                    } else {
+                        tier = "forward";
                     }
 
-                    count[name] += 1;
-                    return count[name] - 1;
+                    if (!_.has(count, name)) {
+                        count[name] = {
+                            forward: 0,
+                            back: 0,
+                            bidir: 0
+                        };
+                    }
+
+                    count[name][tier] += 1;
+                    return {
+                        name: name,
+                        tier: tier,
+                        rank: count[name][tier] - 1
+                    };
                 };
 
                 that.links.datum(function (d) {
-                    d.linkRank = bumpCount(d.source.key, d.target.key);
+                    d.linkRank = bumpCount(d.source.key, d.target.key, d.data && d.data.bidir);
                     return d;
                 });
             }());
@@ -350,7 +377,12 @@
 
                 this.links.selectAll("path")
                     .attr("d", function (d) {
-                        var multiplier,
+                        var linkRank,
+                            bidirCount,
+                            bidirOffset,
+                            forwardCount,
+                            backCount,
+                            multiplier,
                             dx,
                             dy,
                             invLen,
@@ -368,8 +400,25 @@
                             return x + "," + y;
                         };
 
-                        multiplier = 0.15 * (d.linkRank % 2 === 0 ? -d.linkRank / 2 : (d.linkRank + 1) / 2);
-                        flip = d.linkRank % 2 === 0 ? -1.0 : 1.0;
+                        bidirCount = count[d.linkRank.name].bidir;
+                        bidirOffset = Number(bidirCount % 2 === 0);
+                        forwardCount = count[d.linkRank.name].forward;
+                        backCount = count[d.linkRank.name].back;
+
+                        if (d.linkRank.tier === "bidir") {
+                            linkRank = d.linkRank.rank + bidirOffset;
+                        } else if (d.linkRank.tier === "forward") {
+                            linkRank = bidirCount + bidirOffset + 2 * d.linkRank.rank;
+                        } else if (d.linkRank.tier === "back") {
+                            linkRank = bidirCount + 1 + bidirOffset + 2 * d.linkRank.rank;
+                        }
+
+                        multiplier = 0.15 * (linkRank % 2 === 0 ? -linkRank / 2 : (linkRank + 1) / 2);
+                        flip = linkRank % 2 === 0 ? -1.0 : 1.0;
+                        if (d.linkRank.tier === "forward") {
+                            multiplier = multiplier * -1;
+                            flip = flip * -1;
+                        }
 
                         dx = d.target.x - d.source.x;
                         dy = d.target.y - d.source.y;
@@ -385,7 +434,7 @@
                             y: flip * -dx * invLen * 5
                         };
 
-                        if (d.linkRank === 0) {
+                        if (linkRank === 0) {
                             if (data.bidir) {
                                 path = [
                                     "M", point(d.source.x + 0.25 * offset.x, d.source.y + 0.25 * offset.y),
