@@ -2594,6 +2594,12 @@
 
             options = options || {};
 
+            this.label = options.label || "";
+            if (!_.isFunction(this.label)) {
+                this.label = _.constant(this.label);
+            }
+            this.mode = "node";
+
             this.postLinkAdd = options.postLinkAdd || _.noop;
 
             this.baseNodeRadius = 7.5;
@@ -2644,7 +2650,6 @@
 
             this.cola = cola.d3adaptor()
                 .linkDistance(options.linkDistance || 100)
-                .avoidOverlaps(true)
                 .size([this.$el.width(), this.$el.height()])
                 .start();
 
@@ -2708,6 +2713,95 @@
             });
         },
 
+        showLabels: function () {
+            var phase = 500;
+
+            this.nodes.selectAll("circle.node")
+                .filter(this.label)
+                .transition()
+                .delay(function (d, i, j) {
+                    return j * 10;
+                })
+                .duration(phase)
+                .attr("r", 2);
+
+            this.nodes.selectAll("rect")
+                .style("pointer-events", null)
+                .transition()
+                .delay(phase)
+                .duration(phase)
+                .attr("x", function (d) {
+                    return -d.textBBox.width / 2;
+                })
+                .attr("y", function (d) {
+                    return -d.textBBox.height / 2;
+                })
+                .attr("width", function (d) {
+                    return d.textBBox.width;
+                })
+                .attr("height", function (d) {
+                    return d.textBBox.height;
+                });
+
+            this.nodes.selectAll("text")
+                .style("pointer-events", null)
+                .transition()
+                .delay(phase + phase / 2)
+                .duration(phase / 2)
+                .style("opacity", 1.0);
+        },
+
+        hideLabels: function () {
+            var cards,
+                phase = 500;
+
+            cards = this.nodes
+                .selectAll("g");
+
+            cards.selectAll("rect")
+                .transition()
+                .delay(function (d, i, j) {
+                    return j * 10;
+                })
+                .duration(phase)
+                .attr("x", 0.0)
+                .attr("y", 0.0)
+                .attr("width", 0.0)
+                .attr("height", 0.0);
+
+            cards.selectAll("text")
+                .style("pointer-events", "none")
+                .transition()
+                .duration(phase / 2)
+                .style("opacity", 0.0);
+
+            this.nodes.selectAll("circle.node")
+                .transition()
+                .delay(phase)
+                .duration(phase)
+                .attr("r", _.bind(this.nodeRadius, this));
+        },
+
+        toggleLabels: function () {
+            if (this.mode === "node") {
+                this.mode = "label";
+            } else if (this.mode === "label") {
+                this.mode = "node";
+            } else {
+                throw new Error("illegal state for mode: '" + this.mode + "'");
+            }
+
+            this.renderLabels();
+        },
+
+        renderLabels: function () {
+            if (this.mode === "node") {
+                this.hideLabels();
+            } else if (this.mode === "label") {
+                this.showLabels();
+            }
+        },
+
         renderNodes: function (cfg) {
             var that = this;
 
@@ -2716,6 +2810,7 @@
             }
 
             this.nodes
+                .selectAll("circle.node")
                 .style("fill", _.bind(this.prefill, this))
                 .style("stroke", "blue")
                 .style("stroke-width", _.bind(strokeWidth, this))
@@ -2730,6 +2825,17 @@
                 })
                 .duration(this.transitionTime * 2)
                 .style("fill", _.bind(this.fill, this));
+
+            this.nodes
+                .selectAll("rect")
+                .style("fill", _.bind(function (d) {
+                    return d.key === this.focused ? "pink" : "lightgray";
+                }, this))
+                .style("stroke", _.bind(function (d) {
+                    return this.selected.has(d.key) ? "blue" : _.bind(this.fill, this, d)();
+                }, this));
+
+            this.renderLabels();
         },
 
         render: function () {
@@ -2739,8 +2845,13 @@
                 drag,
                 me = d3.select(this.el),
                 groups,
+                labels,
                 sel,
                 that = this;
+
+            this.nodes = me.select("g.nodes")
+                .selectAll("g.node")
+                .data(nodeData, _.property("key"));
 
             linkData = _.filter(this.model.get("links"), function (link) {
                 // Filter away all "shadow" halves of bidirectional links.
@@ -2750,10 +2861,6 @@
             this.cola
                 .nodes(nodeData)
                 .links(linkData);
-
-            this.nodes = me.select("g.nodes")
-                .selectAll("circle.node")
-                .data(nodeData, _.property("key"));
 
             drag = this.cola.drag()
                 .on("drag", _.bind(function () {
@@ -2888,14 +2995,14 @@
                 .style("opacity", 0)
                 .remove();
 
-            this.nodes.enter()
-                .append("circle")
+            groups = this.nodes.enter()
+                .append("g")
                 .classed("node", true)
-                .attr("r", 0)
-                .style("fill", "limegreen")
-                .on("mousedown.signal", _.bind(function () {
-                    d3.event.stopPropagation();
-                }, this))
+                .on("mousedown.signal", function () {
+                    // This flag prevents the selection action from occurring
+                    // when we're just picking and moving nodes around.
+                    that.movingNode = true;
+                })
                 .on("click", function (d) {
                     if (!that.dragging) {
                         if (d3.event.shiftKey) {
@@ -2929,10 +3036,48 @@
                     }
                     that.dragging = false;
                 })
-                .call(drag)
+                .on("mouseup.signal", function () {
+                    that.movingNode = false;
+                })
+                .call(drag);
+
+            groups.append("circle")
+                .classed("node", true)
+                .attr("r", 0)
+                .style("fill", "limegreen")
                 .transition()
                 .duration(this.transitionTime)
                 .attr("r", _.bind(this.nodeRadius, this));
+
+            labels = groups.append("g");
+
+            labels.append("rect")
+                .attr("x", 0)
+                .attr("y", 0)
+                .attr("width", 0)
+                .attr("height", 0)
+                .attr("rx", 5)
+                .attr("ry", 5)
+                .style("pointer-events", "none")
+                .style("stroke-width", "2px")
+                .style("stroke", _.bind(this.fill, this))
+                .style("fill", "lightgray");
+
+            labels.append("text")
+                .text(this.label)
+                .datum(function (d) {
+                    d.textBBox = this.getBBox();
+                    return d;
+                })
+                .attr("x", function (d) {
+                    return -d.textBBox.width / 2;
+                })
+                .attr("y", function (d) {
+                    return d.textBBox.height / 4;
+                })
+                .style("opacity", 0.0)
+                .style("pointer-events", "none")
+                .style("cursor", "default");
 
             this.renderNodes();
 
@@ -2948,8 +3093,9 @@
 
             this.cola.on("tick", _.bind(function () {
                 this.nodes
-                    .attr("cx", _.property("x"))
-                    .attr("cy", _.property("y"));
+                    .attr("transform", function (d) {
+                        return "translate(" + d.x + " " + d.y + ")";
+                    });
 
                 this.links.selectAll("path")
                     .attr("d", function (d) {
@@ -3153,7 +3299,7 @@
                     };
 
                 me.on("mousedown.select", function () {
-                    if (d3.event.which !== 1) {
+                    if (d3.event.which !== 1 || that.movingNode) {
                         // Only select on left mouse click.
                         return;
                     }
