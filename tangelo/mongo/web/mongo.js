@@ -19,6 +19,10 @@
             var result = {},
                 value;
 
+            if (_.isString(spec) || _.isFunction(spec) || _.isNumber(spec)) {
+                throw new Error("Type error: 'spec' must be an object");
+            }
+
             if (_.has(spec, "queryOp")) {
                 // If this is a "leaf node", translate it to a direct comparison
                 // query and return.
@@ -57,6 +61,8 @@
                 // Otherwise, create a logic operator node and recurse down the
                 // operands.
                 result["$" + spec.logicOp] = [translateSpec(spec.left), translateSpec(spec.right)];
+            } else {
+                throw new Error("Type error: 'spec' does not have the right structure");
             }
 
             return result;
