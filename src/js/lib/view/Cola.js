@@ -423,11 +423,19 @@
                 .append("g")
                 .classed("node", true)
                 .on("mousedown.signal", function () {
+                    if (d3.event.which !== 1) {
+                        return;
+                    }
+
                     // This flag prevents the selection action from occurring
                     // when we're just picking and moving nodes around.
                     that.movingNode = true;
                 })
                 .on("click", function (d) {
+                    if (d3.event.which !== 1) {
+                        return;
+                    }
+
                     if (!that.dragging) {
                         if (d3.event.shiftKey) {
                             // If the shift key is pressed, then simply toggle
@@ -461,6 +469,9 @@
                     that.dragging = false;
                 })
                 .on("mouseup.signal", function () {
+                    if (d3.event.which !== 1) {
+                        return;
+                    }
                     that.movingNode = false;
                 })
                 .call(drag);
@@ -867,6 +878,8 @@
                     d.fixed = false;
                     return d;
                 });
+
+                this.trigger("render", this);
             }, this), this.transitionTime + 5);
         }
     });
