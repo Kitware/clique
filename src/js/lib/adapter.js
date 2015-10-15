@@ -3,6 +3,251 @@
 
     clique.adapter = {};
 
+    clique.adapter.Adapter = function (methods) {
+        var checklist,
+            missing,
+            addMutator,
+            onNewMutator,
+            mutators;
+
+        // Check for missing required methods.
+        checklist = [
+            "findNodes",
+            "findLinks",
+            "newNode",
+            "newLink",
+            "destroyNode",
+            "destroyLink"
+        ];
+
+        missing = _.filter(checklist, function (method) {
+            return !this[method];
+        }, this);
+
+        if (_.size(missing) > 0) {
+            throw new Error("adapter instance missing the following required methods: " + missing.join(", "));
+        }
+
+        // Keep track of mutators.
+        mutators = {};
+        onNewMutator = methods.onNewMutator || _.noop;
+        addMutator = _.bind(function (blob) {
+            var mut;
+
+            if (!_.has(mutators, blob.key)) {
+                mut = mutators[blob.key] = new clique.util.Mutator(blob);
+                onNewMutator(mut);
+            }
+
+            return mut;
+        }, this);
+
+        // Construct an adapter instance.
+        return {
+            getMutator: _.propertyOf(mutators),
+
+            findNodes: function (spec) {
+                return methods.findNodes(spec).then(_.partial(_.map, _, addMutator, this));
+            },
+
+            findNode: function (spec) {
+                return methods.findNodes(spec).then(function (results) {
+                    if (_.isEmpty(results)) {
+                        return undefined;
+                    }
+
+                    return addMutator(results[0]);
+                });
+            },
+
+            findNodeByKey: function (key) {
+                return this.findNode({
+                    key: key
+                });
+            },
+
+            findLinks: function (spec) {
+                return methods.findLinks(spec).then(_.partial(_.map, _, addMutator, this));
+            },
+
+            findLink: function (spec) {
+                return methods.findLinks(spec).then(function (results) {
+                    if (_.isEmpty(results)) {
+                        return undefined;
+                    }
+
+                    return addMutator(results[0]);
+                });
+            },
+
+            findLinkByKey: function (key) {
+                return this.findLink({
+                    key: key
+                });
+            },
+
+            getNeighborLinks: function (node, opts) {
+                var reqs = [];
+
+                opts = opts || {};
+                _.each(["outgoing", "incoming", "undirected"], function (mode) {
+                    opts[mode] = _.isUndefined(opts[mode]) ? true : opts[mode];
+                });
+
+                if (opts.outgoing) {
+                    reqs.push(this.findLinks({
+                        source: node.key(),
+                        undirected: false
+                    }));
+                }
+
+                if (opts.incoming) {
+                    reqs.push(this.findLinks({
+                        target: node.key(),
+                        undirected: false
+                    }));
+                }
+
+                if (opts.undirected) {
+                    reqs.push(this.findLinks({
+                        source: node.key(),
+                        undirected: true
+                    }));
+
+                    reqs.push(this.findLinks({
+                        target: node.key(),
+                        undirected: true
+                    }));
+                }
+
+                return $.when.apply($, reqs).then(_.compose(_.partial(_.uniq, _, _.partial(_.invoke, "key")), _.partial(_.map, _, addMutator, this)));
+            },
+
+            getOutgoingLinks: function (node) {
+                return this.getNeighborLinks(node, {
+                    outgoing: true,
+                    incoming: false,
+                    undirected: false
+                });
+            },
+
+            getOutflowingLinks: function (node) {
+                return this.getNeighborLinks(node, {
+                    outgoing: true,
+                    incoming: false,
+                    undirected: true
+                });
+            },
+
+            getIncomingLinks: function (node) {
+                return this.getNeighborLinks(node, {
+                    outgoing: false,
+                    incoming: true,
+                    undirected: false
+                });
+            },
+
+            getInflowingLinks: function (node) {
+                return this.getNeighborLinks(node, {
+                    outgoing: false,
+                    incoming: true,
+                    undirected: true
+                });
+            },
+
+            getUndirectedLinks: function (node) {
+                return this.getNeighborLinks(node, {
+                    outgoing: false,
+                    incoming: false,
+                    undirected: true
+                });
+            },
+
+            getDirectedLinks: function (node) {
+                return this.getNeighborLinks(node, {
+                    outgoing: true,
+                    incoming: true,
+                    undirected: false
+                });
+            },
+
+            getNeighbors: function (node, opts) {
+                var key = node.key();
+                return this.getNeighborLinks(node, opts).then(_.partial(_.map, _, function (link) {
+                    return key === link.source() ? link.target() : link.source();
+                }, this));
+            },
+
+            getOutgoingNeighbors: function (node) {
+                return this.getNeighbors(node, {
+                    outgoing: true,
+                    incoming: false,
+                    undirected: false
+                });
+            },
+
+            getOutflowingNeighbors: function (node) {
+                return this.getNeighbors(node, {
+                    outgoing: true,
+                    incoming: false,
+                    undirected: true
+                });
+            },
+
+            getIncomingNeighbors: function (node) {
+                return this.getNeighbors(node, {
+                    outgoing: false,
+                    incoming: true,
+                    undirected: false
+                });
+            },
+
+            getInflowingNeighbors: function (node) {
+                return this.getNeighbors(node, {
+                    outgoing: false,
+                    incoming: true,
+                    undirected: true
+                });
+            },
+
+            getUndirectedNeighbors: function (node) {
+                return this.getNeighbors(node, {
+                    outgoing: false,
+                    incoming: false,
+                    undirected: true
+                });
+            },
+
+            getDirectedNeighbors: function (node) {
+                return this.getNeighbors(node, {
+                    outgoing: true,
+                    incoming: true,
+                    undirected: false
+                });
+            },
+
+            newNode: function (data) {
+                return methods.newNode(data || {}).then(_.bind(addMutator, this));
+            },
+
+            newLink: function (opts) {
+                clique.util.require(opts.source, "source");
+                clique.util.require(opts.target, "target");
+
+                return methods.newLink({
+                    source: opts.source,
+                    target: opts.target,
+                    undirected: _.isUndefined(opts.undirected) ? false : opts.undirected,
+                    data: opts.data || {}
+                }).then(_.bind(addMutator, this));
+            },
+
+            destroyNode: methods.destroyNode,
+
+            destroyLink: methods.destroyLink
+        };
+    };
+
     clique.adapter.NodeLinkList = function (cfg) {
         var nodes = clique.util.deepCopy(cfg.nodes),
             links = clique.util.deepCopy(cfg.links),
