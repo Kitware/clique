@@ -5,8 +5,8 @@ from pymongo import MongoClient
 from pymongo.errors import ConnectionFailure
 
 
-def vertices(m, id=None, op=None, key=None, value=None):
-    if id is not None:
+def vertices(m, id="", op=None, key=None, value=None, **kwargs):
+    if id != "":
         # Return the requested vertex
         vertex = m.find_one({"_id": ObjectId(id)})
 
@@ -22,12 +22,23 @@ def vertices(m, id=None, op=None, key=None, value=None):
             response["results"][key] = value
 
         return response
+    else:
+        def process(rec):
+            result = {"_type": "vertex",
+                      "_id": str(rec["_id"])}
+            result.update({k: v for k, v in rec.get("data", {}).iteritems()})
+            return result
 
-    tangelo.http_status(501)
-    return {"error": "unimplemented"}
+        vertices = map(process, m.find({"type": "node"}))
+        response = {"version": "*.*",
+                    "results": vertices,
+                    "totalSize": len(vertices),
+                    "queryTime": 0.0}
+
+        return response
 
 
-def edges(m, id=None, key=None, value=None):
+def edges(m, id="", key=None, value=None, **kwargs):
     def convert(mongoEdge):
         edge = {k: str(v) if isinstance(v, ObjectId) else v for k, v in mongoEdge.get("data", {}).iteritems()}
         edge["_id"] = str(mongoEdge["_id"])
@@ -37,11 +48,12 @@ def edges(m, id=None, key=None, value=None):
 
         return edge
 
-    if id is None and key is None and value is None:
+    if id == "" and key is None and value is None:
         # Return all edges.
         results = map(convert, m.find({"type": "link"}))
         return {"version": "*.*",
                 "results": results,
+                "totalSize": len(results),
                 "queryTime": 0.0}
 
     tangelo.http_status(501)
