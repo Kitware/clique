@@ -35,6 +35,13 @@
         return JSON.parse(JSON.stringify(o));
     };
 
+    clique.util.concat = function () {
+        var lists = _.toArray(arguments);
+        return _.reduce(lists, function (a, b) {
+            return a.concat(b);
+        }, []);
+    };
+
     clique.util.jqSequence = function (reqs) {
         var helper,
             chain;

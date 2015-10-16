@@ -56,9 +56,7 @@ $(function () {
         }
 
         spec = {
-            queryOp: "==",
-            field: "name",
-            value: name
+            name: name
         };
         graph.adapter.findNode(spec)
             .then(function (center) {
