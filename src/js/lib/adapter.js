@@ -45,8 +45,19 @@
             });
         };
 
-        this.findLinks = function (spec) {
-            return $.when(this.findLinksImpl(spec)).then(_.partial(_.map, _, this.addMutator, this));
+        this.findLinks = function (_spec) {
+            var spec = clique.util.deepCopy(_spec),
+                undirected = _.isUndefined(spec.undirected) ? true : spec.undirected,
+                directed = _.isUndefined(spec.directed) ? true : spec.directed,
+                source = spec.source,
+                target = spec.target;
+
+            delete spec.undirected;
+            delete spec.directed;
+            delete spec.source;
+            delete spec.target;
+
+            return $.when(this.findLinksImpl(spec, source, target, undirected, directed)).then(_.partial(_.map, _, this.addMutator, this));
         };
 
         this.findLink = function (spec) {
@@ -322,27 +333,16 @@
             return result;
         },
 
-        findLinksImpl: function (_spec) {
-            var spec = clique.util.deepCopy(_spec),
-                undirected = spec.undirected || false,
-                source = spec.source,
-                target = spec.target,
-                result;
-
-            delete spec.undirected;
-            delete spec.source;
-            delete spec.target;
-
-            result = _.filter(this.links, function (link) {
-                var directednessMatch = (link.undirected || false) === undirected,
+        findLinksImpl: function (spec, source, target, undirected, directed) {
+            return _.filter(this.links, function (link) {
+                var undirectedMatch = (link.undirected || false) === undirected,
+                    directedMatch = (_.isUndefined(link.undirected) || !link.undirected) === directed,
                     sourceMatch = _.isUndefined(source) || (link.source.key === source),
                     targetMatch = _.isUndefined(target) || (link.target.key === target),
                     dataMatch = _.isMatch(spec, link.data);
 
-                return _.every([directednessMatch, sourceMatch, targetMatch, dataMatch]);
+                return _.every([sourceMatch, targetMatch, dataMatch, undirectedMatch, directedMatch]);
             });
-
-            return result;
         },
 
         newNode: _.noop,

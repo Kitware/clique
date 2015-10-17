@@ -1,7 +1,90 @@
 (function (clique, $, _, Backbone, tangelo) {
     "use strict";
 
-    tangelo.getPlugin("mongo").Mongo = function (cfg) {
+    // Ensure existence of mongo plugin.
+    tangelo.getPlugin("mongo");
+
+    tangelo.plugin.mongo.Mongo = clique.Adapter.extend({
+        initialize: function (cfg) {
+            this.mongoStore = {
+                host: cfg.host || "localhost",
+                db: cfg.database,
+                coll: cfg.collection
+            };
+        },
+
+        findNodesImpl: function (spec) {
+            var data = _.extend({
+                spec: JSON.stringify(spec)
+            }, this.mongoStore);
+
+            return $.getJSON("plugin/mongo/findNodes2", data).then(function (responses) {
+                return _.map(responses, function (response) {
+                    var result = {};
+
+                    delete response.type;
+
+                    _.each(response, function (value, key) {
+                        if (key === "_id") {
+                            result.key = value.$oid;
+                        } else {
+                            result[key] = value;
+                        }
+                    });
+
+                    return result;
+                });
+            });
+        },
+
+        findLinksImpl: function (spec, source, target, undirected, directed) {
+            var data;
+
+            data = _.extend({
+                spec: JSON.stringify(spec),
+                source: source,
+                target: target,
+                undirected: undirected,
+                directed: directed
+            }, this.mongoStore);
+
+            return $.getJSON("plugin/mongo/findLinks2", data).then(function (responses) {
+                return _.map(responses, function (response) {
+                    var result = {};
+
+                    _.each(response, function (value, key) {
+                        if (key === "_id") {
+                            result.key = value.$oid;
+                        } else if (key === "source" || key === "target") {
+                            result[key] = value.$oid;
+                        } else {
+                            result[key] = value;
+                        }
+                    });
+
+                    return result;
+                });
+            });
+        },
+
+        newNode: function () {
+
+        },
+
+        newLink: function () {
+
+        },
+
+        destroyNode: function () {
+
+        },
+
+        destroyLink: function () {
+
+        }
+    });
+
+    tangelo.plugin.mongo.Mongo2 = function (cfg) {
         var findNodesService = "plugin/mongo/findNodes",
             mutators = {},
             mongoStore = {

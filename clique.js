@@ -1788,216 +1788,405 @@
     clique.view = {};
 }());
 
-(function (clique, _, $) {
+(function (clique, _, Backbone, $) {
     "use strict";
 
     clique.adapter = {};
 
-    clique.adapter.NodeLinkList = function (cfg) {
-        var nodes = clique.util.deepCopy(cfg.nodes),
-            links = clique.util.deepCopy(cfg.links),
-            nodeIndex = {},
-            sourceIndex = {},
-            targetIndex = {},
-            mutators = {},
-            getMutator,
-            matchmaker;
+    clique.Adapter = function (options) {
+        var mutators;
 
-        clique.util.require(nodes, "nodes");
-        clique.util.require(links, "links");
+        // Keep track of mutators.
+        this.mutators = mutators = {};
+        this.onNewMutator = this.onNewMutator || _.noop;
+        this.addMutator = function (blob) {
+            var mut;
 
-        getMutator = function (key) {
-            if (!_.has(nodeIndex, key)) {
-                return undefined;
+            if (!_.has(mutators, blob.key)) {
+                mutators[blob.key] = new clique.util.Mutator(blob);
+                this.onNewMutator(mut);
             }
 
-            if (!_.has(mutators, key)) {
-                mutators[key] = new clique.util.Mutator(nodeIndex[key]);
-            }
+            mut = mutators[blob.key];
 
-            return mutators[key];
+            return mut;
         };
 
-        matchmaker = function (spec) {
-            if (spec.queryOp) {
-                if (spec.queryOp !== "==") {
-                    throw new Error("query operators besides == are not supported in this adapter");
-                }
+        // Define methods.
+        this.getMutator = _.propertyOf(mutators);
 
-                if (spec.field === "key") {
-                    return function (obj) {
-                        return obj.key === spec.value;
-                    };
-                } else {
-                    return function (obj) {
-                        return (obj.data || {})[spec.field] === spec.value;
-                    };
-                }
-            } else if (spec.logicOp) {
-                if (spec.logicOp === "and") {
-                    return function (obj) {
-                        return matchmaker(spec.left)(obj) && matchmaker(spec.right)(obj);
-                    };
-                } else if (spec.logicOp === "or") {
-                    return function (obj) {
-                        return matchmaker(spec.left)(obj) || matchmaker(spec.right)(obj);
-                    };
-                } else {
-                    throw new Error("illegal logic operator '" + spec.logicOp + "'");
-                }
-            } else {
-                throw new Error("query expression must have either a logicOp or queryOp field");
-            }
+        this.findNodes = function (spec) {
+            return $.when(this.findNodesImpl(spec)).then(_.partial(_.map, _, this.addMutator, this));
         };
 
-        _.each(nodes, function (n) {
-            var hash,
-                ns,
-                tmpNs = "data";
-
-            // Promote the data elements into a dedicated namespace.
-            //
-            // First figure out a suitable temporary name to use for the
-            // namespace.
-            while (_.has(n, tmpNs)) {
-                tmpNs += "x";
-            }
-
-            // Create the namespace.
-            ns = n[tmpNs] = {};
-
-            // Move all top-level properties into the namespace.
-            _.each(n, function (v, k) {
-                if (k !== tmpNs) {
-                    ns[k] = v;
-                    delete n[k];
+        this.findNode = function (spec) {
+            return $.when(this.findNodesImpl(spec)).then(_.bind(function (results) {
+                if (_.isEmpty(results)) {
+                    return undefined;
                 }
+
+                return this.addMutator(results[0]);
+            }, this));
+        };
+
+        this.findNodeByKey = function (key) {
+            return this.findNode({
+                key: key
+            });
+        };
+
+        this.findLinks = function (_spec) {
+            console.log("_spec", _spec);
+
+            var spec = clique.util.deepCopy(_spec),
+                undirected = _.isUndefined(spec.undirected) ? true : spec.undirected,
+                directed = _.isUndefined(spec.directed) ? true : spec.directed,
+                source = spec.source,
+                target = spec.target;
+
+            delete spec.undirected;
+            delete spec.directed;
+            delete spec.source;
+            delete spec.target;
+
+            console.log("spec", spec);
+            console.log("undirected", undirected);
+            console.log("directed", directed);
+            console.log("source", source);
+            console.log("target", target);
+
+            return $.when(this.findLinksImpl(spec, source, target, undirected, directed)).then(_.partial(_.map, _, this.addMutator, this));
+        };
+
+        this.findLink = function (spec) {
+            return $.when(this.findLinksImpl(spec)).then(function (results) {
+                if (_.isEmpty(results)) {
+                    return undefined;
+                }
+
+                return this.addMutator(results[0]);
+            });
+        };
+
+        this.findLinkByKey = function (key) {
+            return this.findLink({
+                key: key
+            });
+        };
+
+        this.getNeighborLinks = function (node, opts) {
+            var reqs = [];
+
+            opts = opts || {};
+            _.each(["outgoing", "incoming", "undirected"], function (mode) {
+                opts[mode] = _.isUndefined(opts[mode]) ? true : opts[mode];
             });
 
-            // Rename the temporary namespace as "data".
-            if (tmpNs !== "data") {
-                n.data = ns;
-                delete n[tmpNs];
+            if (opts.outgoing) {
+                reqs.push(this.findLinks({
+                    source: node.key(),
+                    undirected: false
+                }));
             }
 
-            // Install a unique key in the node.
-            hash = clique.util.md5(_.uniqueId() + JSON.stringify(n));
-            n.key = hash;
+            if (opts.incoming) {
+                reqs.push(this.findLinks({
+                    target: node.key(),
+                    undirected: false
+                }));
+            }
 
-            // Store the node in the hash table.
-            nodeIndex[hash] = n;
-        });
+            if (opts.undirected) {
+                reqs.push(this.findLinks({
+                    source: node.key(),
+                    undirected: true
+                }));
 
-        _.each(links, function (e) {
-            var sourceNode = nodes[e.source],
-                targetNode = nodes[e.target];
+                reqs.push(this.findLinks({
+                    target: node.key(),
+                    undirected: true
+                }));
+            }
 
-            sourceIndex[sourceNode.key] = sourceIndex[sourceNode.key] || {};
-            sourceIndex[sourceNode.key][targetNode.key] = targetNode.key;
-
-            targetIndex[targetNode.key] = targetIndex[targetNode.key] || {};
-            targetIndex[targetNode.key][sourceNode.key] = sourceNode.key;
-        });
-
-        return {
-            findNodes: function (spec) {
-                var def = new $.Deferred();
-                def.resolve(_.map(_.pluck(_.filter(nodes, matchmaker(spec)), "key"), getMutator));
-                return def;
-            },
-
-            findNode: function (spec) {
-                var node = _.find(nodes, matchmaker(spec)),
-                    def = new $.Deferred();
-
-                if (node) {
-                    node = getMutator(node.key);
-                }
-
-                def.resolve(node);
-                return def;
-            },
-
-            neighborhood: function (options) {
-                var frontier,
-                    neighborNodes = new clique.util.Set(),
-                    neighborLinks = new clique.util.Set(),
-                    def = new $.Deferred();
-
-                clique.util.require(options.center, "center");
-                clique.util.require(options.radius, "radius");
-
-                options.center.setTransient("root", true);
-
-                frontier = new clique.util.Set();
-
-                // Don't start the process with a "deleted" node (unless deleted
-                // nodes are specifically allowed).
-                if (options.deleted || !options.center.getData("deleted")) {
-                    neighborNodes.add(options.center.key());
-                    frontier.add(options.center.key());
-                }
-
-                // Fan out from the center to reach the requested radius.
-                _.each(_.range(options.radius), function () {
-                    var newFrontier = new clique.util.Set();
-
-                    // Find all links to and from the current frontier
-                    // nodes.
-                    _.each(frontier.items(), function (nodeKey) {
-                        // Do not add links to nodes that are deleted (unless
-                        // deleted nodes are specifically allowed).
-                        _.each(sourceIndex[nodeKey], function (neighborKey) {
-                            if (options.deleted || !nodeIndex[neighborKey].data.deleted) {
-                                neighborLinks.add(JSON.stringify({
-                                    key: clique.util.md5(JSON.stringify([nodeKey, neighborKey]) + _.unique()),
-                                    source: nodeKey,
-                                    target: neighborKey
-                                }));
-                            }
-                        });
-
-                        _.each(targetIndex[nodeKey], function (neighborKey) {
-                            if (options.deleted || !nodeIndex[neighborKey].data.deleted) {
-                                neighborLinks.add(JSON.stringify({
-                                    key: clique.util.md5(JSON.stringify([neighborKey, nodeKey]) + _.unique()),
-                                    source: neighborKey,
-                                    target: nodeKey
-                                }));
-                            }
-                        });
-                    });
-
-                    // Collect the nodes named in the links.
-                    _.each(neighborLinks.items(), function (link) {
-                        link = JSON.parse(link);
-
-                        if (!neighborNodes.has(link.source)) {
-                            newFrontier.add(link.source);
-                        }
-
-                        if (!neighborNodes.has(link.target)) {
-                            newFrontier.add(link.target);
-                        }
-
-                        neighborNodes.add(link.source);
-                        neighborNodes.add(link.target);
-                    });
-
-                    frontier = newFrontier;
-                });
-
-                def.resolve({
-                    nodes: _.map(neighborNodes.items(), _.propertyOf(nodeIndex)),
-                    links: _.map(neighborLinks.items(), JSON.parse)
-                });
-                return def;
-            },
-
-            getMutator: getMutator
+            return $.when.apply($, reqs).then(function () {
+                return _.reduce(_.toArray(arguments), function (memo, item) {
+                    return memo.concat(item);
+                }, []);
+            });
         };
+
+        this.getOutgoingLinks = function (node) {
+            return this.getNeighborLinks(node, {
+                outgoing: true,
+                incoming: false,
+                undirected: false
+            });
+        };
+
+        this.getOutflowingLinks = function (node) {
+            return this.getNeighborLinks(node, {
+                outgoing: true,
+                incoming: false,
+                undirected: true
+            });
+        };
+
+        this.getIncomingLinks = function (node) {
+            return this.getNeighborLinks(node, {
+                outgoing: false,
+                incoming: true,
+                undirected: false
+            });
+        };
+
+        this.getInflowingLinks = function (node) {
+            return this.getNeighborLinks(node, {
+                outgoing: false,
+                incoming: true,
+                undirected: true
+            });
+        };
+
+        this.getUndirectedLinks = function (node) {
+            return this.getNeighborLinks(node, {
+                outgoing: false,
+                incoming: false,
+                undirected: true
+            });
+        };
+
+        this.getDirectedLinks = function (node) {
+            return this.getNeighborLinks(node, {
+                outgoing: true,
+                incoming: true,
+                undirected: false
+            });
+        };
+
+        this.getNeighbors = function (node, opts) {
+            var key = node.key();
+            return this.getNeighborLinks(node, opts).then(_.bind(function (links) {
+                var neighborKeys,
+                    muts;
+
+                neighborKeys = _.map(links, function (link) {
+                    return key === link.source() ? link.target() : link.source();
+                });
+
+                // Attempt to retrieve the mutators.  The ones we don't have
+                // yet will show up as undefined in this array.
+                muts = _.map(neighborKeys, this.getMutator, this);
+
+                _.each(muts, function (mut, i) {
+                    if (_.isUndefined(mut)) {
+                        muts[i] = this.findNodeByKey(neighborKeys[i]);
+                    } else {
+                        muts[i] = $.when(muts[i]);
+                    }
+                }, this);
+
+                return $.when.apply($, muts);
+            }, this)).then(function () {
+                return _.toArray(arguments);
+            });
+        };
+
+        this.getOutgoingNeighbors = function (node) {
+            return this.getNeighbors(node, {
+                outgoing: true,
+                incoming: false,
+                undirected: false
+            });
+        };
+
+        this.getOutflowingNeighbors = function (node) {
+            return this.getNeighbors(node, {
+                outgoing: true,
+                incoming: false,
+                undirected: true
+            });
+        };
+
+        this.getIncomingNeighbors = function (node) {
+            return this.getNeighbors(node, {
+                outgoing: false,
+                incoming: true,
+                undirected: false
+            });
+        };
+
+        this.getInflowingNeighbors = function (node) {
+            return this.getNeighbors(node, {
+                outgoing: false,
+                incoming: true,
+                undirected: true
+            });
+        };
+
+        this.getUndirectedNeighbors = function (node) {
+            return this.getNeighbors(node, {
+                outgoing: false,
+                incoming: false,
+                undirected: true
+            });
+        };
+
+        this.getDirectedNeighbors = function (node) {
+            return this.getNeighbors(node, {
+                outgoing: true,
+                incoming: true,
+                undirected: false
+            });
+        };
+
+        this.newNode = function (data) {
+            return $.when(this.newNodeImpl(data || {})).then(_.bind(this.addMutator, this));
+        };
+
+        this.newLink = function (opts) {
+            clique.util.require(opts.source, "source");
+            clique.util.require(opts.target, "target");
+
+            return $.when(this.newLinkImpl({
+                source: opts.source,
+                target: opts.target,
+                undirected: _.isUndefined(opts.undirected) ? false : opts.undirected,
+                data: opts.data || {}
+            })).then(_.bind(this.addMutator, this));
+        };
+
+        options = options || {};
+        this.initialize.apply(this, arguments);
     };
-}(window.clique, window._, window.jQuery));
+
+    //_.extend(clique.Adapter.prototype, {
+        //initialize: _.noop
+    //});
+
+    clique.Adapter.extend = Backbone.Model.extend;
+
+    //clique.Adapter.extend = function(protoProps, staticProps) {
+        //var parent = this;
+        //var child;
+
+        //// The constructor function for the new subclass is either defined by you
+        //// (the "constructor" property in your `extend` definition), or defaulted
+        //// by us to simply call the parent constructor.
+        //if (protoProps && _.has(protoProps, 'constructor')) {
+          //child = protoProps.constructor;
+        //} else {
+          //child = function(){ return parent.apply(this, arguments); };
+        //}
+
+        //// Add static properties to the constructor function, if supplied.
+        //_.extend(child, parent, staticProps);
+
+        //// Set the prototype chain to inherit from `parent`, without calling
+        //// `parent` constructor function.
+        //var Surrogate = function(){ this.constructor = child; };
+        //Surrogate.prototype = parent.prototype;
+        //child.prototype = new Surrogate;
+
+        //// Add prototype properties (instance properties) to the subclass,
+        //// if supplied.
+        //if (protoProps) {
+            //_.extend(child.prototype, protoProps);
+        //}
+
+        //// Set a convenience property in case the parent's prototype is needed
+        //// later.
+        //child.__super__ = parent.prototype;
+
+        //return child;
+    //};
+
+    clique.adapter.NodeLinkList = clique.Adapter.extend({
+        initialize: function (options) {
+            var table = {};
+
+            this.nodes = clique.util.deepCopy(options.nodes);
+            this.links = clique.util.deepCopy(options.links);
+
+            _.each(this.nodes, function (node, i) {
+                var tmpNs = "datax",
+                    ns;
+
+                // Promote the data elements into a dedicated namespace.
+                //
+                // First figure out a suitable temporary name to use for the
+                // namespace.
+                while (_.has(node, tmpNs)) {
+                    tmpNs += "x";
+                }
+
+                // Create the namespace.
+                ns = node[tmpNs] = {};
+
+                // Move all top-level properties into the namespace.
+                _.each(node, function (v, k) {
+                    if (k !== tmpNs) {
+                        ns[k] = v;
+                        delete node[k];
+                    }
+                });
+
+                // Rename the temporary namespace as "data".
+                if (tmpNs !== "data") {
+                    node.data = ns;
+                    delete node[tmpNs];
+                }
+
+                table[i] = node;
+
+                // Assign a unique key to this node.
+                node.key = _.uniqueId("node_");
+            });
+
+            _.each(this.links, function (link) {
+                link.key = _.uniqueId("link_");
+
+                link.source = table[link.source];
+                link.target = table[link.target];
+            }, this);
+        },
+
+        findNodesImpl: function (_spec) {
+            var spec = clique.util.deepCopy(_spec),
+                searchspace = this.nodes,
+                result;
+
+            if (spec.key) {
+                searchspace = _.filter(searchspace, function (node) {
+                    return node.key === spec.key;
+                });
+
+                delete spec.key;
+            }
+
+            result = _.filter(searchspace, function (node) {
+                return _.isMatch(node.data, spec);
+            });
+
+            return result;
+        },
+
+        findLinksImpl: function (spec, source, target, undirected) {
+            return _.filter(this.links, function (link) {
+                var directednessMatch = (link.undirected || false) === undirected,
+                    sourceMatch = _.isUndefined(source) || (link.source.key === source),
+                    targetMatch = _.isUndefined(target) || (link.target.key === target),
+                    dataMatch = _.isMatch(spec, link.data);
+
+                return _.every([directednessMatch, sourceMatch, targetMatch, dataMatch]);
+            });
+        },
+
+        newNode: _.noop,
+        newLink: _.noop,
+        destroyNode: _.noop,
+        destroyLink: _.noop
+    });
+}(window.clique, window._, window.Backbone, window.jQuery));
 
 (function (clique, Hashes, _, Backbone) {
     "use strict";
@@ -2034,6 +2223,13 @@
             return undefined;
         }
         return JSON.parse(JSON.stringify(o));
+    };
+
+    clique.util.concat = function () {
+        var lists = _.toArray(arguments);
+        return _.reduce(lists, function (a, b) {
+            return a.concat(b);
+        }, []);
     };
 
     clique.util.jqSequence = function (reqs) {
@@ -2229,8 +2425,6 @@
             var $ = Backbone.$,
                 center,
                 radius,
-                linkOpts,
-                nodeOpts,
                 chain,
                 nextFrontier;
 
@@ -2239,45 +2433,12 @@
 
             center = options.center;
             radius = options.radius;
-            linkOpts = options.linkOpts || {};
-            nodeOpts = options.nodeOpts || {};
 
             nextFrontier = _.bind(function (frontier) {
-                var from,
-                    to,
-                    getNeighbors;
-
-                getNeighbors = _.bind(function (which) {
-                    return $.when.apply($, _.map(frontier, function (node) {
-                        var spec = {};
-                        spec[which] = node.key();
-
-                        return this.adapter.findLinks(spec);
-                    }, this)).then(_.bind(function () {
-                        var links,
-                            reqs;
-
-                        // Pipe the node keys through findNode() in order to get
-                        // mutators for them.
-                        links = _.flatten(_.toArray(arguments));
-                        reqs = _.map(_.invoke(links, which === "source" ? "target" : "source"), this.adapter.findNodeByKey, this.adapter);
-
-                        return $.when.apply($, reqs);
-                    }, this)).then(function () {
-                        return _.toArray(arguments);
-                    });
-                }, this);
-
-                from = getNeighbors("source");
-                to = getNeighbors("target");
-
-                return $.when(from, to).then(function (fromNodes, toNodes) {
-                    var all = fromNodes.concat(toNodes);
-
-                    // Eliminate duplicates.
-                    return _.uniq(all, function (i) {
-                        return i.key();
-                    });
+                return $.when.apply($, _.map(frontier, function (node) {
+                    return this.adapter.getNeighbors(node);
+                }, this)).then(function () {
+                    return clique.util.concat.apply(this, _.toArray(arguments));
                 }).then(_.bind(function (newFrontier) {
                     return this.addNodes(newFrontier).then(function () {
                         return newFrontier;
@@ -2285,8 +2446,7 @@
                 }, this));
             }, this);
 
-            chain = $.Deferred();
-            chain.resolve([center]);
+            chain = $.when([center]);
             this.addNode(center);
 
             _.times(radius, function () {
@@ -2297,56 +2457,43 @@
         },
 
         addNode: function (node) {
-            var fromReq,
-                toReq;
-
             // Bail if node is already in graph.
             if (_.has(this.nodes, node.key())) {
                 return;
             }
 
-            // Find all links to/from node.
-            fromReq = this.adapter.findLinks({
-                source: node.key()
-            });
-
-            toReq = this.adapter.findLinks({
-                target: node.key()
-            });
-
-            return Backbone.$.when(fromReq, toReq).then(_.bind(function (from, to) {
+            // Get all neighboring links.
+            this.adapter.getNeighborLinks(node).then(_.bind(function (links) {
                 var newLinks;
 
-                // Filter away the links that end in nodes not in the current
+                // Add the node to the graph model.
+                this.nodes[node.key()] = node.getTarget();
+
+                // Filter away links not incident on nodes currently in the
                 // graph.
-                from = _.filter(from, function (link) {
-                    return _.has(this.nodes, link.target());
+                links = _.filter(links, function (link) {
+                    return _.has(this.nodes, link.source()) && _.has(this.nodes, link.target());
                 }, this);
-
-                to = _.filter(to, function (link) {
-                    return _.has(this.nodes, link.source());
-                }, this);
-
-                // Add node to the graph.
-                if (!_.has(this.nodes, node.key())) {
-                    this.nodes[node.key()] = node.getTarget();
-                }
 
                 // Add the links to the graph.
-                newLinks = _.compact(_.map(from.concat(to), _.bind(function (link) {
+                newLinks = _.compact(_.map(links, function (link) {
                     var key = link.key();
+
                     if (!this.links.has(key)) {
                         this.links.add(key);
 
                         this.forward.add(link.source(), link.target());
-                        this.back.add(link.target(), link.source());
+
+                        if (link.getTransient("undirected")) {
+                            this.back.add(link.target(), link.source());
+                        }
 
                         link.getTarget().source = this.nodes[link.source()];
                         link.getTarget().target = this.nodes[link.target()];
 
                         return link.getTarget();
                     }
-                }, this)));
+                }, this));
 
                 this.set({
                     nodes: this.get("nodes").concat([node.getTarget()]),
