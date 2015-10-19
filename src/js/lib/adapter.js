@@ -273,7 +273,7 @@
 
         this.destroyLink = function (link) {
             var key = link.key();
-            return this.destroyLink(key).then(function (response) {
+            return this.destroyLinkImpl(key).then(function (response) {
                 return {
                     key: key,
                     response: response
