@@ -89,13 +89,14 @@
             });
         },
 
-        createLinkImpl: function (_data) {
+        createLinkImpl: function (source, target, _data, undirected) {
             var data;
 
             data = _.extend({
                 source: source,
                 target: target,
-                data: _data ? JSON.stringify(_data) : "{}"
+                data: _data ? JSON.stringify(_data) : "{}",
+                undirected: undirected
             }, this.mongoStore);
 
             return $.getJSON("plugin/mongo/createLink", data).then(function (result) {

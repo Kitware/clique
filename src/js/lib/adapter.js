@@ -242,19 +242,23 @@
         };
 
         this.createNode = function (data) {
-            return $.when(this.createNodeImpl(data || {})).then(_.bind(this.addMutator, this));
+            return $.when(this.createNodeImpl(data || {}))
+                .then(_.bind(this.addMutator, this));
         };
 
-        this.createLink = function (opts) {
-            clique.util.require(opts.source, "source");
-            clique.util.require(opts.target, "target");
+        this.createLink = function (source, target, _data, undirected) {
+            var data;
 
-            return $.when(this.createLinkImpl({
-                source: opts.source,
-                target: opts.target,
-                undirected: _.isUndefined(opts.undirected) ? false : opts.undirected,
-                data: opts.data || {}
-            })).then(_.bind(this.addMutator, this));
+            // If source/target is a mutator, call its key method to get the
+            // key; otherwise, assume it is a string describing the key already.
+            source = _.result(source, "key", source);
+            target = _.result(target, "key", target);
+
+            data = _data || {};
+            undirected = _.isUndefined(undirected) ? false : undirected;
+
+            return $.when(this.createLinkImpl(source, target, data, undirected))
+                .then(_.bind(this.addMutator, this));
         };
 
         this.destroyNode = function (node) {
