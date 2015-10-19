@@ -19,67 +19,7 @@
             options = options || {};
 
             this.nodeEnter = _.bind(options.nodeEnter || function (enter) {
-                var drag,
-                    labels;
-
-                drag = this.cola.drag()
-                    .on("drag", _.bind(function () {
-                        this.dragging = true;
-                    }, this));
-
-                enter.on("mousedown.signal", _.bind(function () {
-                    if (d3.event.which !== 1) {
-                        return;
-                    }
-
-                    // This flag prevents the selection action from occurring
-                    // when we're just picking and moving nodes around.
-                    this.movingNode = true;
-                }, this))
-                .on("click", _.bind(function (d) {
-                    if (d3.event.which !== 1) {
-                        return;
-                    }
-
-                    if (!this.dragging) {
-                        if (d3.event.shiftKey) {
-                            // If the shift key is pressed, then simply toggle
-                            // the presence of the clicked node in the current
-                            // selection.
-                            if (this.selected.has(d.key)) {
-                                this.selection.remove(d.key);
-                            } else {
-                                this.selection.add(d.key);
-                            }
-                        } else if (d3.event.ctrlKey) {
-                            // If the control key is pressed, then move the
-                            // focus to the clicked node, adding it to the
-                            // selection first if necessary.
-                            this.selection.add(d.key);
-                            this.selection.focusKey(d.key);
-                        } else {
-                            // If the shift key isn't pressed, then clear the
-                            // selection before selecting the clicked node.
-                            _.each(this.selection.items(), _.bind(function (key) {
-                                this.selection.remove(key);
-                            }, this));
-
-                            this.selection.add(d.key);
-                        }
-
-                        this.renderNodes({
-                            cancel: true
-                        });
-                    }
-                    this.dragging = false;
-                }, this))
-                .on("mouseup.signal", _.bind(function () {
-                    if (d3.event.which !== 1) {
-                        return;
-                    }
-                    this.movingNode = false;
-                }, this))
-                .call(drag);
+                var labels;
 
                 enter.append("circle")
                     .classed("node", true)
@@ -601,6 +541,7 @@
                 linkData = this.model.get("links"),
                 me = d3.select(this.el),
                 groups,
+                drag,
                 that = this;
 
             this.nodes = me.select("g.nodes")
@@ -636,6 +577,63 @@
                 .append("g")
                 .classed("node", true);
             this.nodeEnter(groups);
+
+            drag = this.cola.drag()
+                .on("drag", _.bind(function () {
+                    this.dragging = true;
+                }, this));
+
+            groups.on("mousedown.signal", _.bind(function () {
+                if (d3.event.which !== 1) {
+                    return;
+                }
+
+                // This flag prevents the selection action from occurring
+                // when we're just picking and moving nodes around.
+                this.movingNode = true;
+            }, this)).on("click", _.bind(function (d) {
+                if (d3.event.which !== 1) {
+                    return;
+                }
+
+                if (!this.dragging) {
+                    if (d3.event.shiftKey) {
+                        // If the shift key is pressed, then simply toggle
+                        // the presence of the clicked node in the current
+                        // selection.
+                        if (this.selected.has(d.key)) {
+                            this.selection.remove(d.key);
+                        } else {
+                            this.selection.add(d.key);
+                        }
+                    } else if (d3.event.ctrlKey) {
+                        // If the control key is pressed, then move the
+                        // focus to the clicked node, adding it to the
+                        // selection first if necessary.
+                        this.selection.add(d.key);
+                        this.selection.focusKey(d.key);
+                    } else {
+                        // If the shift key isn't pressed, then clear the
+                        // selection before selecting the clicked node.
+                        _.each(this.selection.items(), _.bind(function (key) {
+                            this.selection.remove(key);
+                        }, this));
+
+                        this.selection.add(d.key);
+                    }
+
+                    this.renderNodes({
+                        cancel: true
+                    });
+                }
+                this.dragging = false;
+            }, this)).on("mouseup.signal", _.bind(function () {
+                if (d3.event.which !== 1) {
+                    return;
+                }
+                this.movingNode = false;
+            }, this))
+            .call(drag);
 
             this.renderNodes();
 
