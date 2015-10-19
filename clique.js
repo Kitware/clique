@@ -2719,6 +2719,280 @@
 
             options = options || {};
 
+            this.nodeEnter = _.bind(options.nodeEnter || function (enter) {
+                var labels;
+
+                enter.append("circle")
+                    .classed("node", true)
+                    .attr("r", 0)
+                    .style("fill", "limegreen")
+                    .transition()
+                    .duration(this.transitionTime)
+                    .attr("r", _.bind(this.nodeRadius, this));
+
+                labels = enter.append("g");
+
+                labels.append("rect")
+                    .attr("x", 0)
+                    .attr("y", 0)
+                    .attr("width", 0)
+                    .attr("height", 0)
+                    .attr("rx", 5)
+                    .attr("ry", 5)
+                    .style("pointer-events", "none")
+                    .style("stroke-width", "2px")
+                    .style("stroke", _.bind(this.fill, this))
+                    .style("fill", "lightgray");
+
+                labels.append("text")
+                    .text(this.label)
+                    .datum(function (d) {
+                        d.textBBox = this.getBBox();
+                        return d;
+                    })
+                    .attr("x", function (d) {
+                        return -d.textBBox.width / 2;
+                    })
+                    .attr("y", function (d) {
+                        return d.textBBox.height / 4;
+                    })
+                    .style("opacity", 0.0)
+                    .style("pointer-events", "none")
+                    .style("cursor", "default");
+            }, this);
+
+            this.nodeExit = _.bind(options.nodeExit || function (exit) {
+                exit.each(_.bind(function (d) {
+                    this.selection.remove(d.key);
+                }, this))
+                    .transition()
+                    .duration(this.transitionTime)
+                    .attr("r", 0)
+                    .style("opacity", 0)
+                    .remove();
+            }, this);
+
+            this.linkEnter = _.bind(options.linkEnter || function (enter) {
+                var sel;
+
+                sel = enter.append("path")
+                    .style("fill", "lightslategray")
+                    .style("opacity", 0.0)
+                    .style("stroke-width", 1)
+                    .style("stroke", "lightslategray");
+
+                this.postLinkAdd(sel);
+
+                sel.transition()
+                    .duration(this.transitionTime)
+                    .style("opacity", 1.0);
+
+                enter.append("path")
+                    .style("fill", "none")
+                    .classed("handle", true)
+                    .style("stroke-width", 7)
+                    .on("mouseenter", function () {
+                        d3.select(this)
+                            .classed("hovering", true);
+                    })
+                    .on("mouseout", function () {
+                        d3.select(this)
+                            .classed("hovering", false);
+                    })
+                    .on("click", _.bind(function (d) {
+                        if (d3.event.shiftKey) {
+                            if (this.linkSelection.has(d.key)) {
+                                this.linkSelection.remove(d.key);
+                            } else {
+                                this.linkSelection.add(d.key);
+                            }
+                        } else if (d3.event.ctrlKey) {
+                            if (!this.linkSelection.has(d.key)) {
+                                this.linkSelection.add(d.key);
+                            }
+
+                            this.linkSelection.focusKey(d.key);
+                        } else {
+                            _.each(this.linkSelection.items(), function (key) {
+                                this.linkSelection.remove(key);
+                            });
+
+                            this.linkSelection.add(d.key);
+                        }
+                    }, this));
+
+                (_.bind(function () {
+                    var key,
+                        bumpCount;
+
+                    key = function (source, target) {
+                        var min,
+                            max,
+                            reverse = false;
+
+                        if (source < target) {
+                            min = source;
+                            max = target;
+                        } else {
+                            reverse = true;
+
+                            min = target;
+                            max = source;
+                        }
+
+                        return {
+                            name: min + "," + max,
+                            reverse: reverse
+                        };
+                    };
+
+                    this.count = {};
+
+                    bumpCount = _.bind(function (source, target, bidir) {
+                        var info = key(source, target),
+                            name = info.name,
+                            tier;
+
+                        if (bidir) {
+                            tier = "bidir";
+                        } else if (info.reverse) {
+                            tier = "back";
+                        } else {
+                            tier = "forward";
+                        }
+
+                        if (!_.has(this.count, name)) {
+                            this.count[name] = {
+                                forward: 0,
+                                back: 0,
+                                bidir: 0
+                            };
+                        }
+
+                        this.count[name][tier] += 1;
+                        return {
+                            name: name,
+                            tier: tier,
+                            rank: this.count[name][tier] - 1
+                        };
+                    }, this);
+
+                    this.links.datum(function (d) {
+                        d.linkRank = bumpCount(d.source.key, d.target.key, d.data && d.data.bidir);
+                        return d;
+                    });
+                }, this)());
+            }, this);
+
+            this.linkExit = _.bind(options.linkExit || function (exit) {
+                exit.transition()
+                    .duration(this.transitionTime)
+                    .style("stroke-width", 0)
+                    .style("opacity", 0)
+                    .remove();
+            }, this);
+
+            this.onTick = _.bind(options.onTick || function () {
+                this.links.selectAll("path")
+                    .attr("d", _.bind(function (d) {
+                        var linkRank,
+                            bidirCount,
+                            bidirOffset,
+                            forwardCount,
+                            backCount,
+                            multiplier,
+                            dx,
+                            dy,
+                            invLen,
+                            offset,
+                            flip,
+                            control,
+                            nControl,
+                            path,
+                            point,
+                            data;
+
+                        data = d.data || {};
+
+                        point = function (x, y) {
+                            return x + "," + y;
+                        };
+
+                        bidirCount = this.count[d.linkRank.name].bidir;
+                        bidirOffset = Number(bidirCount % 2 === 0);
+                        forwardCount = this.count[d.linkRank.name].forward;
+                        backCount = this.count[d.linkRank.name].back;
+
+                        if (d.linkRank.tier === "bidir") {
+                            linkRank = d.linkRank.rank + bidirOffset;
+                        } else if (d.linkRank.tier === "forward") {
+                            linkRank = bidirCount + bidirOffset + 2 * d.linkRank.rank;
+                        } else if (d.linkRank.tier === "back") {
+                            linkRank = bidirCount + 1 + bidirOffset + 2 * d.linkRank.rank;
+                        }
+
+                        multiplier = 0.15 * (linkRank % 2 === 0 ? -linkRank / 2 : (linkRank + 1) / 2);
+                        flip = linkRank % 2 === 0 ? -1.0 : 1.0;
+                        if (d.linkRank.tier === "forward") {
+                            multiplier = multiplier * -1;
+                            flip = flip * -1;
+                        }
+
+                        dx = d.target.x - d.source.x;
+                        dy = d.target.y - d.source.y;
+
+                        control = {
+                            x: d.source.x + 0.5*dx + multiplier * dy,
+                            y: d.source.y + 0.5*dy + multiplier * -dx
+                        };
+
+                        invLen = 1.0 / Math.sqrt(dx*dx + dy*dy);
+                        offset = {
+                            x: flip * dy * invLen * 5,
+                            y: flip * -dx * invLen * 5
+                        };
+
+                        if (linkRank === 0) {
+                            if (data.bidir) {
+                                path = [
+                                    "M", point(d.source.x + 0.25 * offset.x, d.source.y + 0.25 * offset.y),
+                                    "L", point(d.target.x + 0.25 * offset.x, d.target.y + 0.25 * offset.y),
+                                    "L", point(d.target.x - 0.25 * offset.x, d.target.y - 0.25 * offset.y),
+                                    "L", point(d.source.x - 0.25 * offset.x, d.source.y - 0.25 * offset.y)
+                                ];
+                            } else {
+                                path = [
+                                    "M", point(d.source.x + 0.5 * offset.x, d.source.y + 0.5 * offset.y),
+                                    "L", point(d.target.x, d.target.y),
+                                    "L", point(d.source.x - 0.5 * offset.x, d.source.y - 0.5 * offset.y)
+                                ];
+                            }
+                        } else {
+                            if (data.bidir) {
+                                nControl = {
+                                    x: d.source.x + 0.5*dx - multiplier * dy,
+                                    y: d.source.y + 0.5*dy - multiplier * -dx
+                                };
+
+                                path = [
+                                    "M", point(d.source.x + 0.5 * offset.x, d.source.y + 0.5 * offset.y),
+                                    "Q", point(control.x, control.y), point(d.target.x + 0.5 * offset.x, d.target.y + 0.5 * offset.y),
+                                    "L", point(d.target.x, d.target.y),
+                                    "Q", point(control.x - 0.5 * offset.x, control.y - 0.5 * offset.y), point(d.source.x, d.source.y)
+                                ];
+                            } else {
+                                path = [
+                                    "M", point(d.source.x + offset.x, d.source.y + offset.y),
+                                    "Q", point(control.x, control.y), point(d.target.x, d.target.y),
+                                    "Q", point(control.x, control.y), point(d.source.x, d.source.y)
+                                ];
+                            }
+                        }
+
+                        return path.join(" ");
+                    }, this));
+            }, this);
+
             this.label = options.label || "";
             if (!_.isFunction(this.label)) {
                 this.label = _.constant(this.label);
@@ -2966,12 +3240,9 @@
         render: function () {
             var nodeData = this.model.get("nodes"),
                 linkData = this.model.get("links"),
-                count,
-                drag,
                 me = d3.select(this.el),
                 groups,
-                labels,
-                sel,
+                drag,
                 that = this;
 
             this.nodes = me.select("g.nodes")
@@ -2987,11 +3258,6 @@
                 .nodes(nodeData)
                 .links(linkData);
 
-            drag = this.cola.drag()
-                .on("drag", _.bind(function () {
-                    this.dragging = true;
-                }, this));
-
             this.nodes.datum(function (d) {
                 d.fixed = true;
                 return d;
@@ -3004,228 +3270,75 @@
             groups = this.links.enter()
                 .append("g")
                 .classed("link", true);
+            this.linkEnter(groups);
 
-            sel = groups.append("path")
-                .style("fill", "lightslategray")
-                .style("opacity", 0.0)
-                .style("stroke-width", 1)
-                .style("stroke", "lightslategray");
-
-            this.postLinkAdd(sel);
-
-            sel.transition()
-                .duration(this.transitionTime)
-                .style("opacity", 1.0);
-
-            groups.append("path")
-                .style("fill", "none")
-                .classed("handle", true)
-                .style("stroke-width", 7)
-                .on("mouseenter", function () {
-                    d3.select(this)
-                        .classed("hovering", true);
-                })
-                .on("mouseout", function () {
-                    d3.select(this)
-                        .classed("hovering", false);
-                })
-                .on("click", function (d) {
-                    if (d3.event.shiftKey) {
-                        if (that.linkSelection.has(d.key)) {
-                            that.linkSelection.remove(d.key);
-                        } else {
-                            that.linkSelection.add(d.key);
-                        }
-                    } else if (d3.event.ctrlKey) {
-                        if (!that.linkSelection.has(d.key)) {
-                            that.linkSelection.add(d.key);
-                        }
-
-                        that.linkSelection.focusKey(d.key);
-                    } else {
-                        _.each(that.linkSelection.items(), function (key) {
-                            that.linkSelection.remove(key);
-                        });
-
-                        that.linkSelection.add(d.key);
-                    }
-                });
-
-            (function () {
-                var key,
-                    bumpCount;
-
-                key = function (source, target) {
-                    var min,
-                        max,
-                        reverse = false;
-
-                    if (source < target) {
-                        min = source;
-                        max = target;
-                    } else {
-                        reverse = true;
-
-                        min = target;
-                        max = source;
-                    }
-
-                    return {
-                        name: min + "," + max,
-                        reverse: reverse
-                    };
-                };
-
-                count = {};
-
-                bumpCount = function (source, target, bidir) {
-                    var info = key(source, target),
-                        name = info.name,
-                        tier;
-
-                    if (bidir) {
-                        tier = "bidir";
-                    } else if (info.reverse) {
-                        tier = "back";
-                    } else {
-                        tier = "forward";
-                    }
-
-                    if (!_.has(count, name)) {
-                        count[name] = {
-                            forward: 0,
-                            back: 0,
-                            bidir: 0
-                        };
-                    }
-
-                    count[name][tier] += 1;
-                    return {
-                        name: name,
-                        tier: tier,
-                        rank: count[name][tier] - 1
-                    };
-                };
-
-                that.links.datum(function (d) {
-                    d.linkRank = bumpCount(d.source.key, d.target.key, d.data && d.data.bidir);
-                    return d;
-                });
-            }());
-
-            this.links.exit()
-                .transition()
-                .duration(this.transitionTime)
-                .style("stroke-width", 0)
-                .style("opacity", 0)
-                .remove();
+            this.linkExit(this.links.exit());
 
             groups = this.nodes.enter()
                 .append("g")
-                .classed("node", true)
-                .on("mousedown.signal", function () {
-                    if (d3.event.which !== 1) {
-                        return;
-                    }
+                .classed("node", true);
+            this.nodeEnter(groups);
 
-                    // This flag prevents the selection action from occurring
-                    // when we're just picking and moving nodes around.
-                    that.movingNode = true;
-                })
-                .on("click", function (d) {
-                    if (d3.event.which !== 1) {
-                        return;
-                    }
+            drag = this.cola.drag()
+                .on("drag", _.bind(function () {
+                    this.dragging = true;
+                }, this));
 
-                    if (!that.dragging) {
-                        if (d3.event.shiftKey) {
-                            // If the shift key is pressed, then simply toggle
-                            // the presence of the clicked node in the current
-                            // selection.
-                            if (that.selected.has(d.key)) {
-                                that.selection.remove(d.key);
-                            } else {
-                                that.selection.add(d.key);
-                            }
-                        } else if (d3.event.ctrlKey) {
-                            // If the control key is pressed, then move the
-                            // focus to the clicked node, adding it to the
-                            // selection first if necessary.
-                            that.selection.add(d.key);
-                            that.selection.focusKey(d.key);
+            groups.on("mousedown.signal", _.bind(function () {
+                if (d3.event.which !== 1) {
+                    return;
+                }
+
+                // This flag prevents the selection action from occurring
+                // when we're just picking and moving nodes around.
+                this.movingNode = true;
+            }, this)).on("click", _.bind(function (d) {
+                if (d3.event.which !== 1) {
+                    return;
+                }
+
+                if (!this.dragging) {
+                    if (d3.event.shiftKey) {
+                        // If the shift key is pressed, then simply toggle
+                        // the presence of the clicked node in the current
+                        // selection.
+                        if (this.selected.has(d.key)) {
+                            this.selection.remove(d.key);
                         } else {
-                            // If the shift key isn't pressed, then clear the
-                            // selection before selecting the clicked node.
-                            _.each(that.selection.items(), function (key) {
-                                that.selection.remove(key);
-                            });
-
-                            that.selection.add(d.key);
+                            this.selection.add(d.key);
                         }
+                    } else if (d3.event.ctrlKey) {
+                        // If the control key is pressed, then move the
+                        // focus to the clicked node, adding it to the
+                        // selection first if necessary.
+                        this.selection.add(d.key);
+                        this.selection.focusKey(d.key);
+                    } else {
+                        // If the shift key isn't pressed, then clear the
+                        // selection before selecting the clicked node.
+                        _.each(this.selection.items(), _.bind(function (key) {
+                            this.selection.remove(key);
+                        }, this));
 
-                        that.renderNodes({
-                            cancel: true
-                        });
+                        this.selection.add(d.key);
                     }
-                    that.dragging = false;
-                })
-                .on("mouseup.signal", function () {
-                    if (d3.event.which !== 1) {
-                        return;
-                    }
-                    that.movingNode = false;
-                })
-                .call(drag);
 
-            groups.append("circle")
-                .classed("node", true)
-                .attr("r", 0)
-                .style("fill", "limegreen")
-                .transition()
-                .duration(this.transitionTime)
-                .attr("r", _.bind(this.nodeRadius, this));
-
-            labels = groups.append("g");
-
-            labels.append("rect")
-                .attr("x", 0)
-                .attr("y", 0)
-                .attr("width", 0)
-                .attr("height", 0)
-                .attr("rx", 5)
-                .attr("ry", 5)
-                .style("pointer-events", "none")
-                .style("stroke-width", "2px")
-                .style("stroke", _.bind(this.fill, this))
-                .style("fill", "lightgray");
-
-            labels.append("text")
-                .text(this.label)
-                .datum(function (d) {
-                    d.textBBox = this.getBBox();
-                    return d;
-                })
-                .attr("x", function (d) {
-                    return -d.textBBox.width / 2;
-                })
-                .attr("y", function (d) {
-                    return d.textBBox.height / 4;
-                })
-                .style("opacity", 0.0)
-                .style("pointer-events", "none")
-                .style("cursor", "default");
+                    this.renderNodes({
+                        cancel: true
+                    });
+                }
+                this.dragging = false;
+            }, this)).on("mouseup.signal", _.bind(function () {
+                if (d3.event.which !== 1) {
+                    return;
+                }
+                this.movingNode = false;
+            }, this))
+            .call(drag);
 
             this.renderNodes();
 
-            this.nodes.exit()
-                .each(_.bind(function (d) {
-                    this.selection.remove(d.key);
-                }, this))
-                .transition()
-                .duration(this.transitionTime)
-                .attr("r", 0)
-                .style("opacity", 0)
-                .remove();
+            this.nodeExit(this.nodes.exit());
 
             this.cola.on("tick", _.bind(function () {
                 this.nodes
@@ -3233,104 +3346,7 @@
                         return "translate(" + d.x + " " + d.y + ")";
                     });
 
-                this.links.selectAll("path")
-                    .attr("d", function (d) {
-                        var linkRank,
-                            bidirCount,
-                            bidirOffset,
-                            forwardCount,
-                            backCount,
-                            multiplier,
-                            dx,
-                            dy,
-                            invLen,
-                            offset,
-                            flip,
-                            control,
-                            nControl,
-                            path,
-                            point,
-                            data;
-
-                        data = d.data || {};
-
-                        point = function (x, y) {
-                            return x + "," + y;
-                        };
-
-                        bidirCount = count[d.linkRank.name].bidir;
-                        bidirOffset = Number(bidirCount % 2 === 0);
-                        forwardCount = count[d.linkRank.name].forward;
-                        backCount = count[d.linkRank.name].back;
-
-                        if (d.linkRank.tier === "bidir") {
-                            linkRank = d.linkRank.rank + bidirOffset;
-                        } else if (d.linkRank.tier === "forward") {
-                            linkRank = bidirCount + bidirOffset + 2 * d.linkRank.rank;
-                        } else if (d.linkRank.tier === "back") {
-                            linkRank = bidirCount + 1 + bidirOffset + 2 * d.linkRank.rank;
-                        }
-
-                        multiplier = 0.15 * (linkRank % 2 === 0 ? -linkRank / 2 : (linkRank + 1) / 2);
-                        flip = linkRank % 2 === 0 ? -1.0 : 1.0;
-                        if (d.linkRank.tier === "forward") {
-                            multiplier = multiplier * -1;
-                            flip = flip * -1;
-                        }
-
-                        dx = d.target.x - d.source.x;
-                        dy = d.target.y - d.source.y;
-
-                        control = {
-                            x: d.source.x + 0.5*dx + multiplier * dy,
-                            y: d.source.y + 0.5*dy + multiplier * -dx
-                        };
-
-                        invLen = 1.0 / Math.sqrt(dx*dx + dy*dy);
-                        offset = {
-                            x: flip * dy * invLen * 5,
-                            y: flip * -dx * invLen * 5
-                        };
-
-                        if (linkRank === 0) {
-                            if (data.bidir) {
-                                path = [
-                                    "M", point(d.source.x + 0.25 * offset.x, d.source.y + 0.25 * offset.y),
-                                    "L", point(d.target.x + 0.25 * offset.x, d.target.y + 0.25 * offset.y),
-                                    "L", point(d.target.x - 0.25 * offset.x, d.target.y - 0.25 * offset.y),
-                                    "L", point(d.source.x - 0.25 * offset.x, d.source.y - 0.25 * offset.y)
-                                ];
-                            } else {
-                                path = [
-                                    "M", point(d.source.x + 0.5 * offset.x, d.source.y + 0.5 * offset.y),
-                                    "L", point(d.target.x, d.target.y),
-                                    "L", point(d.source.x - 0.5 * offset.x, d.source.y - 0.5 * offset.y)
-                                ];
-                            }
-                        } else {
-                            if (data.bidir) {
-                                nControl = {
-                                    x: d.source.x + 0.5*dx - multiplier * dy,
-                                    y: d.source.y + 0.5*dy - multiplier * -dx
-                                };
-
-                                path = [
-                                    "M", point(d.source.x + 0.5 * offset.x, d.source.y + 0.5 * offset.y),
-                                    "Q", point(control.x, control.y), point(d.target.x + 0.5 * offset.x, d.target.y + 0.5 * offset.y),
-                                    "L", point(d.target.x, d.target.y),
-                                    "Q", point(control.x - 0.5 * offset.x, control.y - 0.5 * offset.y), point(d.source.x, d.source.y)
-                                ];
-                            } else {
-                                path = [
-                                    "M", point(d.source.x + offset.x, d.source.y + offset.y),
-                                    "Q", point(control.x, control.y), point(d.target.x, d.target.y),
-                                    "Q", point(control.x, control.y), point(d.source.x, d.source.y)
-                                ];
-                            }
-                        }
-
-                        return path.join(" ");
-                    });
+                this.onTick();
             }, this));
 
             (function () {
@@ -3452,15 +3468,15 @@
                     // If shift is not held at the beginning of the operation,
                     // then remove the current selections.
                     if (!d3.event.shiftKey) {
-                        _.each(that.model.get("nodes"), function (node) {
+                        _.each(that.model.get("nodes"), _.bind(function (node) {
                             that.selection.remove(node.key);
-                        });
+                        }, this));
 
                         that.renderNodes();
 
-                        _.each(that.model.get("links"), function (link) {
+                        _.each(that.model.get("links"), _.bind(function (link) {
                             that.linkSelection.remove(link.key);
-                        });
+                        }, this));
                     }
 
                     origin = that.$el.offset();
