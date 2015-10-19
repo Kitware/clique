@@ -1836,8 +1836,6 @@
         };
 
         this.findLinks = function (_spec) {
-            console.log("_spec", _spec);
-
             var spec = clique.util.deepCopy(_spec),
                 undirected = _.isUndefined(spec.undirected) ? true : spec.undirected,
                 directed = _.isUndefined(spec.directed) ? true : spec.directed,
@@ -1849,23 +1847,17 @@
             delete spec.source;
             delete spec.target;
 
-            console.log("spec", spec);
-            console.log("undirected", undirected);
-            console.log("directed", directed);
-            console.log("source", source);
-            console.log("target", target);
-
             return $.when(this.findLinksImpl(spec, source, target, undirected, directed)).then(_.partial(_.map, _, this.addMutator, this));
         };
 
         this.findLink = function (spec) {
-            return $.when(this.findLinksImpl(spec)).then(function (results) {
+            return $.when(this.findLinksImpl(spec)).then(_.bind(function (results) {
                 if (_.isEmpty(results)) {
                     return undefined;
                 }
 
                 return this.addMutator(results[0]);
-            });
+            }, this));
         };
 
         this.findLinkByKey = function (key) {
@@ -2039,66 +2031,51 @@
             });
         };
 
-        this.newNode = function (data) {
-            return $.when(this.newNodeImpl(data || {})).then(_.bind(this.addMutator, this));
+        this.createNode = function (data) {
+            return $.when(this.createNodeImpl(data || {}))
+                .then(_.bind(this.addMutator, this));
         };
 
-        this.newLink = function (opts) {
-            clique.util.require(opts.source, "source");
-            clique.util.require(opts.target, "target");
+        this.createLink = function (source, target, _data, undirected) {
+            var data;
 
-            return $.when(this.newLinkImpl({
-                source: opts.source,
-                target: opts.target,
-                undirected: _.isUndefined(opts.undirected) ? false : opts.undirected,
-                data: opts.data || {}
-            })).then(_.bind(this.addMutator, this));
+            // If source/target is a mutator, call its key method to get the
+            // key; otherwise, assume it is a string describing the key already.
+            source = _.result(source, "key", source);
+            target = _.result(target, "key", target);
+
+            data = _data || {};
+            undirected = _.isUndefined(undirected) ? false : undirected;
+
+            return $.when(this.createLinkImpl(source, target, data, undirected))
+                .then(_.bind(this.addMutator, this));
+        };
+
+        this.destroyNode = function (node) {
+            var key = node.key();
+            return this.destroyNodeImpl(key).then(function (response) {
+                return {
+                    key: key,
+                    response: response
+                };
+            });
+        };
+
+        this.destroyLink = function (link) {
+            var key = link.key();
+            return this.destroyLinkImpl(key).then(function (response) {
+                return {
+                    key: key,
+                    response: response
+                };
+            });
         };
 
         options = options || {};
         this.initialize.apply(this, arguments);
     };
 
-    //_.extend(clique.Adapter.prototype, {
-        //initialize: _.noop
-    //});
-
     clique.Adapter.extend = Backbone.Model.extend;
-
-    //clique.Adapter.extend = function(protoProps, staticProps) {
-        //var parent = this;
-        //var child;
-
-        //// The constructor function for the new subclass is either defined by you
-        //// (the "constructor" property in your `extend` definition), or defaulted
-        //// by us to simply call the parent constructor.
-        //if (protoProps && _.has(protoProps, 'constructor')) {
-          //child = protoProps.constructor;
-        //} else {
-          //child = function(){ return parent.apply(this, arguments); };
-        //}
-
-        //// Add static properties to the constructor function, if supplied.
-        //_.extend(child, parent, staticProps);
-
-        //// Set the prototype chain to inherit from `parent`, without calling
-        //// `parent` constructor function.
-        //var Surrogate = function(){ this.constructor = child; };
-        //Surrogate.prototype = parent.prototype;
-        //child.prototype = new Surrogate;
-
-        //// Add prototype properties (instance properties) to the subclass,
-        //// if supplied.
-        //if (protoProps) {
-            //_.extend(child.prototype, protoProps);
-        //}
-
-        //// Set a convenience property in case the parent's prototype is needed
-        //// later.
-        //child.__super__ = parent.prototype;
-
-        //return child;
-    //};
 
     clique.adapter.NodeLinkList = clique.Adapter.extend({
         initialize: function (options) {
@@ -2170,14 +2147,15 @@
             return result;
         },
 
-        findLinksImpl: function (spec, source, target, undirected) {
+        findLinksImpl: function (spec, source, target, undirected, directed) {
             return _.filter(this.links, function (link) {
-                var directednessMatch = (link.undirected || false) === undirected,
+                var undirectedMatch = (link.undirected || false) === undirected,
+                    directedMatch = (_.isUndefined(link.undirected) || !link.undirected) === directed,
                     sourceMatch = _.isUndefined(source) || (link.source.key === source),
                     targetMatch = _.isUndefined(target) || (link.target.key === target),
                     dataMatch = _.isMatch(spec, link.data);
 
-                return _.every([directednessMatch, sourceMatch, targetMatch, dataMatch]);
+                return _.every([sourceMatch, targetMatch, dataMatch, undirectedMatch, directedMatch]);
             });
         },
 
