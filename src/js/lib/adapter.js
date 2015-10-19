@@ -61,13 +61,13 @@
         };
 
         this.findLink = function (spec) {
-            return $.when(this.findLinksImpl(spec)).then(function (results) {
+            return $.when(this.findLinksImpl(spec)).then(_.bind(function (results) {
                 if (_.isEmpty(results)) {
                     return undefined;
                 }
 
                 return this.addMutator(results[0]);
-            });
+            }, this));
         };
 
         this.findLinkByKey = function (key) {
