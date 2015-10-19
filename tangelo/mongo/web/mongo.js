@@ -67,20 +67,72 @@
             });
         },
 
-        newNode: function () {
+        createNodeImpl: function (_data) {
+            var data;
 
+            data  = _.extend({
+                data: _data ? JSON.stringify(_data) : "{}"
+            }, this.mongoStore);
+
+            return $.getJSON("plugin/mongo/createNode", data).then(function (result) {
+                var node = {};
+
+                _.each(result, function (value, key) {
+                    if (key === "_id") {
+                        node.key = value.$oid;
+                    } else {
+                        node[key] = value;
+                    }
+                });
+
+                return node;
+            });
         },
 
-        newLink: function () {
+        createLinkImpl: function (_data) {
+            var data;
 
+            data = _.extend({
+                source: source,
+                target: target,
+                data: _data ? JSON.stringify(_data) : "{}"
+            }, this.mongoStore);
+
+            return $.getJSON("plugin/mongo/createLink", data).then(function (result) {
+                var link = {};
+
+                _.each(result, function (value, key) {
+                    if (key === "_id") {
+                        link.key = value.$oid;
+                    } else if (key === "source" || key === "target") {
+                        link[key] = value.$oid;
+                    } else {
+                        link[key] = value;
+                    }
+                });
+
+                return link;
+            });
         },
 
-        destroyNode: function () {
+        destroyNodeImpl: function (key) {
+            var data;
 
+            data = _.extend({
+                key: key
+            }, this.mongoStore);
+
+            return $.get("plugin/mongo/destroyNode", data);
         },
 
-        destroyLink: function () {
+        destroyLinkImpl: function (key) {
+            var data;
 
+            data = _.extend({
+                key: key
+            }, this.mongoStore);
+
+            return $.get("plugin/mongo/destroyLink", data);
         }
     });
 

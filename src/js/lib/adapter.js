@@ -241,20 +241,40 @@
             });
         };
 
-        this.newNode = function (data) {
-            return $.when(this.newNodeImpl(data || {})).then(_.bind(this.addMutator, this));
+        this.createNode = function (data) {
+            return $.when(this.createNodeImpl(data || {})).then(_.bind(this.addMutator, this));
         };
 
-        this.newLink = function (opts) {
+        this.createLink = function (opts) {
             clique.util.require(opts.source, "source");
             clique.util.require(opts.target, "target");
 
-            return $.when(this.newLinkImpl({
+            return $.when(this.createLinkImpl({
                 source: opts.source,
                 target: opts.target,
                 undirected: _.isUndefined(opts.undirected) ? false : opts.undirected,
                 data: opts.data || {}
             })).then(_.bind(this.addMutator, this));
+        };
+
+        this.destroyNode = function (node) {
+            var key = node.key();
+            return this.destroyNodeImpl(key).then(function (response) {
+                return {
+                    key: key,
+                    response: response
+                };
+            });
+        };
+
+        this.destroyLink = function (link) {
+            var key = link.key();
+            return this.destroyLink(key).then(function (response) {
+                return {
+                    key: key,
+                    response: response
+                };
+            });
         };
 
         options = options || {};
