@@ -134,7 +134,7 @@
         }
     };
 
-    clique.util.Mutator = function (target) {
+    clique.util.Accessor = function (target) {
         var disallowed = new clique.util.Set();
 
         target.data = target.data || {};

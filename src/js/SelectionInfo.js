@@ -70,7 +70,7 @@
 
                 _.each(this.nodeButtons, _.bind(function (spec) {
                     this.$("button." + spec.cssClass).on("click", _.bind(function () {
-                        var render = _.bind(spec.callback, this)(this.graph.adapter.getMutator(this.model.focused()));
+                        var render = _.bind(spec.callback, this)(this.graph.adapter.getAccessor(this.model.focused()));
                         if (render) {
                             this.render();
                         }
@@ -80,14 +80,14 @@
                 _.each(this.selectionButtons, _.bind(function (spec) {
                     this.$("button." + spec.cssClass).on("click", _.bind(function () {
                         var render,
-                            selectionMutators;
+                            selectionAccessors;
 
-                        selectionMutators = _.map(this.model.items(), this.graph.adapter.getMutator, this.graph.adapter);
+                        selectionAccessors = _.map(this.model.items(), this.graph.adapter.getAccessor, this.graph.adapter);
 
                         if (spec.repeat) {
-                            render = _.any(_.map(selectionMutators, _.bind(spec.callback, this)));
+                            render = _.any(_.map(selectionAccessors, _.bind(spec.callback, this)));
                         } else {
-                            render = _.bind(spec.callback, this)(selectionMutators, this.graph.adapter.getMutator(this.model.focused()));
+                            render = _.bind(spec.callback, this)(selectionAccessors, this.graph.adapter.getAccessor(this.model.focused()));
                         }
 
                         if (render) {
@@ -148,7 +148,7 @@
 
     SelectionInfo.collapseNode = function (node) {
         var loners,
-            mutators;
+            accessors;
 
         // Find all neighbors of the node that have exactly one
         // neighbor.
@@ -156,10 +156,10 @@
             return _.size(this.graph.neighbors(nbr)) === 1;
         }, this);
 
-        // Extract the mutator objects for these nodes.
-        mutators = _.map(loners, this.graph.adapter.getMutator, this.graph.adapter);
+        // Extract the accessor objects for these nodes.
+        accessors = _.map(loners, this.graph.adapter.getAccessor, this.graph.adapter);
 
         // Hide them.
-        _.each(mutators, SelectionInfo.hideNode, this);
+        _.each(accessors, SelectionInfo.hideNode, this);
     };
 }(window.clique, window.Backbone, window._, window.template));

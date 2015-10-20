@@ -50,7 +50,7 @@
             this.fill = _.bind(function (d) {
                 var initial;
 
-                this.model.adapter.getMutator(d.key)
+                this.model.adapter.getAccessor(d.key)
                     .clearTransient("root");
 
                 if (d.key === this.focused) {
