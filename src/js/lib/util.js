@@ -139,7 +139,7 @@
 
         target.data = target.data || {};
 
-        _.each(["key", "source", "target"], function (d) {
+        _.each(["key", "source", "target", "data"], function (d) {
             disallowed.add(d);
         });
 
@@ -181,6 +181,18 @@
                 return true;
             },
 
+            getAttributeObject: function () {
+                var result = {};
+
+                _.each(target, function (value, key) {
+                    if (!disallowed.has(key)) {
+                        result[key] = value;
+                    }
+                });
+
+                return result;
+            },
+
             getAllData: function () {
                 return _.pairs(target.data);
             },
@@ -197,6 +209,16 @@
             clearData: function (prop) {
                 delete target.data[prop];
                 this.trigger("cleared", this, prop);
+            },
+
+            getDataObject: function () {
+                var result = {};
+
+                _.each(target.data, function (value, key) {
+                    result[key] = value;
+                });
+
+                return result;
             },
 
             getTarget: function () {
