@@ -134,10 +134,10 @@
         }
     };
 
-    clique.util.Accessor = function (target) {
+    clique.util.Accessor = function (raw) {
         var disallowed = new clique.util.Set();
 
-        target.data = target.data || {};
+        raw.data = raw.data || {};
 
         _.each(["key", "source", "target", "data"], function (d) {
             disallowed.add(d);
@@ -145,22 +145,22 @@
 
         return _.extend({
             key: function () {
-                return target.key;
+                return raw.key;
             },
 
             source: function () {
-                return target.source.key || target.source;
+                return raw.source.key || raw.source;
             },
 
             target: function () {
-                return target.target.key || target.target;
+                return raw.target.key || raw.target;
             },
 
             getAttribute: function (prop) {
                 if (disallowed.has(prop)) {
                     return;
                 }
-                return target[prop];
+                return raw[prop];
             },
 
             setAttribute: function (prop, value) {
@@ -168,7 +168,7 @@
                     return false;
                 }
 
-                target[prop] = value;
+                raw[prop] = value;
                 return true;
             },
 
@@ -177,14 +177,14 @@
                     return false;
                 }
 
-                delete target[prop];
+                delete raw[prop];
                 return true;
             },
 
             getAttributeObject: function () {
                 var result = {};
 
-                _.each(target, function (value, key) {
+                _.each(raw, function (value, key) {
                     if (!disallowed.has(key)) {
                         result[key] = value;
                     }
@@ -194,35 +194,35 @@
             },
 
             getAllData: function () {
-                return _.pairs(target.data);
+                return _.pairs(raw.data);
             },
 
             getData: function (prop) {
-                return target.data[prop];
+                return raw.data[prop];
             },
 
             setData: function (prop, value) {
-                target.data[prop] = value;
+                raw.data[prop] = value;
                 this.trigger("changed", this, prop, value);
             },
 
             clearData: function (prop) {
-                delete target.data[prop];
+                delete raw.data[prop];
                 this.trigger("cleared", this, prop);
             },
 
             getDataObject: function () {
                 var result = {};
 
-                _.each(target.data, function (value, key) {
+                _.each(raw.data, function (value, key) {
                     result[key] = value;
                 });
 
                 return result;
             },
 
-            getTarget: function () {
-                return target;
+            getRaw: function () {
+                return raw;
             }
         }, Backbone.Events);
     };

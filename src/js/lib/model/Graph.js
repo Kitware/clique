@@ -69,7 +69,7 @@
                 var newLinks;
 
                 // Add the node to the graph model.
-                this.nodes[node.key()] = node.getTarget();
+                this.nodes[node.key()] = node.getRaw();
 
                 // Filter away links not incident on nodes currently in the
                 // graph.
@@ -90,15 +90,15 @@
                             this.back.add(link.target(), link.source());
                         }
 
-                        link.getTarget().source = this.nodes[link.source()];
-                        link.getTarget().target = this.nodes[link.target()];
+                        link.getRaw().source = this.nodes[link.source()];
+                        link.getRaw().target = this.nodes[link.target()];
 
-                        return link.getTarget();
+                        return link.getRaw();
                     }
                 }, this));
 
                 this.set({
-                    nodes: this.get("nodes").concat([node.getTarget()]),
+                    nodes: this.get("nodes").concat([node.getRaw()]),
                     links: this.get("links").concat(newLinks)
                 });
             }, this));
