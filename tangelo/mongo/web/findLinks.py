@@ -15,8 +15,6 @@ def run(host=None, db=None, coll=None, spec=None, source=None, target=None, undi
     graph = db[coll]
 
     spec = load_json(spec, {})
-    # source = load_json(source, None)
-    # target = load_json(target, None)
     undirected = load_json(undirected, True)
     directed = load_json(directed, True)
 
@@ -37,23 +35,18 @@ def run(host=None, db=None, coll=None, spec=None, source=None, target=None, undi
     directedness = []
 
     if not undirected:
-        directedness.append({"data.bidir": {"$exists": False}})
+        directedness.append({"undirected": {"$exists": False}})
 
     if not directed:
-        directedness.append({"data.bidir": True,
-                             "data.reference": {"$exists": False}})
+        directedness.append({"undirected": True})
 
     if len(directedness) > 0:
         directedness = {"$or": directedness}
     else:
         directedness = {}
 
-    # Formulate an exception for the shadow-halves of bidirectional links.
-    no_shadow = {"$or": [{"data.bidir": {"$ne": True}},
-                         {"data.reference": {"$not": {"$exists": True}}}]}
-
     # Join the content, directedness, and exception queries together.
-    query = {"$and": [matcher, directedness, no_shadow]}
+    query = {"$and": [matcher, directedness]}
 
     # Perform the query and return the result(s).
     return bson.json_util.dumps(list(graph.find(query)))
