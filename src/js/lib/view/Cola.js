@@ -51,7 +51,7 @@
                 var initial;
 
                 this.model.adapter.getAccessor(d.key)
-                    .clearTransient("root");
+                    .clearAttribute("root");
 
                 if (d.key === this.focused) {
                     initial = this.focusColor;

@@ -119,8 +119,8 @@
     });
 
     SelectionInfo.hideNode = function (node) {
-        node.setTransient("selected", false);
-        node.clearTransient("root");
+        node.setAttribute("selected", false);
+        node.clearAttribute("root");
         this.graph.removeNeighborhood({
             center: node,
             radius: 0

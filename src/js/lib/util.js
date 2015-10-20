@@ -156,14 +156,14 @@
                 return target.target.key || target.target;
             },
 
-            getTransient: function (prop) {
+            getAttribute: function (prop) {
                 if (disallowed.has(prop)) {
                     return;
                 }
                 return target[prop];
             },
 
-            setTransient: function (prop, value) {
+            setAttribute: function (prop, value) {
                 if (disallowed.has(prop)) {
                     return false;
                 }
@@ -172,7 +172,7 @@
                 return true;
             },
 
-            clearTransient: function (prop) {
+            clearAttribute: function (prop) {
                 if (disallowed.has(prop)) {
                     return false;
                 }

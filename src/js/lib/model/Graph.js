@@ -86,7 +86,7 @@
 
                         this.forward.add(link.source(), link.target());
 
-                        if (link.getTransient("undirected")) {
+                        if (link.getAttribute("undirected")) {
                             this.back.add(link.target(), link.source());
                         }
 
