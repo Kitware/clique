@@ -1794,29 +1794,29 @@
     clique.adapter = {};
 
     clique.Adapter = function (options) {
-        var mutators;
+        var accessors;
 
-        // Keep track of mutators.
-        this.mutators = mutators = {};
-        this.onNewMutator = this.onNewMutator || _.noop;
-        this.addMutator = function (blob) {
+        // Keep track of accessors.
+        this.accessors = accessors = {};
+        this.onNewAccessor = this.onNewAccessor || _.noop;
+        this.addAccessor = function (blob) {
             var mut;
 
-            if (!_.has(mutators, blob.key)) {
-                mutators[blob.key] = new clique.util.Mutator(blob);
-                this.onNewMutator(mut);
+            if (!_.has(accessors, blob.key)) {
+                accessors[blob.key] = new clique.util.Accessor(blob);
+                this.onNewAccessor(mut);
             }
 
-            mut = mutators[blob.key];
+            mut = accessors[blob.key];
 
             return mut;
         };
 
         // Define methods.
-        this.getMutator = _.propertyOf(mutators);
+        this.getAccessor = _.propertyOf(accessors);
 
         this.findNodes = function (spec) {
-            return $.when(this.findNodesImpl(spec)).then(_.partial(_.map, _, this.addMutator, this));
+            return $.when(this.findNodesImpl(spec)).then(_.partial(_.map, _, this.addAccessor, this));
         };
 
         this.findNode = function (spec) {
@@ -1825,7 +1825,7 @@
                     return undefined;
                 }
 
-                return this.addMutator(results[0]);
+                return this.addAccessor(results[0]);
             }, this));
         };
 
@@ -1847,7 +1847,7 @@
             delete spec.source;
             delete spec.target;
 
-            return $.when(this.findLinksImpl(spec, source, target, undirected, directed)).then(_.partial(_.map, _, this.addMutator, this));
+            return $.when(this.findLinksImpl(spec, source, target, undirected, directed)).then(_.partial(_.map, _, this.addAccessor, this));
         };
 
         this.findLink = function (spec) {
@@ -1856,7 +1856,7 @@
                     return undefined;
                 }
 
-                return this.addMutator(results[0]);
+                return this.addAccessor(results[0]);
             }, this));
         };
 
@@ -1965,9 +1965,9 @@
                     return key === link.source() ? link.target() : link.source();
                 });
 
-                // Attempt to retrieve the mutators.  The ones we don't have
+                // Attempt to retrieve the accessors.  The ones we don't have
                 // yet will show up as undefined in this array.
-                muts = _.map(neighborKeys, this.getMutator, this);
+                muts = _.map(neighborKeys, this.getAccessor, this);
 
                 _.each(muts, function (mut, i) {
                     if (_.isUndefined(mut)) {
@@ -2033,13 +2033,13 @@
 
         this.createNode = function (data) {
             return $.when(this.createNodeImpl(data || {}))
-                .then(_.bind(this.addMutator, this));
+                .then(_.bind(this.addAccessor, this));
         };
 
         this.createLink = function (source, target, _data, undirected) {
             var data;
 
-            // If source/target is a mutator, call its key method to get the
+            // If source/target is a accessor, call its key method to get the
             // key; otherwise, assume it is a string describing the key already.
             source = _.result(source, "key", source);
             target = _.result(target, "key", target);
@@ -2048,7 +2048,7 @@
             undirected = _.isUndefined(undirected) ? false : undirected;
 
             return $.when(this.createLinkImpl(source, target, data, undirected))
-                .then(_.bind(this.addMutator, this));
+                .then(_.bind(this.addAccessor, this));
         };
 
         this.destroyNode = function (node) {
@@ -2302,73 +2302,91 @@
         }
     };
 
-    clique.util.Mutator = function (target) {
+    clique.util.Accessor = function (raw) {
         var disallowed = new clique.util.Set();
 
-        target.data = target.data || {};
+        raw.data = raw.data || {};
 
-        _.each(["key", "source", "target"], function (d) {
+        _.each(["key", "source", "target", "data"], function (d) {
             disallowed.add(d);
         });
 
         return _.extend({
             key: function () {
-                return target.key;
+                return raw.key;
             },
 
             source: function () {
-                return target.source.key || target.source;
+                return raw.source.key || raw.source;
             },
 
             target: function () {
-                return target.target.key || target.target;
+                return raw.target.key || raw.target;
             },
 
-            getTransient: function (prop) {
+            getAttribute: function (prop) {
                 if (disallowed.has(prop)) {
                     return;
                 }
-                return target[prop];
+                return raw[prop];
             },
 
-            setTransient: function (prop, value) {
+            setAttribute: function (prop, value) {
                 if (disallowed.has(prop)) {
                     return false;
                 }
 
-                target[prop] = value;
+                raw[prop] = value;
                 return true;
             },
 
-            clearTransient: function (prop) {
+            clearAttribute: function (prop) {
                 if (disallowed.has(prop)) {
                     return false;
                 }
 
-                delete target[prop];
+                delete raw[prop];
                 return true;
             },
 
-            getAllData: function () {
-                return _.pairs(target.data);
+            getAllAttributes: function () {
+                var result = {};
+
+                _.each(raw, function (value, key) {
+                    if (!disallowed.has(key)) {
+                        result[key] = value;
+                    }
+                });
+
+                return result;
             },
 
             getData: function (prop) {
-                return target.data[prop];
+                return raw.data[prop];
             },
 
             setData: function (prop, value) {
-                target.data[prop] = value;
+                raw.data[prop] = value;
                 this.trigger("changed", this, prop, value);
             },
 
             clearData: function (prop) {
-                delete target.data[prop];
+                delete raw.data[prop];
                 this.trigger("cleared", this, prop);
             },
 
-            getTarget: function () {
-                return target;
+            getAllData: function () {
+                var result = {};
+
+                _.each(raw.data, function (value, key) {
+                    result[key] = value;
+                });
+
+                return result;
+            },
+
+            getRaw: function () {
+                return raw;
             }
         }, Backbone.Events);
     };
@@ -2445,7 +2463,7 @@
                 var newLinks;
 
                 // Add the node to the graph model.
-                this.nodes[node.key()] = node.getTarget();
+                this.nodes[node.key()] = node.getRaw();
 
                 // Filter away links not incident on nodes currently in the
                 // graph.
@@ -2462,19 +2480,19 @@
 
                         this.forward.add(link.source(), link.target());
 
-                        if (link.getTransient("undirected")) {
+                        if (link.getAttribute("undirected")) {
                             this.back.add(link.target(), link.source());
                         }
 
-                        link.getTarget().source = this.nodes[link.source()];
-                        link.getTarget().target = this.nodes[link.target()];
+                        link.getRaw().source = this.nodes[link.source()];
+                        link.getRaw().target = this.nodes[link.target()];
 
-                        return link.getTarget();
+                        return link.getRaw();
                     }
                 }, this));
 
                 this.set({
-                    nodes: this.get("nodes").concat([node.getTarget()]),
+                    nodes: this.get("nodes").concat([node.getRaw()]),
                     links: this.get("links").concat(newLinks)
                 });
             }, this));
@@ -2751,8 +2769,8 @@
             this.fill = _.bind(function (d) {
                 var initial;
 
-                this.model.adapter.getMutator(d.key)
-                    .clearTransient("root");
+                this.model.adapter.getAccessor(d.key)
+                    .clearAttribute("root");
 
                 if (d.key === this.focused) {
                     initial = this.focusColor;
