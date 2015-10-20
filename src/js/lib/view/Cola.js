@@ -147,13 +147,13 @@
 
                     this.count = {};
 
-                    bumpCount = _.bind(function (source, target, bidir) {
+                    bumpCount = _.bind(function (source, target, undirected) {
                         var info = key(source, target),
                             name = info.name,
                             tier;
 
-                        if (bidir) {
-                            tier = "bidir";
+                        if (undirected) {
+                            tier = "undirected";
                         } else if (info.reverse) {
                             tier = "back";
                         } else {
@@ -164,7 +164,7 @@
                             this.count[name] = {
                                 forward: 0,
                                 back: 0,
-                                bidir: 0
+                                undirected: 0
                             };
                         }
 
@@ -177,7 +177,7 @@
                     }, this);
 
                     this.links.datum(function (d) {
-                        d.linkRank = bumpCount(d.source.key, d.target.key, d.data && d.data.bidir);
+                        d.linkRank = bumpCount(d.source.key, d.target.key, d.undirected);
                         return d;
                     });
                 }, this)());
@@ -195,8 +195,8 @@
                 this.links.selectAll("path")
                     .attr("d", _.bind(function (d) {
                         var linkRank,
-                            bidirCount,
-                            bidirOffset,
+                            undirectedCount,
+                            undirectedOffset,
                             forwardCount,
                             backCount,
                             multiplier,
@@ -217,17 +217,17 @@
                             return x + "," + y;
                         };
 
-                        bidirCount = this.count[d.linkRank.name].bidir;
-                        bidirOffset = Number(bidirCount % 2 === 0);
+                        undirectedCount = this.count[d.linkRank.name].undirected;
+                        undirectedOffset = Number(undirectedCount % 2 === 0);
                         forwardCount = this.count[d.linkRank.name].forward;
                         backCount = this.count[d.linkRank.name].back;
 
-                        if (d.linkRank.tier === "bidir") {
-                            linkRank = d.linkRank.rank + bidirOffset;
+                        if (d.linkRank.tier === "undirected") {
+                            linkRank = d.linkRank.rank + undirectedOffset;
                         } else if (d.linkRank.tier === "forward") {
-                            linkRank = bidirCount + bidirOffset + 2 * d.linkRank.rank;
+                            linkRank = undirectedCount + undirectedOffset + 2 * d.linkRank.rank;
                         } else if (d.linkRank.tier === "back") {
-                            linkRank = bidirCount + 1 + bidirOffset + 2 * d.linkRank.rank;
+                            linkRank = undirectedCount + 1 + undirectedOffset + 2 * d.linkRank.rank;
                         }
 
                         multiplier = 0.15 * (linkRank % 2 === 0 ? -linkRank / 2 : (linkRank + 1) / 2);
@@ -252,7 +252,7 @@
                         };
 
                         if (linkRank === 0) {
-                            if (data.bidir) {
+                            if (d.undirected) {
                                 path = [
                                     "M", point(d.source.x + 0.25 * offset.x, d.source.y + 0.25 * offset.y),
                                     "L", point(d.target.x + 0.25 * offset.x, d.target.y + 0.25 * offset.y),
@@ -267,7 +267,7 @@
                                 ];
                             }
                         } else {
-                            if (data.bidir) {
+                            if (d.undirected) {
                                 nControl = {
                                     x: d.source.x + 0.5*dx - multiplier * dy,
                                     y: d.source.y + 0.5*dy - multiplier * -dx
@@ -547,11 +547,6 @@
             this.nodes = me.select("g.nodes")
                 .selectAll("g.node")
                 .data(nodeData, _.property("key"));
-
-            linkData = _.filter(this.model.get("links"), function (link) {
-                // Filter away all "shadow" halves of bidirectional links.
-                return !(link.data && link.data.bidir && _.has(link.data || {}, "reference"));
-            });
 
             this.cola
                 .nodes(nodeData)
