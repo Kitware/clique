@@ -3,20 +3,12 @@ from bson.objectid import ObjectId
 import json
 from pymongo import MongoClient
 
-import tangelo
-
 
 def load_json(value, default):
     return default if value is None else json.loads(value)
 
 
 def run(host=None, db=None, coll=None, spec=None, source=None, target=None, undirected=None, directed=None):
-    tangelo.log_warning(spec)
-    tangelo.log_warning(source)
-    tangelo.log_warning(target)
-    tangelo.log_warning(undirected)
-    tangelo.log_warning(directed)
-
     # Connect to the mongo collection.
     client = MongoClient(host)
     db = client[db]
@@ -62,8 +54,6 @@ def run(host=None, db=None, coll=None, spec=None, source=None, target=None, undi
 
     # Join the content, directedness, and exception queries together.
     query = {"$and": [matcher, directedness, no_shadow]}
-
-    tangelo.log_warning(query)
 
     # Perform the query and return the result(s).
     return bson.json_util.dumps(list(graph.find(query)))

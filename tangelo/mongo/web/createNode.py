@@ -15,8 +15,6 @@ def run(host=None, db=None, coll=None, data={}):
     db = client[db]
     graph = db[coll]
 
-    tangelo.log_warning(data)
-
     rec = {"_id": ObjectId(),
            "type": "node",
            "data": {k: readValue(v) for k, v in data.iteritems()}}
