@@ -27,8 +27,6 @@
             var $ = Backbone.$,
                 center,
                 radius,
-                linkOpts,
-                nodeOpts,
                 chain,
                 nextFrontier;
 
@@ -37,45 +35,12 @@
 
             center = options.center;
             radius = options.radius;
-            linkOpts = options.linkOpts || {};
-            nodeOpts = options.nodeOpts || {};
 
             nextFrontier = _.bind(function (frontier) {
-                var from,
-                    to,
-                    getNeighbors;
-
-                getNeighbors = _.bind(function (which) {
-                    return $.when.apply($, _.map(frontier, function (node) {
-                        var spec = {};
-                        spec[which] = node.key();
-
-                        return this.adapter.findLinks(spec);
-                    }, this)).then(_.bind(function () {
-                        var links,
-                            reqs;
-
-                        // Pipe the node keys through findNode() in order to get
-                        // mutators for them.
-                        links = _.flatten(_.toArray(arguments));
-                        reqs = _.map(_.invoke(links, which === "source" ? "target" : "source"), this.adapter.findNodeByKey, this.adapter);
-
-                        return $.when.apply($, reqs);
-                    }, this)).then(function () {
-                        return _.toArray(arguments);
-                    });
-                }, this);
-
-                from = getNeighbors("source");
-                to = getNeighbors("target");
-
-                return $.when(from, to).then(function (fromNodes, toNodes) {
-                    var all = fromNodes.concat(toNodes);
-
-                    // Eliminate duplicates.
-                    return _.uniq(all, function (i) {
-                        return i.key();
-                    });
+                return $.when.apply($, _.map(frontier, function (node) {
+                    return this.adapter.getNeighbors(node);
+                }, this)).then(function () {
+                    return clique.util.concat.apply(this, _.toArray(arguments));
                 }).then(_.bind(function (newFrontier) {
                     return this.addNodes(newFrontier).then(function () {
                         return newFrontier;
@@ -83,8 +48,7 @@
                 }, this));
             }, this);
 
-            chain = $.Deferred();
-            chain.resolve([center]);
+            chain = $.when([center]);
             this.addNode(center);
 
             _.times(radius, function () {
@@ -95,56 +59,43 @@
         },
 
         addNode: function (node) {
-            var fromReq,
-                toReq;
-
             // Bail if node is already in graph.
             if (_.has(this.nodes, node.key())) {
                 return;
             }
 
-            // Find all links to/from node.
-            fromReq = this.adapter.findLinks({
-                source: node.key()
-            });
-
-            toReq = this.adapter.findLinks({
-                target: node.key()
-            });
-
-            return Backbone.$.when(fromReq, toReq).then(_.bind(function (from, to) {
+            // Get all neighboring links.
+            this.adapter.getNeighborLinks(node).then(_.bind(function (links) {
                 var newLinks;
 
-                // Filter away the links that end in nodes not in the current
+                // Add the node to the graph model.
+                this.nodes[node.key()] = node.getTarget();
+
+                // Filter away links not incident on nodes currently in the
                 // graph.
-                from = _.filter(from, function (link) {
-                    return _.has(this.nodes, link.target());
+                links = _.filter(links, function (link) {
+                    return _.has(this.nodes, link.source()) && _.has(this.nodes, link.target());
                 }, this);
-
-                to = _.filter(to, function (link) {
-                    return _.has(this.nodes, link.source());
-                }, this);
-
-                // Add node to the graph.
-                if (!_.has(this.nodes, node.key())) {
-                    this.nodes[node.key()] = node.getTarget();
-                }
 
                 // Add the links to the graph.
-                newLinks = _.compact(_.map(from.concat(to), _.bind(function (link) {
+                newLinks = _.compact(_.map(links, function (link) {
                     var key = link.key();
+
                     if (!this.links.has(key)) {
                         this.links.add(key);
 
                         this.forward.add(link.source(), link.target());
-                        this.back.add(link.target(), link.source());
+
+                        if (link.getTransient("undirected")) {
+                            this.back.add(link.target(), link.source());
+                        }
 
                         link.getTarget().source = this.nodes[link.source()];
                         link.getTarget().target = this.nodes[link.target()];
 
                         return link.getTarget();
                     }
-                }, this)));
+                }, this));
 
                 this.set({
                     nodes: this.get("nodes").concat([node.getTarget()]),

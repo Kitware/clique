@@ -583,7 +583,7 @@ buf.push("</div>");}.call(this,"_" in locals_for_with?locals_for_with._:typeof _
             if (!focused) {
                 renderTemplate(focused);
             } else {
-                this.graph.adapter.findNode({queryOp: "==", field: "key", value: focused})
+                this.graph.adapter.findNodeByKey(focused)
                     .then(renderTemplate);
             }
         }

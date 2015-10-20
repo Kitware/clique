@@ -112,7 +112,7 @@
             if (!focused) {
                 renderTemplate(focused);
             } else {
-                this.graph.adapter.findNode({queryOp: "==", field: "key", value: focused})
+                this.graph.adapter.findNodeByKey(focused)
                     .then(renderTemplate);
             }
         }
