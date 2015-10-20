@@ -20,5 +20,5 @@ mixin item(key, value)
                 .col-md-1
                     table.table.table-striped.table-bordered.select-ok
                         +item("key", link.key())
-                        for item in link.getAllData()
+                        for item in _.pairs(link.getAllData())
                             +item(item[0], item[1])

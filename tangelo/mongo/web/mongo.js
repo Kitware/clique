@@ -18,7 +18,7 @@
                 spec: JSON.stringify(spec)
             }, this.mongoStore);
 
-            return $.getJSON("plugin/mongo/findNodes2", data).then(function (responses) {
+            return $.getJSON("plugin/mongo/findNodes", data).then(function (responses) {
                 return _.map(responses, function (response) {
                     var result = {};
 
@@ -48,7 +48,7 @@
                 directed: directed
             }, this.mongoStore);
 
-            return $.getJSON("plugin/mongo/findLinks2", data).then(function (responses) {
+            return $.getJSON("plugin/mongo/findLinks", data).then(function (responses) {
                 return _.map(responses, function (response) {
                     var result = {};
 

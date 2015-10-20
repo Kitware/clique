@@ -79,7 +79,7 @@ An adapter, in the context of Clique, is any JavaScript object that contains the
 following methods:
 
 - ``findNodes(spec)`` - returns a jQuery Deferred object that will resolve with
-  a list of node mutator objects matching the ``spec``, which itself is an
+  a list of node accessor objects matching the ``spec``, which itself is an
 object of key-value pairs describing the sought pattern from the set of nodes.
 
 - ``findNode(spec)`` - returns a jQuery Deferred object that will resolve with a
