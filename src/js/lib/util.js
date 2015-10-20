@@ -181,7 +181,7 @@
                 return true;
             },
 
-            getAttributeObject: function () {
+            getAllAttributes: function () {
                 var result = {};
 
                 _.each(raw, function (value, key) {
@@ -191,10 +191,6 @@
                 });
 
                 return result;
-            },
-
-            getAllData: function () {
-                return _.pairs(raw.data);
             },
 
             getData: function (prop) {
@@ -211,7 +207,7 @@
                 this.trigger("cleared", this, prop);
             },
 
-            getDataObject: function () {
+            getAllData: function () {
                 var result = {};
 
                 _.each(raw.data, function (value, key) {
