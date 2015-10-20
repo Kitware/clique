@@ -17,7 +17,6 @@
     "gulp-uglify": "^1.2.0",
     "gulp-util": "^3.0.4",
     "jade": "^1.9.2",
-    "jshashes": "^1.0.5",
     "jshint-stylish": "^1.0.1",
     "underscore": "^1.8.3"
   }
