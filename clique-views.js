@@ -270,9 +270,9 @@ else
 {
 buf.push("<nav><ul class=\"pagination\"><li class=\"prev\"><a aria-label=\"Previous\" class=\"virtual-link prev\"><span aria-hidden=\"true\">&laquo;</span></a></li><li class=\"next\"><a aria-label=\"Next\" class=\"virtual-link next\"><span aria-hidden=\"true\">&raquo;</span></a></li></ul></nav><div class=\"container full-width\"><div class=\"row\"><div class=\"col-md-1\"><table class=\"table table-striped table-bordered select-ok\">");
 jade_mixins["item"]("key", link.key());
-// iterate link.getAllData()
+// iterate _.pairs(link.getAllData())
 ;(function(){
-  var $$obj = link.getAllData();
+  var $$obj = _.pairs(link.getAllData());
   if ('number' == typeof $$obj.length) {
 
     for (var $index = 0, $$l = $$obj.length; $index < $$l; $index++) {
@@ -338,9 +338,9 @@ if ( metadata)
 {
 buf.push("<div class=\"row\"><div class=\"col-md-1\"><table class=\"table table-striped table-bordered select-ok\">");
 jade_mixins["item"]("key", node.key());
-// iterate node.getAllData()
+// iterate _.pairs(node.getAllData())
 ;(function(){
-  var $$obj = node.getAllData();
+  var $$obj = _.pairs(node.getAllData());
   if ('number' == typeof $$obj.length) {
 
     for (var $index = 0, $$l = $$obj.length; $index < $$l; $index++) {
@@ -541,7 +541,7 @@ buf.push("</div>");}.call(this,"_" in locals_for_with?locals_for_with._:typeof _
 
                 _.each(this.nodeButtons, _.bind(function (spec) {
                     this.$("button." + spec.cssClass).on("click", _.bind(function () {
-                        var render = _.bind(spec.callback, this)(this.graph.adapter.getMutator(this.model.focused()));
+                        var render = _.bind(spec.callback, this)(this.graph.adapter.getAccessor(this.model.focused()));
                         if (render) {
                             this.render();
                         }
@@ -551,14 +551,14 @@ buf.push("</div>");}.call(this,"_" in locals_for_with?locals_for_with._:typeof _
                 _.each(this.selectionButtons, _.bind(function (spec) {
                     this.$("button." + spec.cssClass).on("click", _.bind(function () {
                         var render,
-                            selectionMutators;
+                            selectionAccessors;
 
-                        selectionMutators = _.map(this.model.items(), this.graph.adapter.getMutator, this.graph.adapter);
+                        selectionAccessors = _.map(this.model.items(), this.graph.adapter.getAccessor, this.graph.adapter);
 
                         if (spec.repeat) {
-                            render = _.any(_.map(selectionMutators, _.bind(spec.callback, this)));
+                            render = _.any(_.map(selectionAccessors, _.bind(spec.callback, this)));
                         } else {
-                            render = _.bind(spec.callback, this)(selectionMutators, this.graph.adapter.getMutator(this.model.focused()));
+                            render = _.bind(spec.callback, this)(selectionAccessors, this.graph.adapter.getAccessor(this.model.focused()));
                         }
 
                         if (render) {
@@ -590,8 +590,8 @@ buf.push("</div>");}.call(this,"_" in locals_for_with?locals_for_with._:typeof _
     });
 
     SelectionInfo.hideNode = function (node) {
-        node.setTransient("selected", false);
-        node.clearTransient("root");
+        node.setAttribute("selected", false);
+        node.clearAttribute("root");
         this.graph.removeNeighborhood({
             center: node,
             radius: 0
@@ -619,7 +619,7 @@ buf.push("</div>");}.call(this,"_" in locals_for_with?locals_for_with._:typeof _
 
     SelectionInfo.collapseNode = function (node) {
         var loners,
-            mutators;
+            accessors;
 
         // Find all neighbors of the node that have exactly one
         // neighbor.
@@ -627,10 +627,10 @@ buf.push("</div>");}.call(this,"_" in locals_for_with?locals_for_with._:typeof _
             return _.size(this.graph.neighbors(nbr)) === 1;
         }, this);
 
-        // Extract the mutator objects for these nodes.
-        mutators = _.map(loners, this.graph.adapter.getMutator, this.graph.adapter);
+        // Extract the accessor objects for these nodes.
+        accessors = _.map(loners, this.graph.adapter.getAccessor, this.graph.adapter);
 
         // Hide them.
-        _.each(mutators, SelectionInfo.hideNode, this);
+        _.each(accessors, SelectionInfo.hideNode, this);
     };
 }(window.clique, window.Backbone, window._, window.template));

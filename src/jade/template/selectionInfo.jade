@@ -29,7 +29,7 @@ mixin button(spec, node)
                     .col-md-1
                         table.table.table-striped.table-bordered.select-ok
                             +item("key", node.key())
-                            for item in node.getAllData()
+                            for item in _.pairs(node.getAllData())
                                 +item(item[0], item[1])
             .row
                 h5 Node

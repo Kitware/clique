@@ -50,8 +50,8 @@
             this.fill = _.bind(function (d) {
                 var initial;
 
-                this.model.adapter.getMutator(d.key)
-                    .clearTransient("root");
+                this.model.adapter.getAccessor(d.key)
+                    .clearAttribute("root");
 
                 if (d.key === this.focused) {
                     initial = this.focusColor;
