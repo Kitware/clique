@@ -1119,6 +1119,36 @@
                     .remove();
             }, this);
 
+            this.renderNodes = _.bind(options.renderNodes || function (nodes) {
+                var that = this;
+
+                nodes.selectAll("circle.node")
+                    .style("fill", _.bind(this.prefill, this))
+                    .style("stroke", "blue")
+                    .style("stroke-width", _.bind(strokeWidth, this))
+                    .filter(function (d) {
+                        return d.root;
+                    })
+                    .transition()
+                    .delay(this.transitionTime * 2)
+                    .each("interrupt", function () {
+                        d3.select(this)
+                            .style("fill", _.bind(that.fill, that));
+                    })
+                    .duration(this.transitionTime * 2)
+                    .style("fill", _.bind(this.fill, this));
+
+                nodes.selectAll("rect")
+                    .style("fill", _.bind(function (d) {
+                        return d.key === this.focused ? "pink" : "lightgray";
+                    }, this))
+                    .style("stroke", _.bind(function (d) {
+                        return this.selected.has(d.key) ? "blue" : _.bind(this.fill, this, d)();
+                    }, this));
+
+                this.renderLabels();
+            }, this);
+
             this.onTick = _.bind(options.onTick || function () {
                 this.links.selectAll("path")
                     .attr("d", _.bind(function (d) {
@@ -1302,7 +1332,7 @@
             this.listenTo(this.model, "change", _.debounce(this.render, 100));
             this.listenTo(this.selection, "focused", function (focused) {
                 this.focused = focused;
-                this.renderNodes();
+                this.renderNodes(this.nodes);
             });
             this.listenTo(this.linkSelection, "removed", function (key) {
                 d3.select(this.el)
@@ -1428,42 +1458,6 @@
             }
         },
 
-        renderNodes: function (cfg) {
-            var that = this;
-
-            if (cfg && cfg.cancel) {
-                this.nodes.interrupt();
-            }
-
-            this.nodes
-                .selectAll("circle.node")
-                .style("fill", _.bind(this.prefill, this))
-                .style("stroke", "blue")
-                .style("stroke-width", _.bind(strokeWidth, this))
-                .filter(function (d) {
-                    return d.root;
-                })
-                .transition()
-                .delay(this.transitionTime * 2)
-                .each("interrupt", function () {
-                    d3.select(this)
-                        .style("fill", _.bind(that.fill, that));
-                })
-                .duration(this.transitionTime * 2)
-                .style("fill", _.bind(this.fill, this));
-
-            this.nodes
-                .selectAll("rect")
-                .style("fill", _.bind(function (d) {
-                    return d.key === this.focused ? "pink" : "lightgray";
-                }, this))
-                .style("stroke", _.bind(function (d) {
-                    return this.selected.has(d.key) ? "blue" : _.bind(this.fill, this, d)();
-                }, this));
-
-            this.renderLabels();
-        },
-
         render: function () {
             var nodeData = this.model.get("nodes"),
                 linkData = this.model.get("links"),
@@ -1475,11 +1469,6 @@
             this.nodes = me.select("g.nodes")
                 .selectAll("g.node")
                 .data(nodeData, _.property("key"));
-
-            // linkData = _.filter(this.model.get("links"), function (link) {
-                // // Filter away all "shadow" halves of bidirectional links.
-                // return !(link.data && link.data.bidir && _.has(link.data || {}, "reference"));
-            // });
 
             this.cola
                 .nodes(nodeData)
@@ -1550,9 +1539,8 @@
                         this.selection.add(d.key);
                     }
 
-                    this.renderNodes({
-                        cancel: true
-                    });
+                    this.nodes.interrupt();
+                    this.renderNodes(this.nodes);
                 }
                 this.dragging = false;
             }, this)).on("mouseup.signal", _.bind(function () {
@@ -1563,7 +1551,7 @@
             }, this))
             .call(drag);
 
-            this.renderNodes();
+            this.renderNodes(this.nodes);
 
             this.nodeExit(this.nodes.exit());
 
@@ -1699,7 +1687,7 @@
                             that.selection.remove(node.key);
                         }, this));
 
-                        that.renderNodes();
+                        that.renderNodes(that.nodes);
 
                         _.each(that.model.get("links"), _.bind(function (link) {
                             that.linkSelection.remove(link.key);
@@ -1798,9 +1786,8 @@
                         });
 
                         // Update the view.
-                        that.renderNodes({
-                            cancel: true
-                        });
+                        that.nodes.interrupt();
+                        that.renderNodes(that.nodes);
                     }
 
                     dragging = false;
