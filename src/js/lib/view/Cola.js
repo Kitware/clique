@@ -262,7 +262,10 @@
 
                         multiplier = 0.15 * (linkRank % 2 === 0 ? -linkRank / 2 : (linkRank + 1) / 2);
                         flip = linkRank % 2 === 0 ? -1.0 : 1.0;
-                        if (d.linkRank.tier === "forward") {
+                        if (d.source.key < d.target.key) {
+                            // This implements "right-handedness" - make links
+                            // going "forward" (whether directd or undirected)
+                            // curve the other way as the ones going "backward".
                             multiplier = multiplier * -1;
                             flip = flip * -1;
                         }
