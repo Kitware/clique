@@ -58,14 +58,18 @@
             return chain;
         },
 
-        addNode: function (node) {
+        addNode: function (node, neighborCache) {
+            var request;
+
             // Bail if node is already in graph.
             if (_.has(this.nodes, node.key())) {
                 return;
             }
 
+            request = _.isUndefined(neighborCache) ? this.adapter.getNeighborLinks(node) : Backbone.$.when(neighborCache);
+
             // Get all neighboring links.
-            this.adapter.getNeighborLinks(node).then(_.bind(function (links) {
+            request.then(_.bind(function (links) {
                 var newLinks;
 
                 // Add the node to the graph model.
