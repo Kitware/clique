@@ -365,7 +365,7 @@
                     targetMatch = _.isUndefined(target) || (link.target.key === target),
                     dataMatch = _.isMatch(spec, link.data);
 
-                return _.every([sourceMatch, targetMatch, dataMatch, undirectedMatch, directedMatch]);
+                return _.every([sourceMatch, targetMatch, dataMatch, undirectedMatch || directedMatch]);
             });
         },
 
