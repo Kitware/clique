@@ -18,7 +18,7 @@ install``), and finally run Gulp to build Clique and the example application
 (``gulp``).
 
 To run the application, use the Gulp serve task (``gulp serve``).  The
-application will be served at http://localhost:3000?mode=demo by default.
+application will be served at http://localhost:3000 by default.
 
 ### Interacting with the Application
 
