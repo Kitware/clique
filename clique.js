@@ -712,7 +712,9 @@
         },
 
         addNodes: function (nodes) {
-            var reqs = _.map(nodes, this.addNode, this);
+            var reqs = _.map(nodes, function (node) {
+                this.addNode(node);
+            }, this);
 
             return clique.util.jqSequence(reqs);
         },
