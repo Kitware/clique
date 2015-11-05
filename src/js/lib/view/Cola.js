@@ -445,7 +445,8 @@
         },
 
         showLabels: function () {
-            var phase = 500;
+            var phase = 500,
+                padding = 1.1;
 
             this.nodes.selectAll("circle.node")
                 .filter(this.label)
@@ -462,16 +463,16 @@
                 .delay(phase)
                 .duration(phase)
                 .attr("x", function (d) {
-                    return -d.textBBox.width / 2;
+                    return -padding * d.textBBox.width / 2;
                 })
                 .attr("y", function (d) {
-                    return -d.textBBox.height / 2;
+                    return -padding * d.textBBox.height / 2;
                 })
                 .attr("width", function (d) {
-                    return d.textBBox.width;
+                    return padding * d.textBBox.width;
                 })
                 .attr("height", function (d) {
-                    return d.textBBox.height;
+                    return padding * d.textBBox.height;
                 });
 
             this.nodes.selectAll("text")
