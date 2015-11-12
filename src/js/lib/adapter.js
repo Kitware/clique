@@ -166,10 +166,14 @@
         };
 
         this.getNeighbors = function (node, opts) {
-            var key = node.key();
-            return this.getNeighborLinks(node, opts).then(_.bind(function (links) {
+            var key = node.key(),
+                links;
+
+            return this.getNeighborLinks(node, opts).then(_.bind(function (links_) {
                 var neighborKeys,
                     muts;
+
+                links = links_;
 
                 neighborKeys = _.map(links, function (link) {
                     return key === link.source() ? link.target() : link.source();
@@ -189,7 +193,10 @@
 
                 return $.when.apply($, muts);
             }, this)).then(function () {
-                return _.toArray(arguments);
+                return {
+                    nodes: _.toArray(arguments),
+                    links: links
+                };
             });
         };
 
