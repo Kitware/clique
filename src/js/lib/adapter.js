@@ -252,27 +252,33 @@
             var step,
                 chain,
                 result = {
-                    nodes: [node],
-                    links: [],
+                    nodes: {},
+                    links: {},
                     boundary: null
                 };
 
-            step = function (frontier) {
+            step = _.bind(function (frontier) {
                 // Get neighbor links of all nodes in the frontier.
                 return $.when.apply($, _.map(frontier, _.partial(this.getNeighbors, _, undefined), this)).then(function () {
                     var args = _.toArray(arguments),
-                        nodes,
-                        links;
+                        nodes = [];
 
-                    nodes = clique.util.concat.apply(clique.util, _.pluck(args, "nodes"));
-                    links = clique.util.concat.apply(clique.util, _.pluck(args, "links"));
+                    _.each(args, function (neighbors) {
+                        _.each(neighbors.nodes, function (node) {
+                            if (!_.has(result.nodes, node.key())) {
+                                nodes.push(node);
+                            }
+                            result.nodes[node.key()] = node;
+                        });
 
-                    result.nodes = clique.util.concat(result.nodes, nodes);
-                    result.links = clique.util.concat(result.links, links);
+                        _.each(neighbors.links, function (link) {
+                            result.links[link.key()] = link;
+                        });
+                    });
 
                     return nodes;
                 });
-            };
+            }, this);
 
             // Initialize the chain with the node we're expanding from.
             chain = $.when([node]);
@@ -285,7 +291,20 @@
             // Compute the neighboring links on the final frontier.
             return chain.then(_.bind(function (frontier) {
                 return $.when.apply($, _.map(frontier, _.partial(this.getNeighborLinks, _, undefined), this)).then(function () {
-                    result.boundary = clique.util.concat.apply(clique.util, _.toArray(arguments));
+                    var boundary = {};
+
+                    _.each(_.toArray(arguments), function (links) {
+                        _.each(links, function (link) {
+                            if (!_.has(result.links, link.key())) {
+                                boundary[link.key()] = link;
+                            }
+                        });
+                    });
+
+                    result.nodes = _.values(result.nodes);
+                    result.links = _.values(result.links);
+                    result.boundary = _.values(boundary);
+
                     return result;
                 });
             }, this));
