@@ -40,7 +40,10 @@
                 return $.when.apply($, _.map(frontier, function (node) {
                     return this.adapter.getNeighbors(node);
                 }, this)).then(function () {
-                    return clique.util.concat.apply(this, _.toArray(arguments));
+                    var args = _.toArray(arguments),
+                        nodes = _.pluck(args, "nodes");
+
+                    return clique.util.concat.apply(this, nodes);
                 }).then(_.bind(function (newFrontier) {
                     return this.addNodes(newFrontier).then(function () {
                         return newFrontier;
