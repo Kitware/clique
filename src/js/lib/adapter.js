@@ -253,8 +253,7 @@
                 chain,
                 result = {
                     nodes: {},
-                    links: {},
-                    boundary: null
+                    links: {}
                 };
 
             step = _.bind(function (frontier) {
@@ -291,19 +290,16 @@
             // Compute the neighboring links on the final frontier.
             return chain.then(_.bind(function (frontier) {
                 return $.when.apply($, _.map(frontier, _.partial(this.getNeighborLinks, _, undefined), this)).then(function () {
-                    var boundary = {};
-
                     _.each(_.toArray(arguments), function (links) {
                         _.each(links, function (link) {
                             if (!_.has(result.links, link.key())) {
-                                boundary[link.key()] = link;
+                                result.links[link.key()] = link;
                             }
                         });
                     });
 
                     result.nodes = _.values(result.nodes);
                     result.links = _.values(result.links);
-                    result.boundary = _.values(boundary);
 
                     return result;
                 });

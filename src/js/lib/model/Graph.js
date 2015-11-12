@@ -29,10 +29,8 @@
             }
 
             return this.adapter.neighborhood(node, radius).then(_.bind(function (nbd) {
-                var links = nbd.links.concat(nbd.boundary);
-
                 _.each(nbd.nodes, _.bind(function (node) {
-                    this.addNode(node, links);
+                    this.addNode(node, nbd.links);
                 }, this));
             }, this));
         },
