@@ -248,6 +248,49 @@
             });
         };
 
+        this.neighborhood = function (node, radius) {
+            var step,
+                chain,
+                result = {
+                    nodes: [node],
+                    links: [],
+                    boundary: null
+                };
+
+            step = function (frontier) {
+                // Get neighbor links of all nodes in the frontier.
+                return $.when.apply($, _.map(frontier, _.partial(this.getNeighbors, _, undefined), this)).then(function () {
+                    var args = _.toArray(arguments),
+                        nodes,
+                        links;
+
+                    nodes = clique.util.concat.apply(clique.util, _.pluck(args, "nodes"));
+                    links = clique.util.concat.apply(clique.util, _.pluck(args, "links"));
+
+                    result.nodes = clique.util.concat(result.nodes, nodes);
+                    result.links = clique.util.concat(result.links, links);
+
+                    return nodes;
+                });
+            };
+
+            // Initialize the chain with the node we're expanding from.
+            chain = $.when([node]);
+
+            // Expand the chain enough times to reach the specified radius.
+            _.each(_.range(radius), function () {
+                chain = chain.then(step);
+            });
+
+            // Compute the neighboring links on the final frontier.
+            return chain.then(_.bind(function (frontier) {
+                return $.when.apply($, _.map(frontier, _.partial(this.getNeighborLinks, _, undefined), this)).then(function () {
+                    result.boundary = clique.util.concat.apply(clique.util, _.toArray(arguments));
+                    return result;
+                });
+            }, this));
+        };
+
         this.createNode = function (data) {
             return $.when(this.createNodeImpl(data || {}))
                 .then(_.bind(this.addAccessor, this));
