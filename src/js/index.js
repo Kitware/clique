@@ -48,8 +48,7 @@ $(function () {
         var name = $("#name").val().trim(),
             spec,
             radiusText = $("#radius").val().trim(),
-            radius = Number(radiusText),
-            delsearch = $("#delsearch").prop("checked");
+            radius = Number(radiusText);
 
         if (name === "" || radiusText === "" || isNaN(radius)) {
             return;
