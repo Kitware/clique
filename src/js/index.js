@@ -61,11 +61,7 @@ $(function () {
         graph.adapter.findNode(spec)
             .then(function (center) {
                 if (center) {
-                    graph.addNeighborhood({
-                        center: center,
-                        radius: radius,
-                        deleted: delsearch
-                    });
+                    graph.addNeighborhood(center, radius);
                 }
             });
     });
