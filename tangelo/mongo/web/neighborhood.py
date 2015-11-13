@@ -1,82 +1,71 @@
-import bson.json_util
 from bson.objectid import ObjectId
-import json
 from pymongo import MongoClient
 
 
-def freeze(rec):
-    return (rec["_id"], bson.json_util.dumps(rec))
+def process_node(node):
+    return {"key": str(node["_id"]),
+            "data": node.get("data", {})}
 
 
-def run(host=None, db=None, coll=None, center=None, radius=None, deleted=json.dumps(False)):
-    # Connect to the Mongo collection
-    client = MongoClient(host)
-    db = client[db]
-    graph = db[coll]
+def process_link(link):
+    return {"key": str(link["_id"]),
+            "source": str(link["source"]),
+            "target": str(link["target"]),
+            "data": link.get("data", {})}
 
-    # Prepare the arguments.
+
+def run(host=None, db=None, coll=None, start_key=None, radius=None):
+    # Connect to database.
+    graph = MongoClient(host)[db][coll]
+
+    # Prepare arguments.
     radius = int(radius)
-    deleted = json.loads(deleted)
 
-    frontier = set()
-    neighbor_nodes = set()
-    neighbor_links = []
+    # Find the starting node in the database.
+    start = graph.find_one({"_id": ObjectId(start_key)})
+    if start is None:
+        return {"nodes": [],
+                "links": []}
 
-    # Find the center node in the database.
-    center_node = graph.find_one({"_id": ObjectId(center)})
+    # Initialize return value data.
+    nbd_nodes = {start_key: start}
+    nbd_links = {}
 
-    if center_node is not None and deleted or not center_node["data"].get("deleted"):
-        frozen = freeze(center_node)
+    # Initialize frontier.
+    frontier = [start]
 
-        neighbor_nodes.add(frozen)
-        frontier.add(frozen)
-
-    for i in range(radius):
-        new_frontier = set()
+    # Walk through each level of the neighborhood, computing new frontiers as we
+    # go.
+    for i in range(radius + 1):
+        new_frontier = {}
 
         # Compute the next frontier from the current frontier.
         for node in frontier:
-            id = node[0]
+            node_id = node["_id"]
 
-            # Find all incoming and outgoing links from all nodes in the
-            # frontier.
-            query = {"$and": [{"type": "link"},
-                              {"$or": [{"source": id},
-                                       {"target": id}]}]}
+            # Find all incoming and outgoing links from the node.
+            links = graph.find({"type": "link",
+                                "$or": [{"source": node_id},
+                                        {"target": node_id}]})
 
-            links = graph.find(query)
-
-            # Collect the neighbors of the node, and add them to the new
-            # frontier if appropriate.
+            # Collect the neighbor nodes of the node and all them to the new
+            # frontier if they have not already been seen previously.
             for link in links:
-                source = link["source"] == id
-                neighbor_id = source and link["target"] or link["source"]
-                query_clauses = [{"_id": neighbor_id}]
-                if not deleted:
-                    query_clauses.append({"$or": [{"data.deleted": {"$exists": False}},
-                                                  {"data.deleted": False}]})
-                neighbor = graph.find_one({"$and": query_clauses})
+                is_source = link["source"] == node_id
+                noid = link["target"] if is_source else link["source"]
+
+                neighbor = graph.find_one({"_id": noid})
                 if neighbor is not None:
-                    frozen = freeze(neighbor)
-                    if frozen not in neighbor_nodes:
-                        new_frontier.add(frozen)
-                        neighbor_nodes.add(frozen)
+                    # If on the final level (at the final frontier) don't add
+                    # the neighbor nodes, just the neighbor links.
+                    if i < radius and noid not in nbd_nodes:
+                        nbd_nodes[noid] = neighbor
+                        new_frontier[noid] = neighbor
 
-                    neighbor_link = {"_id": link["_id"],
-                                     "data": link.get("data", {})}
+                    nbd_links[link["_id"]] = link
 
-                    if source:
-                        neighbor_link.update({"source": str(id),
-                                              "target": str(frozen[0])})
-                    else:
-                        neighbor_link.update({"source": str(frozen[0]),
-                                              "target": str(id)})
+        # Set the new frontier equal to the one we just computed.
+        frontier = new_frontier.values()
 
-                    neighbor_links.append(neighbor_link)
-
-            frontier = new_frontier
-
-    processed = map(lambda x: json.loads(x[1]), neighbor_nodes)
-
-    return {"nodes": processed,
-            "links": json.loads(bson.json_util.dumps(neighbor_links))}
+    return {"nodes": map(process_node, nbd_nodes.values()),
+            "links": map(process_link, nbd_links.values())}
