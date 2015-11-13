@@ -611,10 +611,7 @@ buf.push("</div>");}.call(this,"_" in locals_for_with?locals_for_with._:typeof _
     };
 
     SelectionInfo.expandNode = function (node) {
-        this.graph.addNeighborhood({
-            center: node,
-            radius: 1
-        });
+        this.graph.addNeighborhood(node, 1);
     };
 
     SelectionInfo.collapseNode = function (node) {
