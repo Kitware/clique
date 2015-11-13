@@ -222,8 +222,9 @@
             }, this);
 
             this.onTick = _.bind(options.onTick || function () {
+                var that = this;
                 this.links.selectAll("path")
-                    .attr("d", _.bind(function (d) {
+                    .attr("d", function (d) {
                         var linkRank,
                             undirectedCount,
                             undirectedOffset,
@@ -241,16 +242,21 @@
                             point,
                             data;
 
+                        if (d.source.key === d.target.key) {
+                            d3.select(this).remove();
+                            return;
+                        }
+
                         data = d.data || {};
 
                         point = function (x, y) {
                             return x + "," + y;
                         };
 
-                        undirectedCount = this.count[d.linkRank.name].undirected;
+                        undirectedCount = that.count[d.linkRank.name].undirected;
                         undirectedOffset = Number(undirectedCount % 2 === 0);
-                        forwardCount = this.count[d.linkRank.name].forward;
-                        backCount = this.count[d.linkRank.name].back;
+                        forwardCount = that.count[d.linkRank.name].forward;
+                        backCount = that.count[d.linkRank.name].back;
 
                         if (d.linkRank.tier === "undirected") {
                             linkRank = d.linkRank.rank + undirectedOffset;
@@ -322,7 +328,7 @@
                         }
 
                         return path.join(" ");
-                    }, this));
+                    });
             }, this);
 
             this.label = options.label || "";
