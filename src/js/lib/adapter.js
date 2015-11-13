@@ -311,7 +311,7 @@
 
         this.neighborhood = function (node, radius) {
             if (this.neighborhoodImpl) {
-                return this.neighborhoodImpl(node, radius).then(_.bind(function (nbd) {
+                return this.neighborhoodImpl.apply(this, arguments).then(_.bind(function (nbd) {
                     return {
                         nodes: _.map(nbd.nodes, this.addAccessor, this),
                         links: _.map(nbd.links, this.addAccessor, this)

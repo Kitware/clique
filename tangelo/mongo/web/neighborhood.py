@@ -1,4 +1,5 @@
 from bson.objectid import ObjectId
+import itertools
 from pymongo import MongoClient
 
 
@@ -14,12 +15,13 @@ def process_link(link):
             "data": link.get("data", {})}
 
 
-def run(host=None, db=None, coll=None, start_key=None, radius=None):
+def run(host=None, db=None, coll=None, start_key=None, radius=None, linklimit=None):
     # Connect to database.
     graph = MongoClient(host)[db][coll]
 
     # Prepare arguments.
     radius = int(radius)
+    linklimit = int(linklimit) if linklimit is not None else None
 
     # Find the starting node in the database.
     start = graph.find_one({"_id": ObjectId(start_key)})
@@ -50,7 +52,7 @@ def run(host=None, db=None, coll=None, start_key=None, radius=None):
 
             # Collect the neighbor nodes of the node and all them to the new
             # frontier if they have not already been seen previously.
-            for link in links:
+            for link in itertools.islice(links, linklimit):
                 is_source = link["source"] == node_id
                 noid = link["target"] if is_source else link["source"]
 
