@@ -23,39 +23,16 @@
             });
         },
 
-        addNeighborhood: function (options) {
-            var $ = Backbone.$,
-                center,
-                radius,
-                chain,
-                nextFrontier;
+        addNeighborhood: function (node, radius) {
+            if (_.isUndefined(radius)) {
+                radius = 1;
+            }
 
-            clique.util.require(options.center, "center");
-            clique.util.require(options.radius, "radius");
-
-            center = options.center;
-            radius = options.radius;
-
-            nextFrontier = _.bind(function (frontier) {
-                return $.when.apply($, _.map(frontier, function (node) {
-                    return this.adapter.getNeighbors(node);
-                }, this)).then(function () {
-                    return clique.util.concat.apply(this, _.toArray(arguments));
-                }).then(_.bind(function (newFrontier) {
-                    return this.addNodes(newFrontier).then(function () {
-                        return newFrontier;
-                    });
+            return this.adapter.neighborhood(node, radius).then(_.bind(function (nbd) {
+                _.each(nbd.nodes, _.bind(function (node) {
+                    this.addNode(node, nbd.links);
                 }, this));
-            }, this);
-
-            chain = $.when([center]);
-            this.addNode(center);
-
-            _.times(radius, function () {
-                chain = chain.then(nextFrontier);
-            });
-
-            return chain;
+            }, this));
         },
 
         addNode: function (node, neighborCache) {

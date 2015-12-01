@@ -89,6 +89,16 @@
             });
         },
 
+        neighborhoodImpl: function (node, radius, linklimit) {
+            var data = _.extend({
+                start_key: node.key(),
+                radius: radius,
+                linklimit: linklimit
+            }, this.mongoStore);
+
+            return $.getJSON("plugin/mongo/neighborhood", data);
+        },
+
         createLinkImpl: function (source, target, _data, undirected) {
             var data;
 
