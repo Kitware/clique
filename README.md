@@ -1,11 +1,15 @@
 # Clique
-Graph editor library/application
+A JavaScript library and framework for graph and network visualization and
+exploration.
 
-**Clique** is a library for processing social network graphs, using *adapters*
-to load in graph data from any source, a client application (such as the example
-application included in this repository) to explore, manipulate, and annotate
-the graph, and the adapters' ability to perform *writebacks* to save the updated
-graph for later use.
+**Clique** is a library for handling, visualizing, and computing with graphs and
+networks as part of your web application. Clique uses *adapters* to load in
+graph data from any source, which is then piped on demand to models and views in
+the browser. The views provide visualization and user interaction with the
+graph, while the adapter can trickle in data from even the largest graphs,
+allowing you to explore graphs step by step, from the bottom up, to formulate
+insights about your data that are not possible solely from large graph
+visualization techniques.
 
 This document contains some information about Clique's API and the example
 application that comes with Clique.
@@ -18,7 +22,7 @@ install``), and finally run Gulp to build Clique and the example application
 (``gulp``).
 
 To run the application, use the Gulp serve task (``gulp serve``).  The
-application will be served at http://localhost:3000?mode=demo by default.
+application will be served at http://localhost:3000 by default.
 
 ### Interacting with the Application
 
