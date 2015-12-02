@@ -41,6 +41,7 @@
             }, this);
 
             // Initialize the chain with the node we're expanding from.
+            result.nodes[node.key()] = node;
             chain = $.when([node]);
 
             // Expand the chain enough times to reach the specified radius.
