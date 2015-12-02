@@ -72,6 +72,7 @@ $(function () {
         window.view = view = new clique.view.Cola({
             model: graph,
             el: "#content",
+            linkDistance: 200,
             fill: function (d) {
                 var colors = [
                     "rgb(166,206,227)",
