@@ -136,6 +136,62 @@
             });
         };
 
+        this.neighborLinkCount = function (node, opts) {
+            if (this.neighborLinkCountImpl) {
+                return this.neighborLinkCountImpl(node, opts);
+            } else {
+                return this.getNeighborLinks(node, opts).then(_.size);
+            }
+        };
+
+        this.outgoingLinkCount = function (node) {
+            return this.neighborLinkCount(node, {
+                outgoing: true,
+                incoming: false,
+                undirected: false
+            });
+        };
+
+        this.outflowingLinkCount = function (node) {
+            return this.neighborLinkCount(node, {
+                outgoing: true,
+                incoming: false,
+                undirected: true
+            });
+        };
+
+        this.incomingLinkCount = function (node) {
+            return this.neighborLinkCount(node, {
+                outgoing: false,
+                incoming: true,
+                undirected: false
+            });
+        };
+
+        this.inflowingLinkCount = function (node) {
+            return this.neighborLinkCount(node, {
+                outgoing: false,
+                incoming: true,
+                undirected: true
+            });
+        };
+
+        this.undirectedLinkCount = function (node) {
+            return this.neighborLinkCount(node, {
+                outgoing: false,
+                incoming: false,
+                undirected: true
+            });
+        };
+
+        this.directedLinkCount = function (node) {
+            return this.neighborLinkCount(node, {
+                outgoing: true,
+                incoming: true,
+                undirected: false
+            });
+        };
+
         this.getNeighborLinks = function (node, opts) {
             var reqs = [];
 
@@ -219,6 +275,64 @@
 
         this.getDirectedLinks = function (node) {
             return this.getNeighborLinks(node, {
+                outgoing: true,
+                incoming: true,
+                undirected: false
+            });
+        };
+
+        this.neighborCount = function (node, opts) {
+            if (this.neighborCountImpl) {
+                return this.neighborCountImpl(node, opts);
+            } else {
+                return this.getNeighbors(node, opts).then(function (nbrs) {
+                    return _.size(nbrs.nodes);
+                });
+            }
+        };
+
+        this.outgoingNeighborCount = function (node) {
+            return this.neighborCount(node, {
+                outgoing: true,
+                incoming: false,
+                undirected: false
+            });
+        };
+
+        this.outflowingNeighborCount = function (node) {
+            return this.neighborCount(node, {
+                outgoing: true,
+                incoming: false,
+                undirected: true
+            });
+        };
+
+        this.incomingNeighborCount = function (node) {
+            return this.neighborCount(node, {
+                outgoing: false,
+                incoming: true,
+                undirected: false
+            });
+        };
+
+        this.inflowingNeighborCount = function (node) {
+            return this.neighborCount(node, {
+                outgoing: false,
+                incoming: true,
+                undirected: true
+            });
+        };
+
+        this.undirectedNeighborCount = function (node) {
+            return this.neighborCount(node, {
+                outgoing: false,
+                incoming: false,
+                undirected: true
+            });
+        };
+
+        this.directedNeighborCount = function (node) {
+            return this.neighborCount(node, {
                 outgoing: true,
                 incoming: true,
                 undirected: false
