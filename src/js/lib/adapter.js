@@ -109,17 +109,15 @@
 
         this.findLinks = function (_spec) {
             var spec = clique.util.deepCopy(_spec),
-                undirected = _.isUndefined(spec.undirected) ? true : spec.undirected,
-                directed = _.isUndefined(spec.directed) ? true : spec.directed,
+                directed = spec.directed,
                 source = spec.source,
                 target = spec.target;
 
-            delete spec.undirected;
             delete spec.directed;
             delete spec.source;
             delete spec.target;
 
-            return $.when(this.findLinksImpl(spec, source, target, undirected, directed)).then(_.partial(_.map, _, this.addAccessor, this));
+            return $.when(this.findLinksImpl(spec, source, target, directed)).then(_.partial(_.map, _, this.addAccessor, this));
         };
 
         this.findLink = function (spec) {
@@ -149,26 +147,26 @@
             if (opts.outgoing) {
                 reqs.push(this.findLinks({
                     source: node.key(),
-                    undirected: false
+                    directed: true
                 }));
             }
 
             if (opts.incoming) {
                 reqs.push(this.findLinks({
                     target: node.key(),
-                    undirected: false
+                    directed: true
                 }));
             }
 
             if (opts.undirected) {
                 reqs.push(this.findLinks({
                     source: node.key(),
-                    undirected: true
+                    directed: false
                 }));
 
                 reqs.push(this.findLinks({
                     target: node.key(),
-                    undirected: true
+                    directed: false
                 }));
             }
 
@@ -439,15 +437,22 @@
             return result;
         },
 
-        findLinksImpl: function (spec, source, target, undirected, directed) {
+        findLinksImpl: function (spec, source, target, directed) {
             return _.filter(this.links, function (link) {
-                var undirectedMatch = (link.undirected || false) === undirected,
-                    directedMatch = (_.isUndefined(link.undirected) || !link.undirected) === directed,
+                var directedMatch,
                     sourceMatch = _.isUndefined(source) || (link.source.key === source),
                     targetMatch = _.isUndefined(target) || (link.target.key === target),
                     dataMatch = _.isMatch(spec, link.data);
 
-                return _.every([sourceMatch, targetMatch, dataMatch, undirectedMatch || directedMatch]);
+                if (_.isUndefined(directed) || _.isNull(directed)) {
+                    directedMatch = true;
+                } else if (directed) {
+                    directedMatch = !link.undirected;
+                } else {
+                    directedMatch = link.undirected;
+                }
+
+                return _.every([sourceMatch, targetMatch, dataMatch, directedMatch]);
             });
         },
 
