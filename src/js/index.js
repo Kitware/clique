@@ -4,26 +4,51 @@
 function bigramGraph() {
     "use strict";
 
+    // Construct a graph based on bigram frequency in the English language. The
+    // nodes each represent a letter of the alphabet, while a link from one
+    // letter to another means the bigram frequency of those two letter is
+    // greater than three times that predicted by chance alone. If the reverse
+    // bigram also has this property, the link will be undirected.
     return $.getJSON("assets/bigram.json").then(function (bigram) {
         var alphabet = "abcdefghijklmnopqrstuvwxyz",
             nodes = [],
             links = [],
             threshold = 3 * (1 / 676),
+            done = {},
             aCodePoint = "a".codePointAt(0);
 
+        // Construct the node set, one per English letter.
         _.each(alphabet, function (letter) {
             nodes.push({
                 name: letter
             });
         });
 
+        // Iterate through each possible bigram.
         _.each(alphabet, function (first) {
             _.each(alphabet, function (second) {
-                if (first !== second && bigram[first + second] > threshold) {
-                    links.push({
+                var key = first + second,
+                    rev = second + first,
+                    link;
+
+                // Omitting double letters (not supported by Clique cola view),
+                // check to see whether the bigram has high enough frequence
+                // (and wasn't already processed as a frequent reverse of an
+                // earlier bigram).
+                if (first !== second && !_.has(done, key) && bigram[key] > threshold) {
+                    link = {
                         source: first.codePointAt(0) - aCodePoint,
                         target: second.codePointAt(0) - aCodePoint
-                    });
+                    };
+
+                    // Make the link undirected if the reverse bigram is
+                    // sufficiently frequent as well.
+                    if (bigram[rev] > threshold) {
+                        link.undirected = true;
+                        done[rev] = null;
+                    }
+
+                    links.push(link);
                 }
             });
         });
