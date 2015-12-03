@@ -8,7 +8,7 @@ function bigramGraph() {
         var alphabet = "abcdefghijklmnopqrstuvwxyz",
             nodes = [],
             links = [],
-            threshold = 1 / 676,
+            threshold = 3 * (1 / 676),
             aCodePoint = "a".codePointAt(0);
 
         _.each(alphabet, function (letter) {
