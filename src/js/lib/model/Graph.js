@@ -43,7 +43,7 @@
                 return;
             }
 
-            request = _.isUndefined(neighborCache) ? this.adapter.getNeighborLinks(node) : Backbone.$.when(neighborCache);
+            request = _.isUndefined(neighborCache) ? this.adapter.neighborLinks(node) : Backbone.$.when(neighborCache);
 
             // Get all neighboring links.
             request.then(_.bind(function (links) {

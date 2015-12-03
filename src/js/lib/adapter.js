@@ -19,7 +19,7 @@
 
             step = _.bind(function (frontier) {
                 // Get neighbor links of all nodes in the frontier.
-                return $.when.apply($, _.map(frontier, _.partial(this.getNeighbors, _, undefined), this)).then(function () {
+                return $.when.apply($, _.map(frontier, _.partial(this.neighbors, _, undefined), this)).then(function () {
                     var args = _.toArray(arguments),
                         nodes = [];
 
@@ -51,7 +51,7 @@
 
             // Compute the neighboring links on the final frontier.
             return chain.then(_.bind(function (frontier) {
-                return $.when.apply($, _.map(frontier, _.partial(this.getNeighborLinks, _, undefined), this)).then(function () {
+                return $.when.apply($, _.map(frontier, _.partial(this.neighborLinks, _, undefined), this)).then(function () {
                     _.each(_.toArray(arguments), function (links) {
                         _.each(links, function (link) {
                             if (!_.has(result.links, link.key())) {
@@ -140,7 +140,7 @@
             if (this.neighborLinkCountImpl) {
                 return this.neighborLinkCountImpl(node, opts);
             } else {
-                return this.getNeighborLinks(node, opts).then(_.size);
+                return this.neighborLinks(node, opts).then(_.size);
             }
         };
 
@@ -192,7 +192,7 @@
             });
         };
 
-        this.getNeighborLinks = function (node, opts) {
+        this.neighborLinks = function (node, opts) {
             var reqs = [];
 
             opts = opts || {};
@@ -233,48 +233,48 @@
             });
         };
 
-        this.getOutgoingLinks = function (node) {
-            return this.getNeighborLinks(node, {
+        this.outgoingLinks = function (node) {
+            return this.neighborLinks(node, {
                 outgoing: true,
                 incoming: false,
                 undirected: false
             });
         };
 
-        this.getOutflowingLinks = function (node) {
-            return this.getNeighborLinks(node, {
+        this.outflowingLinks = function (node) {
+            return this.neighborLinks(node, {
                 outgoing: true,
                 incoming: false,
                 undirected: true
             });
         };
 
-        this.getIncomingLinks = function (node) {
-            return this.getNeighborLinks(node, {
+        this.incomingLinks = function (node) {
+            return this.neighborLinks(node, {
                 outgoing: false,
                 incoming: true,
                 undirected: false
             });
         };
 
-        this.getInflowingLinks = function (node) {
-            return this.getNeighborLinks(node, {
+        this.inflowingLinks = function (node) {
+            return this.neighborLinks(node, {
                 outgoing: false,
                 incoming: true,
                 undirected: true
             });
         };
 
-        this.getUndirectedLinks = function (node) {
-            return this.getNeighborLinks(node, {
+        this.undirectedLinks = function (node) {
+            return this.neighborLinks(node, {
                 outgoing: false,
                 incoming: false,
                 undirected: true
             });
         };
 
-        this.getDirectedLinks = function (node) {
-            return this.getNeighborLinks(node, {
+        this.directedLinks = function (node) {
+            return this.neighborLinks(node, {
                 outgoing: true,
                 incoming: true,
                 undirected: false
@@ -285,7 +285,7 @@
             if (this.neighborCountImpl) {
                 return this.neighborCountImpl(node, opts);
             } else {
-                return this.getNeighbors(node, opts).then(function (nbrs) {
+                return this.neighbors(node, opts).then(function (nbrs) {
                     return _.size(nbrs.nodes);
                 });
             }
@@ -339,11 +339,11 @@
             });
         };
 
-        this.getNeighbors = function (node, opts) {
+        this.neighbors = function (node, opts) {
             var key = node.key(),
                 links;
 
-            return this.getNeighborLinks(node, opts).then(_.bind(function (links_) {
+            return this.neighborLinks(node, opts).then(_.bind(function (links_) {
                 var neighborKeys,
                     muts;
 
@@ -374,48 +374,48 @@
             });
         };
 
-        this.getOutgoingNeighbors = function (node) {
-            return this.getNeighbors(node, {
+        this.outgoingNeighbors = function (node) {
+            return this.neighbors(node, {
                 outgoing: true,
                 incoming: false,
                 undirected: false
             });
         };
 
-        this.getOutflowingNeighbors = function (node) {
-            return this.getNeighbors(node, {
+        this.outflowingNeighbors = function (node) {
+            return this.neighbors(node, {
                 outgoing: true,
                 incoming: false,
                 undirected: true
             });
         };
 
-        this.getIncomingNeighbors = function (node) {
-            return this.getNeighbors(node, {
+        this.incomingNeighbors = function (node) {
+            return this.neighbors(node, {
                 outgoing: false,
                 incoming: true,
                 undirected: false
             });
         };
 
-        this.getInflowingNeighbors = function (node) {
-            return this.getNeighbors(node, {
+        this.inflowingNeighbors = function (node) {
+            return this.neighbors(node, {
                 outgoing: false,
                 incoming: true,
                 undirected: true
             });
         };
 
-        this.getUndirectedNeighbors = function (node) {
-            return this.getNeighbors(node, {
+        this.undirectedNeighbors = function (node) {
+            return this.neighbors(node, {
                 outgoing: false,
                 incoming: false,
                 undirected: true
             });
         };
 
-        this.getDirectedNeighbors = function (node) {
-            return this.getNeighbors(node, {
+        this.directedNeighbors = function (node) {
+            return this.neighbors(node, {
                 outgoing: true,
                 incoming: true,
                 undirected: false
