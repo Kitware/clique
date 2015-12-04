@@ -15,7 +15,7 @@ def run(host=None, db=None, coll=None, spec=None, source=None, target=None, dire
     graph = db[coll]
 
     spec = load_json(spec, {})
-    directed = load_json(directed)
+    directed = load_json(directed, None)
 
     # Look for links matching the keys and metadata specified.
     matcher = {"type": "link"}
