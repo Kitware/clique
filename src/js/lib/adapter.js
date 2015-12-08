@@ -8,15 +8,13 @@
         this.accessors = {};
         this.onNewAccessor = this.onNewAccessor || _.noop;
         this.addAccessor = function (blob) {
-            var mut,
-                accessors = this.accessors;
+            var accessors = this.accessors,
+                mut = accessors[blob.key];
 
-            if (!_.has(accessors, blob.key)) {
-                accessors[blob.key] = new clique.util.Accessor(blob);
+            if (_.isUndefined(mut)) {
+                mut = accessors[blob.key] = new clique.util.Accessor(blob);
                 this.onNewAccessor(mut);
             }
-
-            mut = accessors[blob.key];
 
             return mut;
         };
