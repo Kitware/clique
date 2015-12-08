@@ -568,11 +568,6 @@
 
                 return _.every([sourceMatch, targetMatch, dataMatch, directedMatch]);
             });
-        },
-
-        newNode: _.noop,
-        newLink: _.noop,
-        destroyNode: _.noop,
-        destroyLink: _.noop
+        }
     });
 }(window.clique, window._, window.Backbone, window.jQuery));
