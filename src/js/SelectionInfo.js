@@ -121,10 +121,7 @@
     SelectionInfo.hideNode = function (node) {
         node.setAttribute("selected", false);
         node.clearAttribute("root");
-        this.graph.removeNeighborhood({
-            center: node,
-            radius: 0
-        });
+        this.graph.removeNode(node.key());
     };
 
     SelectionInfo.deleteNode = function (node) {
@@ -140,7 +137,7 @@
     };
 
     SelectionInfo.expandNode = function (node) {
-        this.graph.addNeighborhood(node, 1);
+        this.graph.addNeighborhood(node);
     };
 
     SelectionInfo.collapseNode = function (node) {

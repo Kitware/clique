@@ -4,69 +4,7 @@
     clique.adapter = {};
 
     clique.Adapter = function (options) {
-        var accessors,
-            defaultNeighborhood;
-
-        // A default neighborhood computation function, to be used when the
-        // concrete adapter doesn't supply its own.
-        defaultNeighborhood = _.bind(function (node, radius) {
-            var step,
-                chain,
-                result = {
-                    nodes: {},
-                    links: {}
-                };
-
-            step = _.bind(function (frontier) {
-                // Get neighbor links of all nodes in the frontier.
-                return $.when.apply($, _.map(frontier, _.partial(this.neighbors, _, undefined), this)).then(function () {
-                    var args = _.toArray(arguments),
-                        nodes = [];
-
-                    _.each(args, function (neighbors) {
-                        _.each(neighbors.nodes, function (node) {
-                            if (!_.has(result.nodes, node.key())) {
-                                nodes.push(node);
-                            }
-                            result.nodes[node.key()] = node;
-                        });
-
-                        _.each(neighbors.links, function (link) {
-                            result.links[link.key()] = link;
-                        });
-                    });
-
-                    return nodes;
-                });
-            }, this);
-
-            // Initialize the chain with the node we're expanding from.
-            result.nodes[node.key()] = node;
-            chain = $.when([node]);
-
-            // Expand the chain enough times to reach the specified radius.
-            _.each(_.range(radius), function () {
-                chain = chain.then(step);
-            });
-
-            // Compute the neighboring links on the final frontier.
-            return chain.then(_.bind(function (frontier) {
-                return $.when.apply($, _.map(frontier, _.partial(this.neighborLinks, _, undefined), this)).then(function () {
-                    _.each(_.toArray(arguments), function (links) {
-                        _.each(links, function (link) {
-                            if (!_.has(result.links, link.key())) {
-                                result.links[link.key()] = link;
-                            }
-                        });
-                    });
-
-                    result.nodes = _.values(result.nodes);
-                    result.links = _.values(result.links);
-
-                    return result;
-                });
-            }, this));
-        }, this);
+        var accessors;
 
         // Keep track of accessors.
         this.accessors = accessors = {};
@@ -412,19 +350,6 @@
                 incoming: true,
                 undirected: false
             });
-        };
-
-        this.neighborhood = function (node, radius) {
-            if (this.neighborhoodImpl) {
-                return this.neighborhoodImpl.apply(this, arguments).then(_.bind(function (nbd) {
-                    return {
-                        nodes: _.map(nbd.nodes, this.addAccessor, this),
-                        links: _.map(nbd.links, this.addAccessor, this)
-                    };
-                }, this));
-            } else {
-                return defaultNeighborhood(node, radius);
-            }
         };
 
         this.createNode = function (data) {
