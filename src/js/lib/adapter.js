@@ -127,6 +127,10 @@
         };
 
         this.neighborLinks = function (node, opts) {
+            return this.neighborLinksRaw(node, opts).then(_.partial(_.map, _, this.addAccessor, this));
+        };
+
+        this.neighborLinksRaw = function (node, opts) {
             var reqs = [];
 
             opts = opts || {};
@@ -135,29 +139,16 @@
             });
 
             if (opts.outgoing) {
-                reqs.push(this.findLinks({
-                    source: node.key(),
-                    directed: true
-                }));
+                reqs.push(this.findLinksRaw(undefined, node.key(), undefined, true));
             }
 
             if (opts.incoming) {
-                reqs.push(this.findLinks({
-                    target: node.key(),
-                    directed: true
-                }));
+                reqs.push(this.findLinksRaw(undefined, undefined, node.key(), true));
             }
 
             if (opts.undirected) {
-                reqs.push(this.findLinks({
-                    source: node.key(),
-                    directed: false
-                }));
-
-                reqs.push(this.findLinks({
-                    target: node.key(),
-                    directed: false
-                }));
+                reqs.push(this.findLinksRaw(undefined, node.key(), undefined, false));
+                reqs.push(this.findLinksRaw(undefined, undefined, node.key(), false));
             }
 
             return $.when.apply($, reqs).then(function () {
@@ -473,7 +464,7 @@
                 var directedMatch,
                     sourceMatch = _.isUndefined(source) || (link.source.key === source),
                     targetMatch = _.isUndefined(target) || (link.target.key === target),
-                    dataMatch = _.isMatch(spec, link.data);
+                    dataMatch = _.isMatch(spec || {}, link.data);
 
                 if (_.isUndefined(directed) || _.isNull(directed)) {
                     directedMatch = true;
