@@ -25,8 +25,9 @@
         // Define methods.
         this.getAccessor = _.propertyOf(accessors);
 
-        this.findNodes = function (spec) {
-            return $.when(this.findNodesRaw(spec)).then(_.partial(_.map, _, this.addAccessor, this));
+        this.findNodes = function (spec, offset, limit) {
+            return $.when(this.findNodesRaw(spec, offset, limit))
+                .then(_.partial(_.map, _, this.addAccessor, this));
         };
 
         this.findNode = function (spec) {
@@ -440,7 +441,7 @@
             }, this);
         },
 
-        findNodesRaw: function (_spec) {
+        findNodesRaw: function (_spec, offset, limit) {
             var spec = clique.util.deepCopy(_spec),
                 searchspace = this.nodes,
                 result;
@@ -457,7 +458,7 @@
                 return _.isMatch(node.data, spec);
             });
 
-            return result;
+            return result.slice(offset || 0, (offset + limit) || undefined);
         },
 
         findLinksRaw: function (spec, source, target, directed, offset, limit) {
