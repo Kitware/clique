@@ -45,7 +45,7 @@
             });
         };
 
-        this.findLinks = function (_spec) {
+        this.findLinks = function (_spec, offset, limit) {
             var spec = clique.util.deepCopy(_spec),
                 directed = spec.directed,
                 source = spec.source,
@@ -55,7 +55,8 @@
             delete spec.source;
             delete spec.target;
 
-            return $.when(this.findLinksRaw(spec, source, target, directed)).then(_.partial(_.map, _, this.addAccessor, this));
+            return $.when(this.findLinksRaw(spec, source, target, directed, offset, limit))
+                .then(_.partial(_.map, _, this.addAccessor, this));
         };
 
         this.findLink = function (spec) {
@@ -459,7 +460,7 @@
             return result;
         },
 
-        findLinksRaw: function (spec, source, target, directed) {
+        findLinksRaw: function (spec, source, target, directed, offset, limit) {
             return _.filter(this.links, function (link) {
                 var directedMatch,
                     sourceMatch = _.isUndefined(source) || (link.source.key === source),
@@ -475,7 +476,7 @@
                 }
 
                 return _.every([sourceMatch, targetMatch, dataMatch, directedMatch]);
-            });
+            }).slice(offset || 0, (offset + limit) || undefined);
         }
     });
 }(window.clique, window._, window.Backbone, window.jQuery));
