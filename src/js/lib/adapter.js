@@ -88,11 +88,11 @@
         this.getAccessor = _.propertyOf(accessors);
 
         this.findNodes = function (spec) {
-            return $.when(this.findNodesImpl(spec)).then(_.partial(_.map, _, this.addAccessor, this));
+            return $.when(this.findNodesRaw(spec)).then(_.partial(_.map, _, this.addAccessor, this));
         };
 
         this.findNode = function (spec) {
-            return $.when(this.findNodesImpl(spec)).then(_.bind(function (results) {
+            return $.when(this.findNodesRaw(spec)).then(_.bind(function (results) {
                 if (_.isEmpty(results)) {
                     return undefined;
                 }
@@ -117,11 +117,11 @@
             delete spec.source;
             delete spec.target;
 
-            return $.when(this.findLinksImpl(spec, source, target, directed)).then(_.partial(_.map, _, this.addAccessor, this));
+            return $.when(this.findLinksRaw(spec, source, target, directed)).then(_.partial(_.map, _, this.addAccessor, this));
         };
 
         this.findLink = function (spec) {
-            return $.when(this.findLinksImpl(spec)).then(_.bind(function (results) {
+            return $.when(this.findLinksRaw(spec)).then(_.bind(function (results) {
                 if (_.isEmpty(results)) {
                     return undefined;
                 }
@@ -436,7 +436,7 @@
         };
 
         this.createNode = function (data) {
-            return $.when(this.createNodeImpl(data || {}))
+            return $.when(this.createNodeRaw(data || {}))
                 .then(_.bind(this.addAccessor, this));
         };
 
@@ -451,13 +451,13 @@
             data = _data || {};
             undirected = _.isUndefined(undirected) ? false : undirected;
 
-            return $.when(this.createLinkImpl(source, target, data, undirected))
+            return $.when(this.createLinkRaw(source, target, data, undirected))
                 .then(_.bind(this.addAccessor, this));
         };
 
         this.destroyNode = function (node) {
             var key = node.key();
-            return this.destroyNodeImpl(key).then(function (response) {
+            return this.destroyNodeRaw(key).then(function (response) {
                 return {
                     key: key,
                     response: response
@@ -467,7 +467,7 @@
 
         this.destroyLink = function (link) {
             var key = link.key();
-            return this.destroyLinkImpl(key).then(function (response) {
+            return this.destroyLinkRaw(key).then(function (response) {
                 return {
                     key: key,
                     response: response
@@ -531,7 +531,7 @@
             }, this);
         },
 
-        findNodesImpl: function (_spec) {
+        findNodesRaw: function (_spec) {
             var spec = clique.util.deepCopy(_spec),
                 searchspace = this.nodes,
                 result;
@@ -551,7 +551,7 @@
             return result;
         },
 
-        findLinksImpl: function (spec, source, target, directed) {
+        findLinksRaw: function (spec, source, target, directed) {
             return _.filter(this.links, function (link) {
                 var directedMatch,
                     sourceMatch = _.isUndefined(source) || (link.source.key === source),
