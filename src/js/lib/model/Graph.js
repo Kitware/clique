@@ -26,7 +26,7 @@
         addNeighborhood: function (node) {
             return this.adapter.neighbors(node).then(_.bind(function (neighbors) {
                 _.map(neighbors.nodes, _.partial(this.addNode, _, neighbors.links), this);
-            }));
+            }, this));
         },
 
         addNode: function (node, neighborCache) {
