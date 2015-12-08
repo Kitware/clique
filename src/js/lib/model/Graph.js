@@ -25,22 +25,18 @@
 
         addNeighborhood: function (node) {
             return this.adapter.neighbors(node).then(_.bind(function (neighbors) {
-                _.map(neighbors.nodes, _.partial(this.addNode, _, neighbors.links), this);
+                _.map(neighbors.nodes, _.partial(this.addNode, _), this);
             }, this));
         },
 
-        addNode: function (node, neighborCache) {
-            var request;
-
+        addNode: function (node) {
             // Bail if node is already in graph.
             if (_.has(this.nodes, node.key())) {
                 return;
             }
 
-            request = _.isUndefined(neighborCache) ? this.adapter.neighborLinks(node) : Backbone.$.when(neighborCache);
-
             // Get all neighboring links.
-            request.then(_.bind(function (links) {
+            this.adapter.neighborLinks(node).then(_.bind(function (links) {
                 var newLinks;
 
                 // Add the node to the graph model.
