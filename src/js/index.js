@@ -74,11 +74,9 @@ $(function () {
 
         $("#seed").on("click", function () {
             var name = $("#name").val().trim(),
-                spec,
-                radiusText = $("#radius").val().trim(),
-                radius = Number(radiusText);
+                spec;
 
-            if (name === "" || radiusText === "" || isNaN(radius)) {
+            if (name === "") {
                 return;
             }
 
@@ -89,7 +87,7 @@ $(function () {
             graph.adapter.findNode(spec)
                 .then(function (center) {
                     if (center) {
-                        graph.addNeighborhood(center, radius);
+                        graph.addNode(center);
                     }
                 });
         });
