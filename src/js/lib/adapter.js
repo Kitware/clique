@@ -128,11 +128,12 @@
             });
         };
 
-        this.neighborLinks = function (node, opts) {
-            return this.neighborLinksRaw(node, opts).then(_.partial(_.map, _, this.addAccessor, this));
+        this.neighborLinks = function (node, opts, offset, limit) {
+            return this.neighborLinksRaw(node, opts, offset, limit)
+                .then(_.partial(_.map, _, this.addAccessor, this));
         };
 
-        this.neighborLinksRaw = function (node, opts) {
+        this.neighborLinksRaw = function (node, opts, offset, limit) {
             var reqs = [];
 
             opts = opts || {};
@@ -154,9 +155,13 @@
             }
 
             return $.when.apply($, reqs).then(function () {
-                return _.reduce(_.toArray(arguments), function (memo, item) {
-                    return memo.concat(item);
-                }, []);
+                // This pipeline zips together the list of results, then
+                // flattens the resulting list-of-lists, removes all undefineds
+                // (which may arise if some of the lists are shorter than
+                // others), then finally slices the result to get the final list
+                // of links.
+                return _.filter(_.flatten(_.zip.apply(_, _.toArray(arguments))), _.negate(_.isUndefined))
+                    .slice(offset || 0, (offset + limit) || undefined);
             });
         };
 
