@@ -37,15 +37,14 @@
             });
         },
 
-        findLinksImpl: function (spec, source, target, undirected, directed) {
+        findLinksImpl: function (spec, source, target, directed) {
             var data;
 
             data = _.extend({
                 spec: JSON.stringify(spec),
                 source: source,
                 target: target,
-                undirected: undirected,
-                directed: directed
+                directed: JSON.stringify(_.isUndefined(directed) ? null : directed)
             }, this.mongoStore);
 
             return $.getJSON("plugin/mongo/findLinks", data).then(function (responses) {

@@ -43,7 +43,7 @@
 
             step = _.bind(function (frontier) {
                 // Get neighbor links of all nodes in the frontier.
-                return $.when.apply($, _.map(frontier, _.partial(this.getNeighbors, _, undefined), this)).then(function () {
+                return $.when.apply($, _.map(frontier, _.partial(this.neighbors, _, undefined), this)).then(function () {
                     var args = _.toArray(arguments),
                         nodes = [];
 
@@ -65,6 +65,7 @@
             }, this);
 
             // Initialize the chain with the node we're expanding from.
+            result.nodes[node.key()] = node;
             chain = $.when([node]);
 
             // Expand the chain enough times to reach the specified radius.
@@ -74,7 +75,7 @@
 
             // Compute the neighboring links on the final frontier.
             return chain.then(_.bind(function (frontier) {
-                return $.when.apply($, _.map(frontier, _.partial(this.getNeighborLinks, _, undefined), this)).then(function () {
+                return $.when.apply($, _.map(frontier, _.partial(this.neighborLinks, _, undefined), this)).then(function () {
                     _.each(_.toArray(arguments), function (links) {
                         _.each(links, function (link) {
                             if (!_.has(result.links, link.key())) {
@@ -132,17 +133,15 @@
 
         this.findLinks = function (_spec) {
             var spec = clique.util.deepCopy(_spec),
-                undirected = _.isUndefined(spec.undirected) ? true : spec.undirected,
-                directed = _.isUndefined(spec.directed) ? true : spec.directed,
+                directed = spec.directed,
                 source = spec.source,
                 target = spec.target;
 
-            delete spec.undirected;
             delete spec.directed;
             delete spec.source;
             delete spec.target;
 
-            return $.when(this.findLinksImpl(spec, source, target, undirected, directed)).then(_.partial(_.map, _, this.addAccessor, this));
+            return $.when(this.findLinksImpl(spec, source, target, directed)).then(_.partial(_.map, _, this.addAccessor, this));
         };
 
         this.findLink = function (spec) {
@@ -161,7 +160,63 @@
             });
         };
 
-        this.getNeighborLinks = function (node, opts) {
+        this.neighborLinkCount = function (node, opts) {
+            if (this.neighborLinkCountImpl) {
+                return this.neighborLinkCountImpl(node, opts);
+            } else {
+                return this.neighborLinks(node, opts).then(_.size);
+            }
+        };
+
+        this.outgoingLinkCount = function (node) {
+            return this.neighborLinkCount(node, {
+                outgoing: true,
+                incoming: false,
+                undirected: false
+            });
+        };
+
+        this.outflowingLinkCount = function (node) {
+            return this.neighborLinkCount(node, {
+                outgoing: true,
+                incoming: false,
+                undirected: true
+            });
+        };
+
+        this.incomingLinkCount = function (node) {
+            return this.neighborLinkCount(node, {
+                outgoing: false,
+                incoming: true,
+                undirected: false
+            });
+        };
+
+        this.inflowingLinkCount = function (node) {
+            return this.neighborLinkCount(node, {
+                outgoing: false,
+                incoming: true,
+                undirected: true
+            });
+        };
+
+        this.undirectedLinkCount = function (node) {
+            return this.neighborLinkCount(node, {
+                outgoing: false,
+                incoming: false,
+                undirected: true
+            });
+        };
+
+        this.directedLinkCount = function (node) {
+            return this.neighborLinkCount(node, {
+                outgoing: true,
+                incoming: true,
+                undirected: false
+            });
+        };
+
+        this.neighborLinks = function (node, opts) {
             var reqs = [];
 
             opts = opts || {};
@@ -172,26 +227,26 @@
             if (opts.outgoing) {
                 reqs.push(this.findLinks({
                     source: node.key(),
-                    undirected: false
+                    directed: true
                 }));
             }
 
             if (opts.incoming) {
                 reqs.push(this.findLinks({
                     target: node.key(),
-                    undirected: false
+                    directed: true
                 }));
             }
 
             if (opts.undirected) {
                 reqs.push(this.findLinks({
                     source: node.key(),
-                    undirected: true
+                    directed: false
                 }));
 
                 reqs.push(this.findLinks({
                     target: node.key(),
-                    undirected: true
+                    directed: false
                 }));
             }
 
@@ -202,59 +257,117 @@
             });
         };
 
-        this.getOutgoingLinks = function (node) {
-            return this.getNeighborLinks(node, {
+        this.outgoingLinks = function (node) {
+            return this.neighborLinks(node, {
                 outgoing: true,
                 incoming: false,
                 undirected: false
             });
         };
 
-        this.getOutflowingLinks = function (node) {
-            return this.getNeighborLinks(node, {
+        this.outflowingLinks = function (node) {
+            return this.neighborLinks(node, {
                 outgoing: true,
                 incoming: false,
                 undirected: true
             });
         };
 
-        this.getIncomingLinks = function (node) {
-            return this.getNeighborLinks(node, {
+        this.incomingLinks = function (node) {
+            return this.neighborLinks(node, {
                 outgoing: false,
                 incoming: true,
                 undirected: false
             });
         };
 
-        this.getInflowingLinks = function (node) {
-            return this.getNeighborLinks(node, {
+        this.inflowingLinks = function (node) {
+            return this.neighborLinks(node, {
                 outgoing: false,
                 incoming: true,
                 undirected: true
             });
         };
 
-        this.getUndirectedLinks = function (node) {
-            return this.getNeighborLinks(node, {
+        this.undirectedLinks = function (node) {
+            return this.neighborLinks(node, {
                 outgoing: false,
                 incoming: false,
                 undirected: true
             });
         };
 
-        this.getDirectedLinks = function (node) {
-            return this.getNeighborLinks(node, {
+        this.directedLinks = function (node) {
+            return this.neighborLinks(node, {
                 outgoing: true,
                 incoming: true,
                 undirected: false
             });
         };
 
-        this.getNeighbors = function (node, opts) {
+        this.neighborCount = function (node, opts) {
+            if (this.neighborCountImpl) {
+                return this.neighborCountImpl(node, opts);
+            } else {
+                return this.neighbors(node, opts).then(function (nbrs) {
+                    return _.size(nbrs.nodes);
+                });
+            }
+        };
+
+        this.outgoingNeighborCount = function (node) {
+            return this.neighborCount(node, {
+                outgoing: true,
+                incoming: false,
+                undirected: false
+            });
+        };
+
+        this.outflowingNeighborCount = function (node) {
+            return this.neighborCount(node, {
+                outgoing: true,
+                incoming: false,
+                undirected: true
+            });
+        };
+
+        this.incomingNeighborCount = function (node) {
+            return this.neighborCount(node, {
+                outgoing: false,
+                incoming: true,
+                undirected: false
+            });
+        };
+
+        this.inflowingNeighborCount = function (node) {
+            return this.neighborCount(node, {
+                outgoing: false,
+                incoming: true,
+                undirected: true
+            });
+        };
+
+        this.undirectedNeighborCount = function (node) {
+            return this.neighborCount(node, {
+                outgoing: false,
+                incoming: false,
+                undirected: true
+            });
+        };
+
+        this.directedNeighborCount = function (node) {
+            return this.neighborCount(node, {
+                outgoing: true,
+                incoming: true,
+                undirected: false
+            });
+        };
+
+        this.neighbors = function (node, opts) {
             var key = node.key(),
                 links;
 
-            return this.getNeighborLinks(node, opts).then(_.bind(function (links_) {
+            return this.neighborLinks(node, opts).then(_.bind(function (links_) {
                 var neighborKeys,
                     muts;
 
@@ -285,48 +398,48 @@
             });
         };
 
-        this.getOutgoingNeighbors = function (node) {
-            return this.getNeighbors(node, {
+        this.outgoingNeighbors = function (node) {
+            return this.neighbors(node, {
                 outgoing: true,
                 incoming: false,
                 undirected: false
             });
         };
 
-        this.getOutflowingNeighbors = function (node) {
-            return this.getNeighbors(node, {
+        this.outflowingNeighbors = function (node) {
+            return this.neighbors(node, {
                 outgoing: true,
                 incoming: false,
                 undirected: true
             });
         };
 
-        this.getIncomingNeighbors = function (node) {
-            return this.getNeighbors(node, {
+        this.incomingNeighbors = function (node) {
+            return this.neighbors(node, {
                 outgoing: false,
                 incoming: true,
                 undirected: false
             });
         };
 
-        this.getInflowingNeighbors = function (node) {
-            return this.getNeighbors(node, {
+        this.inflowingNeighbors = function (node) {
+            return this.neighbors(node, {
                 outgoing: false,
                 incoming: true,
                 undirected: true
             });
         };
 
-        this.getUndirectedNeighbors = function (node) {
-            return this.getNeighbors(node, {
+        this.undirectedNeighbors = function (node) {
+            return this.neighbors(node, {
                 outgoing: false,
                 incoming: false,
                 undirected: true
             });
         };
 
-        this.getDirectedNeighbors = function (node) {
-            return this.getNeighbors(node, {
+        this.directedNeighbors = function (node) {
+            return this.neighbors(node, {
                 outgoing: true,
                 incoming: true,
                 undirected: false
@@ -462,15 +575,22 @@
             return result;
         },
 
-        findLinksImpl: function (spec, source, target, undirected, directed) {
+        findLinksImpl: function (spec, source, target, directed) {
             return _.filter(this.links, function (link) {
-                var undirectedMatch = (link.undirected || false) === undirected,
-                    directedMatch = (_.isUndefined(link.undirected) || !link.undirected) === directed,
+                var directedMatch,
                     sourceMatch = _.isUndefined(source) || (link.source.key === source),
                     targetMatch = _.isUndefined(target) || (link.target.key === target),
                     dataMatch = _.isMatch(spec, link.data);
 
-                return _.every([sourceMatch, targetMatch, dataMatch, undirectedMatch || directedMatch]);
+                if (_.isUndefined(directed) || _.isNull(directed)) {
+                    directedMatch = true;
+                } else if (directed) {
+                    directedMatch = !link.undirected;
+                } else {
+                    directedMatch = link.undirected;
+                }
+
+                return _.every([sourceMatch, targetMatch, dataMatch, directedMatch]);
             });
         },
 
@@ -727,7 +847,7 @@
                 return;
             }
 
-            request = _.isUndefined(neighborCache) ? this.adapter.getNeighborLinks(node) : Backbone.$.when(neighborCache);
+            request = _.isUndefined(neighborCache) ? this.adapter.neighborLinks(node) : Backbone.$.when(neighborCache);
 
             // Get all neighboring links.
             request.then(_.bind(function (links) {

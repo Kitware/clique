@@ -8,15 +8,14 @@ def load_json(value, default):
     return default if value is None else json.loads(value)
 
 
-def run(host=None, db=None, coll=None, spec=None, source=None, target=None, undirected=None, directed=None):
+def run(host=None, db=None, coll=None, spec=None, source=None, target=None, directed=None):
     # Connect to the mongo collection.
     client = MongoClient(host)
     db = client[db]
     graph = db[coll]
 
     spec = load_json(spec, {})
-    undirected = load_json(undirected, True)
-    directed = load_json(directed, True)
+    directed = load_json(directed, None)
 
     # Look for links matching the keys and metadata specified.
     matcher = {"type": "link"}
@@ -34,11 +33,12 @@ def run(host=None, db=None, coll=None, spec=None, source=None, target=None, undi
 
     directedness = []
 
-    if not undirected:
-        directedness.append({"undirected": {"$exists": False}})
-
-    if not directed:
-        directedness.append({"undirected": True})
+    if directed is not None:
+        if directed:
+            directedness.append({"undirected": {"$exists": False}})
+            directedness.append({"undirected": False})
+        else:
+            directedness.append({"undirected": True})
 
     if len(directedness) > 0:
         directedness = {"$or": directedness}
