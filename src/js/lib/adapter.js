@@ -137,11 +137,7 @@
         };
 
         this.neighborLinkCount = function (node, opts) {
-            if (this.neighborLinkCountImpl) {
-                return this.neighborLinkCountImpl(node, opts);
-            } else {
-                return this.neighborLinks(node, opts).then(_.size);
-            }
+            return this.neighborLinks(node, opts).then(_.size);
         };
 
         this.outgoingLinkCount = function (node) {
@@ -282,13 +278,9 @@
         };
 
         this.neighborCount = function (node, opts) {
-            if (this.neighborCountImpl) {
-                return this.neighborCountImpl(node, opts);
-            } else {
-                return this.neighbors(node, opts).then(function (nbrs) {
-                    return _.size(nbrs.nodes);
-                });
-            }
+            return this.neighbors(node, opts).then(function (nbrs) {
+                return _.size(nbrs.nodes);
+            });
         };
 
         this.outgoingNeighborCount = function (node) {
