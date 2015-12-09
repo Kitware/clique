@@ -25,18 +25,24 @@
         // Define methods.
         this.getAccessor = _.propertyOf(accessors);
 
-        this.findNodes = function (spec, offset, limit) {
+        this.findNodes = function (cfg) {
+            var spec = cfg.spec || {},
+                offset = cfg.offset || 0,
+                limit = cfg.limit;
+
             return $.when(this.findNodesRaw(spec, offset, limit))
                 .then(_.partial(_.map, _, this.addAccessor, this));
         };
 
         this.findNode = function (spec) {
-            return $.when(this.findNodesRaw(spec)).then(_.bind(function (results) {
-                if (_.isEmpty(results)) {
-                    return undefined;
-                }
+            var req = this.findNodes({
+                spec: spec,
+                offset: 0,
+                limit: 1
+            });
 
-                return this.addAccessor(results[0]);
+            return $.when(req).then(_.bind(function (results) {
+                return results && results[0];
             }, this));
         };
 
@@ -46,27 +52,26 @@
             });
         };
 
-        this.findLinks = function (_spec, offset, limit) {
-            var spec = clique.util.deepCopy(_spec),
-                directed = spec.directed,
-                source = spec.source,
-                target = spec.target;
-
-            delete spec.directed;
-            delete spec.source;
-            delete spec.target;
+        this.findLinks = function (cfg) {
+            var spec = cfg.spec,
+                source = cfg.source,
+                target = cfg.target,
+                directed = cfg.directed,
+                offset = cfg.offset,
+                limit = cfg.limit;
 
             return $.when(this.findLinksRaw(spec, source, target, directed, offset, limit))
                 .then(_.partial(_.map, _, this.addAccessor, this));
         };
 
-        this.findLink = function (spec) {
-            return $.when(this.findLinksRaw(spec)).then(_.bind(function (results) {
-                if (_.isEmpty(results)) {
-                    return undefined;
-                }
+        this.findLink = function (_cfg) {
+            var cfg = _.extend({}, _cfg, {
+                offset: 0,
+                limit: 1
+            });
 
-                return this.addAccessor(results[0]);
+            return $.when(this.findLinks(cfg)).then(_.bind(function (results) {
+                return results && results[0];
             }, this));
         };
 
@@ -128,28 +133,38 @@
             });
         };
 
-        this.neighborLinks = function (node, opts, offset, limit) {
-            return this.neighborLinksRaw(node, opts, offset, limit)
+        this.neighborLinks = function (node, cfg) {
+            var types,
+                offset,
+                limit;
+
+            cfg = cfg || {};
+
+            types = cfg.types || {};
+            offset = cfg.offset;
+            limit = cfg.limit;
+
+            return this.neighborLinksRaw(node, types, offset, limit)
                 .then(_.partial(_.map, _, this.addAccessor, this));
         };
 
-        this.neighborLinksRaw = function (node, opts, offset, limit) {
-            var reqs = [];
+        this.neighborLinksRaw = function (node, _types, offset, limit) {
+            var reqs = [],
+                types = {};
 
-            opts = opts || {};
             _.each(["outgoing", "incoming", "undirected"], function (mode) {
-                opts[mode] = _.isUndefined(opts[mode]) ? true : opts[mode];
+                types[mode] = _.isUndefined(_types[mode]) ? true : _types[mode];
             });
 
-            if (opts.outgoing) {
+            if (types.outgoing) {
                 reqs.push(this.findLinksRaw(undefined, node.key(), undefined, true));
             }
 
-            if (opts.incoming) {
+            if (types.incoming) {
                 reqs.push(this.findLinksRaw(undefined, undefined, node.key(), true));
             }
 
-            if (opts.undirected) {
+            if (types.undirected) {
                 reqs.push(this.findLinksRaw(undefined, node.key(), undefined, false));
                 reqs.push(this.findLinksRaw(undefined, undefined, node.key(), false));
             }
@@ -165,51 +180,75 @@
             });
         };
 
-        this.outgoingLinks = function (node) {
+        this.outgoingLinks = function (node, offset, limit) {
             return this.neighborLinks(node, {
-                outgoing: true,
-                incoming: false,
-                undirected: false
+                types: {
+                    outgoing: true,
+                    incoming: false,
+                    undirected: false
+                },
+                offset: offset,
+                limit: limit
             });
         };
 
-        this.outflowingLinks = function (node) {
+        this.outflowingLinks = function (node, offset, limit) {
             return this.neighborLinks(node, {
-                outgoing: true,
-                incoming: false,
-                undirected: true
+                types: {
+                    outgoing: true,
+                    incoming: false,
+                    undirected: true
+                },
+                offset: offset,
+                limit: limit
             });
         };
 
-        this.incomingLinks = function (node) {
+        this.incomingLinks = function (node, offset, limit) {
             return this.neighborLinks(node, {
-                outgoing: false,
-                incoming: true,
-                undirected: false
+                types: {
+                    outgoing: false,
+                    incoming: true,
+                    undirected: false
+                },
+                offset: offset,
+                limit: limit
             });
         };
 
-        this.inflowingLinks = function (node) {
+        this.inflowingLinks = function (node, offset, limit) {
             return this.neighborLinks(node, {
-                outgoing: false,
-                incoming: true,
-                undirected: true
+                types: {
+                    outgoing: false,
+                    incoming: true,
+                    undirected: true
+                },
+                offset: offset,
+                limit: limit
             });
         };
 
-        this.undirectedLinks = function (node) {
+        this.undirectedLinks = function (node, offset, limit) {
             return this.neighborLinks(node, {
-                outgoing: false,
-                incoming: false,
-                undirected: true
+                types: {
+                    outgoing: false,
+                    incoming: false,
+                    undirected: true
+                },
+                offset: offset,
+                limit: limit
             });
         };
 
-        this.directedLinks = function (node) {
+        this.directedLinks = function (node, offset, limit) {
             return this.neighborLinks(node, {
-                outgoing: true,
-                incoming: true,
-                undirected: false
+                types: {
+                    outgoing: true,
+                    incoming: true,
+                    undirected: false
+                },
+                offset: offset,
+                limit: limit
             });
         };
 
@@ -302,51 +341,75 @@
             });
         };
 
-        this.outgoingNeighbors = function (node) {
+        this.outgoingNeighbors = function (node, offset, limit) {
             return this.neighbors(node, {
-                outgoing: true,
-                incoming: false,
-                undirected: false
+                types: {
+                    outgoing: true,
+                    incoming: false,
+                    undirected: false
+                },
+                offset: offset,
+                limit: limit
             });
         };
 
-        this.outflowingNeighbors = function (node) {
+        this.outflowingNeighbors = function (node, offset, limit) {
             return this.neighbors(node, {
-                outgoing: true,
-                incoming: false,
-                undirected: true
+                types: {
+                    outgoing: true,
+                    incoming: false,
+                    undirected: true
+                },
+                offset: offset,
+                limit: limit
             });
         };
 
-        this.incomingNeighbors = function (node) {
+        this.incomingNeighbors = function (node, offset, limit) {
             return this.neighbors(node, {
-                outgoing: false,
-                incoming: true,
-                undirected: false
+                types: {
+                    outgoing: false,
+                    incoming: true,
+                    undirected: false
+                },
+                offset: offset,
+                limit: limit
             });
         };
 
-        this.inflowingNeighbors = function (node) {
+        this.inflowingNeighbors = function (node, offset, limit) {
             return this.neighbors(node, {
-                outgoing: false,
-                incoming: true,
-                undirected: true
+                types: {
+                    outgoing: false,
+                    incoming: true,
+                    undirected: true
+                },
+                offset: offset,
+                limit: limit
             });
         };
 
-        this.undirectedNeighbors = function (node) {
+        this.undirectedNeighbors = function (node, offset, limit) {
             return this.neighbors(node, {
-                outgoing: false,
-                incoming: false,
-                undirected: true
+                types: {
+                    outgoing: false,
+                    incoming: false,
+                    undirected: true
+                },
+                offset: offset,
+                limit: limit
             });
         };
 
-        this.directedNeighbors = function (node) {
+        this.directedNeighbors = function (node, offset, limit) {
             return this.neighbors(node, {
-                outgoing: true,
-                incoming: true,
-                undirected: false
+                types: {
+                    outgoing: true,
+                    incoming: true,
+                    undirected: false
+                },
+                offset: offset,
+                limit: limit
             });
         };
 
