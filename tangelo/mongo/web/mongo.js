@@ -94,16 +94,6 @@
             });
         },
 
-        neighborhood: function (node, radius, linklimit) {
-            var data = _.extend({
-                start_key: node.key(),
-                radius: radius,
-                linklimit: linklimit
-            }, this.mongoStore);
-
-            return $.getJSON("plugin/mongo/neighborhood", data);
-        },
-
         createLinkRaw: function (source, target, _data, undirected) {
             var data;
 
@@ -149,6 +139,16 @@
             }, this.mongoStore);
 
             return $.get("plugin/mongo/destroyLink", data);
-        }
+        },
+
+        neighborhood: function (node, radius, linklimit) {
+            var data = _.extend({
+                start_key: node.key(),
+                radius: radius,
+                linklimit: linklimit
+            }, this.mongoStore);
+
+            return $.getJSON("plugin/mongo/neighborhood", data);
+        },
     });
 }(window.clique, window.jQuery, window._, window.Backbone, window.tangelo));
