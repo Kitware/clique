@@ -13,9 +13,13 @@
             };
         },
 
-        findNodesRaw: function (spec) {
-            var data = _.extend({
-                spec: JSON.stringify(spec)
+        findNodesRaw: function (cfg) {
+            var data;
+
+            data = _.extend({
+                spec: JSON.stringify(cfg.spec || {}),
+                offset: _.isUndefined(cfg.offset) ? null : cfg.offset,
+                limit: _.isUndefined(cfg.limit) ? null : cfg.limit,
             }, this.mongoStore);
 
             return $.getJSON("plugin/mongo/findNodes", data).then(function (responses) {
@@ -37,14 +41,16 @@
             });
         },
 
-        findLinksRaw: function (spec, source, target, directed) {
+        findLinksRaw: function (cfg) {
             var data;
 
             data = _.extend({
-                spec: JSON.stringify(spec),
-                source: source,
-                target: target,
-                directed: JSON.stringify(_.isUndefined(directed) ? null : directed)
+                spec: JSON.stringify(cfg.spec || {}),
+                source: cfg.source,
+                target: cfg.target,
+                directed: JSON.stringify(_.isUndefined(cfg.directed) ? null : cfg.directed),
+                offset: _.isUndefined(cfg.offset) ? null : cfg.offset,
+                limit: _.isUndefined(cfg.offset) ? null : cfg.offset
             }, this.mongoStore);
 
             return $.getJSON("plugin/mongo/findLinks", data).then(function (responses) {

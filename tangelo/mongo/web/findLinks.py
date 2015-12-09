@@ -8,11 +8,15 @@ def load_json(value, default):
     return default if value is None else json.loads(value)
 
 
-def run(host=None, db=None, coll=None, spec=None, source=None, target=None, directed=None):
+def run(host=None, db=None, coll=None, spec=None, source=None, target=None, directed=None, offset=None, limit=None):
     # Connect to the mongo collection.
     client = MongoClient(host)
     db = client[db]
     graph = db[coll]
+
+    # Parse the offset and limit arguments.
+    offset = 0 if offset is None else int(offset)
+    limit = 0 if limit is None else int(limit)
 
     spec = load_json(spec, {})
     directed = load_json(directed, None)
@@ -49,4 +53,4 @@ def run(host=None, db=None, coll=None, spec=None, source=None, target=None, dire
     query = {"$and": [matcher, directedness]}
 
     # Perform the query and return the result(s).
-    return bson.json_util.dumps(list(graph.find(query)))
+    return bson.json_util.dumps(list(graph.find(query, skip=offset, limit=limit)))
