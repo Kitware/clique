@@ -22,7 +22,7 @@
             return mut;
         };
 
-        // Define methods.
+        // Define class methods.
         this.getAccessor = _.propertyOf(accessors);
 
         this.findNodes = function (cfg) {
@@ -146,38 +146,6 @@
 
             return this.neighborLinksRaw(node, types, offset, limit)
                 .then(_.partial(_.map, _, this.addAccessor, this));
-        };
-
-        this.neighborLinksRaw = function (node, _types, offset, limit) {
-            var reqs = [],
-                types = {};
-
-            _.each(["outgoing", "incoming", "undirected"], function (mode) {
-                types[mode] = _.isUndefined(_types[mode]) ? true : _types[mode];
-            });
-
-            if (types.outgoing) {
-                reqs.push(this.findLinksRaw(undefined, node.key(), undefined, true));
-            }
-
-            if (types.incoming) {
-                reqs.push(this.findLinksRaw(undefined, undefined, node.key(), true));
-            }
-
-            if (types.undirected) {
-                reqs.push(this.findLinksRaw(undefined, node.key(), undefined, false));
-                reqs.push(this.findLinksRaw(undefined, undefined, node.key(), false));
-            }
-
-            return $.when.apply($, reqs).then(function () {
-                // This pipeline zips together the list of results, then
-                // flattens the resulting list-of-lists, removes all undefineds
-                // (which may arise if some of the lists are shorter than
-                // others), then finally slices the result to get the final list
-                // of links.
-                return _.filter(_.flatten(_.zip.apply(_, _.toArray(arguments))), _.negate(_.isUndefined))
-                    .slice(offset || 0, (offset + limit) || undefined);
-            });
         };
 
         this.outgoingLinks = function (node, offset, limit) {
@@ -451,6 +419,63 @@
                     response: response
                 };
             });
+        };
+
+        // Default implementation methods.
+        this.findNodesRaw = function () {
+            throw new Error("To call findNodes(), findNode(), or findNodeByKey(), you must implement findNodesRaw()");
+        };
+
+        this.findNodesRaw = function () {
+            throw new Error("To call findNodes(), findNode(), or findNodeByKey(), you must implement findNodesRaw()");
+        };
+
+        this.neighborLinksRaw = function (node, _types, offset, limit) {
+            var reqs = [],
+                types = {};
+
+            _.each(["outgoing", "incoming", "undirected"], function (mode) {
+                types[mode] = _.isUndefined(_types[mode]) ? true : _types[mode];
+            });
+
+            if (types.outgoing) {
+                reqs.push(this.findLinksRaw(undefined, node.key(), undefined, true));
+            }
+
+            if (types.incoming) {
+                reqs.push(this.findLinksRaw(undefined, undefined, node.key(), true));
+            }
+
+            if (types.undirected) {
+                reqs.push(this.findLinksRaw(undefined, node.key(), undefined, false));
+                reqs.push(this.findLinksRaw(undefined, undefined, node.key(), false));
+            }
+
+            return $.when.apply($, reqs).then(function () {
+                // This pipeline zips together the list of results, then
+                // flattens the resulting list-of-lists, removes all undefineds
+                // (which may arise if some of the lists are shorter than
+                // others), then finally slices the result to get the final list
+                // of links.
+                return _.filter(_.flatten(_.zip.apply(_, _.toArray(arguments))), _.negate(_.isUndefined))
+                    .slice(offset || 0, (offset + limit) || undefined);
+            });
+        };
+
+        this.createNodeRaw = function () {
+            throw new Error("To call createNode() you must implement createNodeRaw()");
+        };
+
+        this.destroyNodeRaw = function () {
+            throw new Error("To call destroyNode() you must implement destroyNodeRaw()");
+        };
+
+        this.createLinkRaw = function () {
+            throw new Error("To call createLink() you must implement createLinkRaw()");
+        };
+
+        this.destroyLinkRaw = function () {
+            throw new Error("To call destroyLink() you must implement destroyLinkRaw()");
         };
 
         options = options || {};
