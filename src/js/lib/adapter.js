@@ -3,14 +3,13 @@
 
     clique.adapter = {};
 
-    clique.Adapter = function (options) {
-        var accessors;
-
+    clique.Adapter = function () {
         // Keep track of accessors.
-        this.accessors = accessors = {};
+        this.accessors = {};
         this.onNewAccessor = this.onNewAccessor || _.noop;
         this.addAccessor = function (blob) {
-            var mut;
+            var mut,
+                accessors = this.accessors;
 
             if (!_.has(accessors, blob.key)) {
                 accessors[blob.key] = new clique.util.Accessor(blob);
@@ -22,19 +21,25 @@
             return mut;
         };
 
-        // Define methods.
-        this.getAccessor = _.propertyOf(accessors);
+        this.getAccessor = _.propertyOf(this.accessors);
 
-        this.findNodes = function (cfg) {
+        this.initialize.apply(this, arguments);
+    };
+
+    _.extend(clique.Adapter.prototype, {
+        // Define class methods.
+        initialize: _.noop,
+
+        findNodes: function (cfg) {
             var spec = cfg.spec || {},
                 offset = cfg.offset || 0,
                 limit = cfg.limit;
 
             return $.when(this.findNodesRaw(spec, offset, limit))
                 .then(_.partial(_.map, _, this.addAccessor, this));
-        };
+        },
 
-        this.findNode = function (spec) {
+        findNode: function (spec) {
             var req = this.findNodes({
                 spec: spec,
                 offset: 0,
@@ -44,15 +49,15 @@
             return $.when(req).then(_.bind(function (results) {
                 return results && results[0];
             }, this));
-        };
+        },
 
-        this.findNodeByKey = function (key) {
+        findNodeByKey: function (key) {
             return this.findNode({
                 key: key
             });
-        };
+        },
 
-        this.findLinks = function (cfg) {
+        findLinks: function (cfg) {
             var spec = cfg.spec,
                 source = cfg.source,
                 target = cfg.target,
@@ -62,9 +67,9 @@
 
             return $.when(this.findLinksRaw(spec, source, target, directed, offset, limit))
                 .then(_.partial(_.map, _, this.addAccessor, this));
-        };
+        },
 
-        this.findLink = function (_cfg) {
+        findLink: function (_cfg) {
             var cfg = _.extend({}, _cfg, {
                 offset: 0,
                 limit: 1
@@ -73,67 +78,67 @@
             return $.when(this.findLinks(cfg)).then(_.bind(function (results) {
                 return results && results[0];
             }, this));
-        };
+        },
 
-        this.findLinkByKey = function (key) {
+        findLinkByKey: function (key) {
             return this.findLink({
                 key: key
             });
-        };
+        },
 
-        this.neighborLinkCount = function (node, opts) {
+        neighborLinkCount: function (node, opts) {
             return this.neighborLinks(node, opts).then(_.size);
-        };
+        },
 
-        this.outgoingLinkCount = function (node) {
+        outgoingLinkCount: function (node) {
             return this.neighborLinkCount(node, {
                 outgoing: true,
                 incoming: false,
                 undirected: false
             });
-        };
+        },
 
-        this.outflowingLinkCount = function (node) {
+        outflowingLinkCount: function (node) {
             return this.neighborLinkCount(node, {
                 outgoing: true,
                 incoming: false,
                 undirected: true
             });
-        };
+        },
 
-        this.incomingLinkCount = function (node) {
+        incomingLinkCount: function (node) {
             return this.neighborLinkCount(node, {
                 outgoing: false,
                 incoming: true,
                 undirected: false
             });
-        };
+        },
 
-        this.inflowingLinkCount = function (node) {
+        inflowingLinkCount: function (node) {
             return this.neighborLinkCount(node, {
                 outgoing: false,
                 incoming: true,
                 undirected: true
             });
-        };
+        },
 
-        this.undirectedLinkCount = function (node) {
+        undirectedLinkCount: function (node) {
             return this.neighborLinkCount(node, {
                 outgoing: false,
                 incoming: false,
                 undirected: true
             });
-        };
+        },
 
-        this.directedLinkCount = function (node) {
+        directedLinkCount: function (node) {
             return this.neighborLinkCount(node, {
                 outgoing: true,
                 incoming: true,
                 undirected: false
             });
-        };
+        },
 
-        this.neighborLinks = function (node, cfg) {
+        neighborLinks: function (node, cfg) {
             var types,
                 offset,
                 limit;
@@ -146,41 +151,9 @@
 
             return this.neighborLinksRaw(node, types, offset, limit)
                 .then(_.partial(_.map, _, this.addAccessor, this));
-        };
+        },
 
-        this.neighborLinksRaw = function (node, _types, offset, limit) {
-            var reqs = [],
-                types = {};
-
-            _.each(["outgoing", "incoming", "undirected"], function (mode) {
-                types[mode] = _.isUndefined(_types[mode]) ? true : _types[mode];
-            });
-
-            if (types.outgoing) {
-                reqs.push(this.findLinksRaw(undefined, node.key(), undefined, true));
-            }
-
-            if (types.incoming) {
-                reqs.push(this.findLinksRaw(undefined, undefined, node.key(), true));
-            }
-
-            if (types.undirected) {
-                reqs.push(this.findLinksRaw(undefined, node.key(), undefined, false));
-                reqs.push(this.findLinksRaw(undefined, undefined, node.key(), false));
-            }
-
-            return $.when.apply($, reqs).then(function () {
-                // This pipeline zips together the list of results, then
-                // flattens the resulting list-of-lists, removes all undefineds
-                // (which may arise if some of the lists are shorter than
-                // others), then finally slices the result to get the final list
-                // of links.
-                return _.filter(_.flatten(_.zip.apply(_, _.toArray(arguments))), _.negate(_.isUndefined))
-                    .slice(offset || 0, (offset + limit) || undefined);
-            });
-        };
-
-        this.outgoingLinks = function (node, offset, limit) {
+        outgoingLinks: function (node, offset, limit) {
             return this.neighborLinks(node, {
                 types: {
                     outgoing: true,
@@ -190,9 +163,9 @@
                 offset: offset,
                 limit: limit
             });
-        };
+        },
 
-        this.outflowingLinks = function (node, offset, limit) {
+        outflowingLinks: function (node, offset, limit) {
             return this.neighborLinks(node, {
                 types: {
                     outgoing: true,
@@ -202,9 +175,9 @@
                 offset: offset,
                 limit: limit
             });
-        };
+        },
 
-        this.incomingLinks = function (node, offset, limit) {
+        incomingLinks: function (node, offset, limit) {
             return this.neighborLinks(node, {
                 types: {
                     outgoing: false,
@@ -214,9 +187,9 @@
                 offset: offset,
                 limit: limit
             });
-        };
+        },
 
-        this.inflowingLinks = function (node, offset, limit) {
+        inflowingLinks: function (node, offset, limit) {
             return this.neighborLinks(node, {
                 types: {
                     outgoing: false,
@@ -226,9 +199,9 @@
                 offset: offset,
                 limit: limit
             });
-        };
+        },
 
-        this.undirectedLinks = function (node, offset, limit) {
+        undirectedLinks: function (node, offset, limit) {
             return this.neighborLinks(node, {
                 types: {
                     outgoing: false,
@@ -238,9 +211,9 @@
                 offset: offset,
                 limit: limit
             });
-        };
+        },
 
-        this.directedLinks = function (node, offset, limit) {
+        directedLinks: function (node, offset, limit) {
             return this.neighborLinks(node, {
                 types: {
                     outgoing: true,
@@ -250,63 +223,63 @@
                 offset: offset,
                 limit: limit
             });
-        };
+        },
 
-        this.neighborCount = function (node, opts) {
+        neighborCount: function (node, opts) {
             return this.neighbors(node, opts).then(function (nbrs) {
                 return _.size(nbrs.nodes);
             });
-        };
+        },
 
-        this.outgoingNeighborCount = function (node) {
+        outgoingNeighborCount: function (node) {
             return this.neighborCount(node, {
                 outgoing: true,
                 incoming: false,
                 undirected: false
             });
-        };
+        },
 
-        this.outflowingNeighborCount = function (node) {
+        outflowingNeighborCount: function (node) {
             return this.neighborCount(node, {
                 outgoing: true,
                 incoming: false,
                 undirected: true
             });
-        };
+        },
 
-        this.incomingNeighborCount = function (node) {
+        incomingNeighborCount: function (node) {
             return this.neighborCount(node, {
                 outgoing: false,
                 incoming: true,
                 undirected: false
             });
-        };
+        },
 
-        this.inflowingNeighborCount = function (node) {
+        inflowingNeighborCount: function (node) {
             return this.neighborCount(node, {
                 outgoing: false,
                 incoming: true,
                 undirected: true
             });
-        };
+        },
 
-        this.undirectedNeighborCount = function (node) {
+        undirectedNeighborCount: function (node) {
             return this.neighborCount(node, {
                 outgoing: false,
                 incoming: false,
                 undirected: true
             });
-        };
+        },
 
-        this.directedNeighborCount = function (node) {
+        directedNeighborCount: function (node) {
             return this.neighborCount(node, {
                 outgoing: true,
                 incoming: true,
                 undirected: false
             });
-        };
+        },
 
-        this.neighbors = function (node, opts) {
+        neighbors: function (node, opts) {
             var key = node.key(),
                 links;
 
@@ -339,9 +312,9 @@
                     links: links
                 };
             });
-        };
+        },
 
-        this.outgoingNeighbors = function (node, offset, limit) {
+        outgoingNeighbors: function (node, offset, limit) {
             return this.neighbors(node, {
                 types: {
                     outgoing: true,
@@ -351,9 +324,9 @@
                 offset: offset,
                 limit: limit
             });
-        };
+        },
 
-        this.outflowingNeighbors = function (node, offset, limit) {
+        outflowingNeighbors: function (node, offset, limit) {
             return this.neighbors(node, {
                 types: {
                     outgoing: true,
@@ -363,9 +336,9 @@
                 offset: offset,
                 limit: limit
             });
-        };
+        },
 
-        this.incomingNeighbors = function (node, offset, limit) {
+        incomingNeighbors: function (node, offset, limit) {
             return this.neighbors(node, {
                 types: {
                     outgoing: false,
@@ -375,9 +348,9 @@
                 offset: offset,
                 limit: limit
             });
-        };
+        },
 
-        this.inflowingNeighbors = function (node, offset, limit) {
+        inflowingNeighbors: function (node, offset, limit) {
             return this.neighbors(node, {
                 types: {
                     outgoing: false,
@@ -387,9 +360,9 @@
                 offset: offset,
                 limit: limit
             });
-        };
+        },
 
-        this.undirectedNeighbors = function (node, offset, limit) {
+        undirectedNeighbors: function (node, offset, limit) {
             return this.neighbors(node, {
                 types: {
                     outgoing: false,
@@ -399,9 +372,9 @@
                 offset: offset,
                 limit: limit
             });
-        };
+        },
 
-        this.directedNeighbors = function (node, offset, limit) {
+        directedNeighbors: function (node, offset, limit) {
             return this.neighbors(node, {
                 types: {
                     outgoing: true,
@@ -411,14 +384,14 @@
                 offset: offset,
                 limit: limit
             });
-        };
+        },
 
-        this.createNode = function (data) {
+        createNode: function (data) {
             return $.when(this.createNodeRaw(data || {}))
                 .then(_.bind(this.addAccessor, this));
-        };
+        },
 
-        this.createLink = function (source, target, _data, undirected) {
+        createLink: function (source, target, _data, undirected) {
             var data;
 
             // If source/target is a accessor, call its key method to get the
@@ -431,9 +404,9 @@
 
             return $.when(this.createLinkRaw(source, target, data, undirected))
                 .then(_.bind(this.addAccessor, this));
-        };
+        },
 
-        this.destroyNode = function (node) {
+        destroyNode: function (node) {
             var key = node.key();
             return this.destroyNodeRaw(key).then(function (response) {
                 return {
@@ -441,9 +414,9 @@
                     response: response
                 };
             });
-        };
+        },
 
-        this.destroyLink = function (link) {
+        destroyLink: function (link) {
             var key = link.key();
             return this.destroyLinkRaw(key).then(function (response) {
                 return {
@@ -451,11 +424,65 @@
                     response: response
                 };
             });
-        };
+        },
 
-        options = options || {};
-        this.initialize.apply(this, arguments);
-    };
+        // Default implementation methods.
+        findNodesRaw: function () {
+            throw new Error("To call findNodes(), findNode(), or findNodeByKey(), you must implement findNodesRaw()");
+        },
+
+        findLinksRaw: function () {
+            throw new Error("To call findLinks(), findLink(), or findLinkByKey(), you must implement findLinksRaw()");
+        },
+
+        neighborLinksRaw: function (node, _types, offset, limit) {
+            var reqs = [],
+                types = {};
+
+            _.each(["outgoing", "incoming", "undirected"], function (mode) {
+                types[mode] = _.isUndefined(_types[mode]) ? true : _types[mode];
+            });
+
+            if (types.outgoing) {
+                reqs.push(this.findLinksRaw(undefined, node.key(), undefined, true));
+            }
+
+            if (types.incoming) {
+                reqs.push(this.findLinksRaw(undefined, undefined, node.key(), true));
+            }
+
+            if (types.undirected) {
+                reqs.push(this.findLinksRaw(undefined, node.key(), undefined, false));
+                reqs.push(this.findLinksRaw(undefined, undefined, node.key(), false));
+            }
+
+            return $.when.apply($, reqs).then(function () {
+                // This pipeline zips together the list of results, then
+                // flattens the resulting list-of-lists, removes all undefineds
+                // (which may arise if some of the lists are shorter than
+                // others), then finally slices the result to get the final list
+                // of links.
+                return _.filter(_.flatten(_.zip.apply(_, _.toArray(arguments))), _.negate(_.isUndefined))
+                    .slice(offset || 0, (offset + limit) || undefined);
+            });
+        },
+
+        createNodeRaw: function () {
+            throw new Error("To call createNode() you must implement createNodeRaw()");
+        },
+
+        destroyNodeRaw: function () {
+            throw new Error("To call destroyNode() you must implement destroyNodeRaw()");
+        },
+
+        createLinkRaw: function () {
+            throw new Error("To call createLink() you must implement createLinkRaw()");
+        },
+
+        destroyLinkRaw: function () {
+            throw new Error("To call destroyLink() you must implement destroyLinkRaw()");
+        }
+    });
 
     clique.Adapter.extend = Backbone.Model.extend;
 
