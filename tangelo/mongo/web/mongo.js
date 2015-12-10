@@ -13,13 +13,13 @@
             };
         },
 
-        findNodesRaw: function (cfg) {
+        findNodesRaw: function (spec, offset, limit) {
             var data;
 
             data = _.extend({
-                spec: JSON.stringify(cfg.spec || {}),
-                offset: _.isUndefined(cfg.offset) ? null : cfg.offset,
-                limit: _.isUndefined(cfg.limit) ? null : cfg.limit,
+                spec: JSON.stringify(spec || {}),
+                offset: offset || 0,
+                limit: limit || 0,
             }, this.mongoStore);
 
             return $.getJSON("plugin/mongo/findNodes", data).then(function (responses) {
