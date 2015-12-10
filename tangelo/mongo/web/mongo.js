@@ -41,16 +41,16 @@
             });
         },
 
-        findLinksRaw: function (cfg) {
+        findLinksRaw: function (spec, source, target, directed, offset, limit) {
             var data;
 
             data = _.extend({
-                spec: JSON.stringify(cfg.spec || {}),
-                source: cfg.source,
-                target: cfg.target,
-                directed: JSON.stringify(_.isUndefined(cfg.directed) ? null : cfg.directed),
-                offset: _.isUndefined(cfg.offset) ? null : cfg.offset,
-                limit: _.isUndefined(cfg.offset) ? null : cfg.offset
+                spec: JSON.stringify(spec || {}),
+                source: source,
+                target: target,
+                directed: JSON.stringify(_.isUndefined(directed) ? null : cfg.directed),
+                offset: offset || 0,
+                limit: limit || 0
             }, this.mongoStore);
 
             return $.getJSON("plugin/mongo/findLinks", data).then(function (responses) {
