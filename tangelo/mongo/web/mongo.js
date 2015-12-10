@@ -48,7 +48,7 @@
                 spec: JSON.stringify(spec || {}),
                 source: source,
                 target: target,
-                directed: JSON.stringify(_.isUndefined(directed) ? null : cfg.directed),
+                directed: JSON.stringify(_.isUndefined(directed) ? null : directed),
                 offset: offset || 0,
                 limit: limit || 0
             }, this.mongoStore);
@@ -70,6 +70,20 @@
                     return result;
                 });
             });
+        },
+
+        neighborLinkCount: function (node, opts) {
+            var data;
+
+            opts = opts || {};
+            data = _.extend({
+                node: node.key(),
+                outgoing: _.isUndefined(opts.outgoing) ? true : opts.outgoing,
+                incoming: _.isUndefined(opts.incoming) ? true : opts.incoming,
+                undirected: _.isUndefined(opts.undirected) ? true : opts.undirected
+            }, this.mongoStore);
+
+            return $.getJSON("plugin/mongo/neighborLinkCount", data);
         },
 
         createNodeRaw: function (_data) {
