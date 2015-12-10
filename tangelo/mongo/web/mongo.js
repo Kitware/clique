@@ -1,6 +1,43 @@
 (function (clique, $, _, Backbone, tangelo) {
     "use strict";
 
+    var processNode,
+        processLink;
+
+    processNode = function (response) {
+        var result = {};
+
+        delete response.type;
+
+        _.each(response, function (value, key) {
+            if (key === "_id") {
+                result.key = value.$oid;
+            } else {
+                result[key] = value;
+            }
+        });
+
+        return result;
+    };
+
+    processLink = function (response) {
+        var result = {};
+
+        delete response.type;
+
+        _.each(response, function (value, key) {
+            if (key === "_id") {
+                result.key = value.$oid;
+            } else if (key === "source" || key === "target") {
+                result[key] = value.$oid;
+            } else {
+                result[key] = value;
+            }
+        });
+
+        return result;
+    };
+
     // Ensure existence of mongo plugin.
     tangelo.getPlugin("mongo");
 
@@ -22,23 +59,8 @@
                 limit: limit || 0,
             }, this.mongoStore);
 
-            return $.getJSON("plugin/mongo/findNodes", data).then(function (responses) {
-                return _.map(responses, function (response) {
-                    var result = {};
-
-                    delete response.type;
-
-                    _.each(response, function (value, key) {
-                        if (key === "_id") {
-                            result.key = value.$oid;
-                        } else {
-                            result[key] = value;
-                        }
-                    });
-
-                    return result;
-                });
-            });
+            return $.getJSON("plugin/mongo/findNodes", data)
+                .then(_.partial(_.map, _, processNode, undefined));
         },
 
         findLinksRaw: function (spec, source, target, directed, offset, limit) {
@@ -53,23 +75,25 @@
                 limit: limit || 0
             }, this.mongoStore);
 
-            return $.getJSON("plugin/mongo/findLinks", data).then(function (responses) {
-                return _.map(responses, function (response) {
-                    var result = {};
+            return $.getJSON("plugin/mongo/findLinks", data)
+                .then(_.partial(_.map, _, processLink, undefined));
+        },
 
-                    _.each(response, function (value, key) {
-                        if (key === "_id") {
-                            result.key = value.$oid;
-                        } else if (key === "source" || key === "target") {
-                            result[key] = value.$oid;
-                        } else {
-                            result[key] = value;
-                        }
-                    });
+        neighborLinksRaw: function (node, types, offset, limit) {
+            var data;
 
-                    return result;
-                });
-            });
+            types = types || {};
+            data = _.extend({
+                node: node.key(),
+                outgoing: _.isUndefined(types.outgoing) ? true : types.outgoing,
+                incoming: _.isUndefined(types.incoming) ? true : types.incoming,
+                undirected: _.isUndefined(types.undirected) ? true : types.undirected,
+                offset: offset || 0,
+                limit: limit || 0
+            }, this.mongoStore);
+
+            return $.getJSON("plugin/mongo/neighborLinks", data)
+                .then(_.partial(_.map, _, processLink, undefined));
         },
 
         neighborLinkCount: function (node, opts) {
