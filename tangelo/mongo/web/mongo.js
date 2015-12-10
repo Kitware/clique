@@ -86,6 +86,20 @@
             return $.getJSON("plugin/mongo/neighborLinkCount", data);
         },
 
+        neighborCount: function (node, opts) {
+            var data;
+
+            opts = opts || {};
+            data = _.extend({
+                node: node.key(),
+                outgoing: _.isUndefined(opts.outgoing) ? true : opts.outgoing,
+                incoming: _.isUndefined(opts.incoming) ? true : opts.incoming,
+                undirected: _.isUndefined(opts.undirected) ? true : opts.undirected
+            }, this.mongoStore);
+
+            return $.getJSON("plugin/mongo/neighborCount", data);
+        },
+
         createNodeRaw: function (_data) {
             var data;
 
