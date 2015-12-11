@@ -238,61 +238,61 @@
             });
         },
 
-        neighborCount: function (node, opts) {
-            return this.neighbors(node, opts).then(function (nbrs) {
+        neighborNodeCount: function (node, opts) {
+            return this.neighborNodes(node, opts).then(function (nbrs) {
                 return _.size(nbrs.nodes);
             });
         },
 
-        outgoingNeighborCount: function (node) {
-            return this.neighborCount(node, {
+        outgoingNodeCount: function (node) {
+            return this.neighborNodeCount(node, {
                 outgoing: true,
                 incoming: false,
                 undirected: false
             });
         },
 
-        outflowingNeighborCount: function (node) {
-            return this.neighborCount(node, {
+        outflowingNodeCount: function (node) {
+            return this.neighborNodeCount(node, {
                 outgoing: true,
                 incoming: false,
                 undirected: true
             });
         },
 
-        incomingNeighborCount: function (node) {
-            return this.neighborCount(node, {
+        incomingNodeCount: function (node) {
+            return this.neighborNodeCount(node, {
                 outgoing: false,
                 incoming: true,
                 undirected: false
             });
         },
 
-        inflowingNeighborCount: function (node) {
-            return this.neighborCount(node, {
+        inflowingNodeCount: function (node) {
+            return this.neighborNodeCount(node, {
                 outgoing: false,
                 incoming: true,
                 undirected: true
             });
         },
 
-        undirectedNeighborCount: function (node) {
-            return this.neighborCount(node, {
+        undirectedNodeCount: function (node) {
+            return this.neighborNodeCount(node, {
                 outgoing: false,
                 incoming: false,
                 undirected: true
             });
         },
 
-        directedNeighborCount: function (node) {
-            return this.neighborCount(node, {
+        directedNodeCount: function (node) {
+            return this.neighborNodeCount(node, {
                 outgoing: true,
                 incoming: true,
                 undirected: false
             });
         },
 
-        neighbors: function (node, opts) {
+        neighborNodes: function (node, opts) {
             var key = node.key(),
                 links;
 
@@ -327,8 +327,8 @@
             });
         },
 
-        outgoingNeighbors: function (node, offset, limit) {
-            return this.neighbors(node, {
+        outgoingNodes: function (node, offset, limit) {
+            return this.neighborNodes(node, {
                 types: {
                     outgoing: true,
                     incoming: false,
@@ -339,8 +339,8 @@
             });
         },
 
-        outflowingNeighbors: function (node, offset, limit) {
-            return this.neighbors(node, {
+        outflowingNodes: function (node, offset, limit) {
+            return this.neighborNodes(node, {
                 types: {
                     outgoing: true,
                     incoming: false,
@@ -351,8 +351,8 @@
             });
         },
 
-        incomingNeighbors: function (node, offset, limit) {
-            return this.neighbors(node, {
+        incomingNodes: function (node, offset, limit) {
+            return this.neighborNodes(node, {
                 types: {
                     outgoing: false,
                     incoming: true,
@@ -363,8 +363,8 @@
             });
         },
 
-        inflowingNeighbors: function (node, offset, limit) {
-            return this.neighbors(node, {
+        inflowingNodes: function (node, offset, limit) {
+            return this.neighborNodes(node, {
                 types: {
                     outgoing: false,
                     incoming: true,
@@ -375,8 +375,8 @@
             });
         },
 
-        undirectedNeighbors: function (node, offset, limit) {
-            return this.neighbors(node, {
+        undirectedNodes: function (node, offset, limit) {
+            return this.neighborNodes(node, {
                 types: {
                     outgoing: false,
                     incoming: false,
@@ -387,8 +387,8 @@
             });
         },
 
-        directedNeighbors: function (node, offset, limit) {
-            return this.neighbors(node, {
+        directedNodes: function (node, offset, limit) {
+            return this.neighborNodes(node, {
                 types: {
                     outgoing: true,
                     incoming: true,
