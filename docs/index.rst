@@ -33,10 +33,32 @@ Clique is open source software. Visit the `GitHub repository
 <https://github.com/Kitware/clique/>`_ to explore the code, file issues, and
 contribute!
 
+Using Clique
+============
+
 .. toctree::
    :maxdepth: 2
 
+.. todo::
+    Fill in section names and corresponding skeleton files
 
+Tutorials
+=========
+
+.. toctree::
+   :maxdepth: 2
+
+.. todo::
+    Fill in section names and corresponding skeleton files
+
+Clique API
+==========
+
+.. toctree::
+   :maxdepth: 2
+
+.. todo::
+    Fill in section names and corresponding skeleton files
 
 Indices and tables
 ==================
