@@ -169,6 +169,18 @@ gulp.task("bower", function () {
         .pipe(gulp.dest("./build/site/bower_components"));
 });
 
+gulp.task("docs-todo", function () {
+    "use strict";
+
+    return gulp.src("")
+        .pipe(shell([
+            "sphinx-build",
+            "-b", "html",
+            "-D", "todo_include_todos=1",
+            "docs", "tangelo/docs/web"
+        ].join(" ")));
+});
+
 gulp.task("docs", function () {
     "use strict";
 
