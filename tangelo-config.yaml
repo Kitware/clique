@@ -2,3 +2,5 @@ plugins:
     - name: tangelo
     - name: mongo
       path: tangelo/mongo
+    - name: docs
+      path: tangelo/docs
