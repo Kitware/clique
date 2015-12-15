@@ -13,7 +13,7 @@
             };
         },
 
-        findNodesImpl: function (spec) {
+        findNodesRaw: function (spec) {
             var data = _.extend({
                 spec: JSON.stringify(spec)
             }, this.mongoStore);
@@ -37,7 +37,7 @@
             });
         },
 
-        findLinksImpl: function (spec, source, target, directed) {
+        findLinksRaw: function (spec, source, target, directed) {
             var data;
 
             data = _.extend({
@@ -66,7 +66,7 @@
             });
         },
 
-        createNodeImpl: function (_data) {
+        createNodeRaw: function (_data) {
             var data;
 
             data  = _.extend({
@@ -98,7 +98,7 @@
             return $.getJSON("plugin/mongo/neighborhood", data);
         },
 
-        createLinkImpl: function (source, target, _data, undirected) {
+        createLinkRaw: function (source, target, _data, undirected) {
             var data;
 
             data = _.extend({
@@ -125,7 +125,7 @@
             });
         },
 
-        destroyNodeImpl: function (key) {
+        destroyNodeRaw: function (key) {
             var data;
 
             data = _.extend({
@@ -135,7 +135,7 @@
             return $.get("plugin/mongo/destroyNode", data);
         },
 
-        destroyLinkImpl: function (key) {
+        destroyLinkRaw: function (key) {
             var data;
 
             data = _.extend({
