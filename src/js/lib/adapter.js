@@ -29,9 +29,15 @@
         initialize: _.noop,
 
         findNodes: function (cfg) {
-            var spec = cfg.spec || {},
-                offset = cfg.offset || 0,
-                limit = cfg.limit;
+            var spec,
+                offset,
+                limit;
+
+            cfg = cfg || {};
+
+            spec = cfg.spec || {};
+            offset = cfg.offset || 0;
+            limit = _.isUndefined(cfg.limit) ? null : cfg.limit;
 
             return $.when(this.findNodesRaw(spec, offset, limit))
                 .then(_.partial(_.map, _, this.addAccessor, this));
@@ -56,12 +62,21 @@
         },
 
         findLinks: function (cfg) {
-            var spec = cfg.spec,
-                source = cfg.source,
-                target = cfg.target,
-                directed = cfg.directed,
-                offset = cfg.offset,
-                limit = cfg.limit;
+            var spec,
+                source,
+                target,
+                directed,
+                offset,
+                limit;
+
+            cfg = cfg || {};
+
+            spec = cfg.spec;
+            source = cfg.source;
+            target = cfg.target;
+            directed = cfg.directed;
+            offset = _.isUndefined(cfg.offset) ? null : cfg.offset;
+            limit = _.isUndefined(cfg.limit) ? null : cfg.limit;
 
             return $.when(this.findLinksRaw(spec, source, target, directed, offset, limit))
                 .then(_.partial(_.map, _, this.addAccessor, this));

@@ -1,6 +1,43 @@
 (function (clique, $, _, Backbone, tangelo) {
     "use strict";
 
+    var processNode,
+        processLink;
+
+    processNode = function (response) {
+        var result = {};
+
+        delete response.type;
+
+        _.each(response, function (value, key) {
+            if (key === "_id") {
+                result.key = value.$oid;
+            } else {
+                result[key] = value;
+            }
+        });
+
+        return result;
+    };
+
+    processLink = function (response) {
+        var result = {};
+
+        delete response.type;
+
+        _.each(response, function (value, key) {
+            if (key === "_id") {
+                result.key = value.$oid;
+            } else if (key === "source" || key === "target") {
+                result[key] = value.$oid;
+            } else {
+                result[key] = value;
+            }
+        });
+
+        return result;
+    };
+
     // Ensure existence of mongo plugin.
     tangelo.getPlugin("mongo");
 
@@ -13,57 +50,78 @@
             };
         },
 
-        findNodesRaw: function (spec) {
-            var data = _.extend({
-                spec: JSON.stringify(spec)
-            }, this.mongoStore);
-
-            return $.getJSON("plugin/mongo/findNodes", data).then(function (responses) {
-                return _.map(responses, function (response) {
-                    var result = {};
-
-                    delete response.type;
-
-                    _.each(response, function (value, key) {
-                        if (key === "_id") {
-                            result.key = value.$oid;
-                        } else {
-                            result[key] = value;
-                        }
-                    });
-
-                    return result;
-                });
-            });
-        },
-
-        findLinksRaw: function (spec, source, target, directed) {
+        findNodesRaw: function (spec, offset, limit) {
             var data;
 
             data = _.extend({
-                spec: JSON.stringify(spec),
-                source: source,
-                target: target,
-                directed: JSON.stringify(_.isUndefined(directed) ? null : directed)
+                spec: JSON.stringify(spec || {}),
+                offset: offset || 0,
+                limit: limit || 0,
             }, this.mongoStore);
 
-            return $.getJSON("plugin/mongo/findLinks", data).then(function (responses) {
-                return _.map(responses, function (response) {
-                    var result = {};
+            return $.getJSON("plugin/mongo/findNodes", data)
+                .then(_.partial(_.map, _, processNode, undefined));
+        },
 
-                    _.each(response, function (value, key) {
-                        if (key === "_id") {
-                            result.key = value.$oid;
-                        } else if (key === "source" || key === "target") {
-                            result[key] = value.$oid;
-                        } else {
-                            result[key] = value;
-                        }
-                    });
+        findLinksRaw: function (spec, source, target, directed, offset, limit) {
+            var data;
 
-                    return result;
-                });
-            });
+            data = _.extend({
+                spec: JSON.stringify(spec || {}),
+                source: source,
+                target: target,
+                directed: JSON.stringify(_.isUndefined(directed) ? null : directed),
+                offset: offset || 0,
+                limit: limit || 0
+            }, this.mongoStore);
+
+            return $.getJSON("plugin/mongo/findLinks", data)
+                .then(_.partial(_.map, _, processLink, undefined));
+        },
+
+        neighborLinksRaw: function (node, types, offset, limit) {
+            var data;
+
+            types = types || {};
+            data = _.extend({
+                node: node.key(),
+                outgoing: _.isUndefined(types.outgoing) ? true : types.outgoing,
+                incoming: _.isUndefined(types.incoming) ? true : types.incoming,
+                undirected: _.isUndefined(types.undirected) ? true : types.undirected,
+                offset: offset || 0,
+                limit: limit || 0
+            }, this.mongoStore);
+
+            return $.getJSON("plugin/mongo/neighborLinks", data)
+                .then(_.partial(_.map, _, processLink, undefined));
+        },
+
+        neighborLinkCount: function (node, opts) {
+            var data;
+
+            opts = opts || {};
+            data = _.extend({
+                node: node.key(),
+                outgoing: _.isUndefined(opts.outgoing) ? true : opts.outgoing,
+                incoming: _.isUndefined(opts.incoming) ? true : opts.incoming,
+                undirected: _.isUndefined(opts.undirected) ? true : opts.undirected
+            }, this.mongoStore);
+
+            return $.getJSON("plugin/mongo/neighborLinkCount", data);
+        },
+
+        neighborCount: function (node, opts) {
+            var data;
+
+            opts = opts || {};
+            data = _.extend({
+                node: node.key(),
+                outgoing: _.isUndefined(opts.outgoing) ? true : opts.outgoing,
+                incoming: _.isUndefined(opts.incoming) ? true : opts.incoming,
+                undirected: _.isUndefined(opts.undirected) ? true : opts.undirected
+            }, this.mongoStore);
+
+            return $.getJSON("plugin/mongo/neighborCount", data);
         },
 
         createNodeRaw: function (_data) {
@@ -86,16 +144,6 @@
 
                 return node;
             });
-        },
-
-        neighborhood: function (node, radius, linklimit) {
-            var data = _.extend({
-                start_key: node.key(),
-                radius: radius,
-                linklimit: linklimit
-            }, this.mongoStore);
-
-            return $.getJSON("plugin/mongo/neighborhood", data);
         },
 
         createLinkRaw: function (source, target, _data, undirected) {
@@ -143,6 +191,16 @@
             }, this.mongoStore);
 
             return $.get("plugin/mongo/destroyLink", data);
-        }
+        },
+
+        neighborhood: function (node, radius, linklimit) {
+            var data = _.extend({
+                start_key: node.key(),
+                radius: radius,
+                linklimit: linklimit
+            }, this.mongoStore);
+
+            return $.getJSON("plugin/mongo/neighborhood", data);
+        },
     });
 }(window.clique, window.jQuery, window._, window.Backbone, window.tangelo));
