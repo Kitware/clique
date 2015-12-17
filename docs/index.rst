@@ -37,10 +37,11 @@ Using Clique
 ============
 
 .. toctree::
-   :maxdepth: 2
+    :maxdepth: 2
 
-.. todo::
-    Fill in section names and corresponding skeleton files
+    using-clique/overview
+    using-clique/graph-model
+    using-clique/architecture
 
 Tutorials
 =========
