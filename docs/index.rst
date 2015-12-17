@@ -47,10 +47,11 @@ Tutorials
 =========
 
 .. toctree::
-   :maxdepth: 2
+    :maxdepth: 2
 
-.. todo::
-    Fill in section names and corresponding skeleton files
+    tutorials/tour-example
+    tutorials/tour-mongo
+    tutorials/from-scratch
 
 Clique API
 ==========
