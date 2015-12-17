@@ -27,5 +27,68 @@ tools that can handle the largest-scale structures of the graph or network.
 Installing Clique
 =================
 
+Clique can be either built from source, then included manually in your project,
+or imported via `Bower <http://bower.io/>`_.
+
+Installing from Bower
+---------------------
+
+Installing from Bower is straightforward. The following command will accomplish
+it:
+
+.. code:: sh
+
+    bower install clique
+
+creating a ``bower_components`` directory (if it didn't already exist), with the
+following structure:
+
+.. code:: sh
+
+    bower_components
+    └── clique
+        ├── bower.json
+        ├── clique.js
+        ├── clique.min.js
+        └── tangelo
+            └── mongo
+                ├── python
+                │   ├── __init__.py
+                │   └── util.py
+                └── web
+                    ├── clear.py
+                    ├── destroyNode.py
+                    ├── findLinks.py
+                    ├── findNodes.py
+                    ├── mongo.js
+                    ├── neighborhood.py
+                    ├── newLink.py
+                    ├── newNode.py
+                    ├── rexster.py
+                    └── update.py
+
+From here, you can manually copy ``clique.js`` and ``clique.min.js`` into your
+own application.
+
+The other alternative is to include Clique as a Bower dependency in your web
+project, as described `here <http://bower.io/docs/creating-packages/>`_. A
+command like:
+
+.. code:: sh
+
+    bower install clique --save
+
+or
+
+.. code:: sh
+
+    bower install clique --save-dev
+
+will update your ``bower.json`` file so that Clique is installed when you build
+your project.
+
+Building from Source
+--------------------
+
 Running the Example Application
 ===============================
