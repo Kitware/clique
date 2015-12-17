@@ -57,10 +57,11 @@ Clique API
 ==========
 
 .. toctree::
-   :maxdepth: 2
+    :maxdepth: 2
 
-.. todo::
-    Fill in section names and corresponding skeleton files
+    api/adapter.rst
+    api/graph.rst
+    api/view.rst
 
 Indices and tables
 ==================
