@@ -1,5 +1,6 @@
-Overview
-========
+==========
+ Overview
+==========
 
 .. todo::
     Fill in Overview section
@@ -24,7 +25,7 @@ of more global structure in your data, which you may choose to couple with other
 tools that can handle the largest-scale structures of the graph or network.
 
 Installing Clique
------------------
+=================
 
 Running the Example Application
--------------------------------
+===============================
