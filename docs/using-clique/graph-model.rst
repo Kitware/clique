@@ -1,3 +1,5 @@
+.. _graph-model:
+
 =============
  Graph Model
 =============

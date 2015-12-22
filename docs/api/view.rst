@@ -1,3 +1,5 @@
+.. _backbone-view:
+
 =====================
  Graph Backbone View
 =====================

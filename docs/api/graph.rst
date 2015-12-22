@@ -1,3 +1,5 @@
+.. _backbone-graph:
+
 ======================
  Graph Backbone Model
 ======================

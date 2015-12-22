@@ -1,3 +1,5 @@
+.. _data-adapter:
+
 ==============
  Data Adapter
 ==============
