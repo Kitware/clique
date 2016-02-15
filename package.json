@@ -1,6 +1,10 @@
 {
   "version": "0.1.0",
   "devDependencies": {
+    "babel-core": "^6.5.2",
+    "babel-loader": "^6.2.2",
+    "babel-preset-es2015": "^6.5.0",
+    "expose-loader": "^0.7.1",
     "gulp": "^3.8.11",
     "gulp-bower": "0.0.10",
     "gulp-concat": "^2.5.2",
@@ -17,7 +21,10 @@
     "gulp-uglify": "^1.2.0",
     "gulp-util": "^3.0.4",
     "jade": "^1.9.2",
+    "jade-loader": "^0.8.0",
     "jshint-stylish": "^1.0.1",
-    "underscore": "^1.8.3"
+    "semistandard-loader": "0.0.3",
+    "underscore": "^1.8.3",
+    "webpack": "^1.12.13"
   }
 }
