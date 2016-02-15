@@ -26,5 +26,8 @@
     "semistandard-loader": "0.0.3",
     "underscore": "^1.8.3",
     "webpack": "^1.12.13"
+  },
+  "scripts": {
+    "build": "webpack"
   }
 }
