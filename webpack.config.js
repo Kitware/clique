@@ -3,7 +3,8 @@ var path = require('path');
 
 module.exports = {
   entry: {
-    clique: './src/clique.js',
+    clique: ['./src/clique.js'],
+    bigram: './src/app/bigram/index.js',
   },
   output: {
     library: '[name]',
@@ -31,6 +32,10 @@ module.exports = {
           presets: ['es2015'],
         },
         include: path.resolve(__dirname, 'src'),
+      },
+      {
+        test: /\.json$/,
+        loader: 'json',
       },
     ],
   },
