@@ -5,7 +5,7 @@ import _ from 'underscore';
 import { Graph } from './../../clique/model.js';
 import { NodeLinkList } from './../../clique/adapter.js';
 import { Cola } from './../../clique/view.js';
-import { SelectionInfo } from './../../clique/view/SelectionInfo.js';
+import { SelectionInfo } from './../../clique/view.js';
 
 const aCodePoint = 'a'.codePointAt(0);
 
