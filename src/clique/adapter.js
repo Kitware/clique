@@ -1,17 +1,19 @@
 import _ from 'underscore';
 import { deepCopy } from './util';
+import Accessor from './accessor';
+import $ from 'jquery';
 
 export default class Adapter {
   constructor () {
-    this._accessors = {};
+    this.accessors = {};
   }
 
   onNewAccessor () {}
 
   addAccessor (blob) {
-    let acc = this._accessors[blob.key];
+    let acc = this.accessors[blob.key];
     if (_.isUndefined(acc)) {
-      acc = accessors[blob.key] = new Accessor(blob);
+      acc = this.accessors[blob.key] = new Accessor(blob);
       this.onNewAccessor(acc);
     }
 
@@ -22,7 +24,7 @@ export default class Adapter {
     return this._accessors[key];
   }
 
-  findNodes (spec, {offset=0, limit=null}) {
+  findNodes (spec, {offset = 0, limit = null}) {
     return $.when(this.findNodesRaw(spec, offset, limit))
       .then(results => results.map(x => this.addAccessor(x)));
   }
@@ -37,7 +39,7 @@ export default class Adapter {
     return this.findNode({ key });
   }
 
-  findLinks (spec, {source, target, directed, offset=0, limit=null}) {
+  findLinks (spec, {source, target, directed, offset = 0, limit = null}) {
     return $.when(this.findLinksRaw(spec, source, target, directed, offset, limit))
       .then(results => results.map(x => this.addAccessor(x)));
   }
@@ -105,7 +107,7 @@ export default class Adapter {
     });
   }
 
-  neighborLinks (node, {outgoing=true, incoming=true, undirected=true}, {offset=0, limit=null}) {
+  neighborLinks (node, {outgoing = true, incoming = true, undirected = true}, {offset = 0, limit = null}) {
     return this.neighborLinksRaw(node, {outgoing, incoming, undirected}, offset, limit);
   }
 
@@ -162,7 +164,7 @@ export default class Adapter {
       .then(neighbors => neighbors.length);
   }
 
-  outgoingNodeCount: function (node) {
+  outgoingNodeCount (node) {
     return this.neighborNodeCount(node, {
       outgoing: true,
       incoming: false,
@@ -170,7 +172,7 @@ export default class Adapter {
     });
   }
 
-  outflowingNodeCount: function (node) {
+  outflowingNodeCount (node) {
     return this.neighborNodeCount(node, {
       outgoing: true,
       incoming: false,
@@ -178,7 +180,7 @@ export default class Adapter {
     });
   }
 
-  incomingNodeCount: function (node) {
+  incomingNodeCount (node) {
     return this.neighborNodeCount(node, {
       outgoing: false,
       incoming: true,
@@ -186,7 +188,7 @@ export default class Adapter {
     });
   }
 
-  inflowingNodeCount: function (node) {
+  inflowingNodeCount (node) {
     return this.neighborNodeCount(node, {
       outgoing: false,
       incoming: true,
@@ -194,7 +196,7 @@ export default class Adapter {
     });
   }
 
-  undirectedNodeCount: function (node) {
+  undirectedNodeCount (node) {
     return this.neighborNodeCount(node, {
       outgoing: false,
       incoming: false,
@@ -202,7 +204,7 @@ export default class Adapter {
     });
   }
 
-  directedNodeCount: function (node) {
+  directedNodeCount (node) {
     return this.neighborNodeCount(node, {
       outgoing: true,
       incoming: true,
@@ -214,14 +216,14 @@ export default class Adapter {
     const key = node.key();
     let links;
 
-    return this.neighborLinks(node, types, slice).
+    return this.neighborLinks(node, types, slice)
       .then(nlinks => {
         links = nlinks;
 
         let neighborKeys = links.map(link => key === link.source() ? link.target() : link.source());
 
         let accs = neighborKeys.map((key, i) => {
-          let acc = this.getAccessor(x);
+          let acc = this.getAccessor(key);
           if (!acc) {
             return this.findNodeByKey(neighborKeys[i]);
           } else {
@@ -237,7 +239,7 @@ export default class Adapter {
       }));
   }
 
-  outgoingNodes: function (node, slice) {
+  outgoingNodes (node, slice) {
     return this.neighborNodes(node, {
       outgoing: true,
       incoming: false,
@@ -245,7 +247,7 @@ export default class Adapter {
     }, slice);
   }
 
-  outflowingNodes: function (node, slice) {
+  outflowingNodes (node, slice) {
     return this.neighborNodes(node, {
       outgoing: true,
       incoming: false,
@@ -253,7 +255,7 @@ export default class Adapter {
     }, slice);
   }
 
-  incomingNodes: function (node, slice) {
+  incomingNodes (node, slice) {
     return this.neighborNodes(node, {
       outgoing: false,
       incoming: true,
@@ -261,7 +263,7 @@ export default class Adapter {
     }, slice);
   }
 
-  inflowingNodes: function (node, slice) {
+  inflowingNodes (node, slice) {
     return this.neighborNodes(node, {
       outgoing: false,
       incoming: true,
@@ -269,7 +271,7 @@ export default class Adapter {
     }, slice);
   }
 
-  undirectedNodes: function (node, slice) {
+  undirectedNodes (node, slice) {
     return this.neighborNodes(node, {
       outgoing: false,
       incoming: false,
@@ -277,7 +279,7 @@ export default class Adapter {
     }, slice);
   }
 
-  directedNodes: function (node, slice) {
+  directedNodes (node, slice) {
     return this.neighborNodes(node, {
       outgoing: true,
       incoming: true,
@@ -285,12 +287,12 @@ export default class Adapter {
     }, slice);
   }
 
-  createNode (data={}) {
+  createNode (data = {}) {
     return $.when(this.createNodeRaw(data))
       .then(x => this.addAccessor(x));
   }
 
-  createLink (source, target, data={}, undirected=false) {
+  createLink (source, target, data = {}, undirected = false) {
     const getKey = blob => typeof blob === 'string' ? blob : blob.key();
     source = getKey(source);
     target = getKey(target);
@@ -318,11 +320,11 @@ export default class Adapter {
   }
 
   findNodesRaw () {
-    throw new Error("To call findNodes(), findNode(), or findNodeByKey(), you must implement findNodesRaw()");
+    throw new Error('To call findNodes(), findNode(), or findNodeByKey(), you must implement findNodesRaw()');
   }
 
   findLinksRaw () {
-    throw new Error("To call findLinks(), findLink(), or findLinkByKey(), you must implement findLinksRaw()");
+    throw new Error('To call findLinks(), findLink(), or findLinkByKey(), you must implement findLinksRaw()');
   }
 
   neighborLinksRaw (node, {outgoing, incoming, undirected}, offset, limit) {
@@ -346,19 +348,19 @@ export default class Adapter {
   }
 
   createNodeRaw () {
-    throw new Error("To call createNode() you must implement createNodeRaw()");
+    throw new Error('To call createNode() you must implement createNodeRaw()');
   }
 
   destroyNodeRaw () {
-    throw new Error("To call destroyNode() you must implement destroyNodeRaw()");
+    throw new Error('To call destroyNode() you must implement destroyNodeRaw()');
   }
 
   createLinkRaw () {
-    throw new Error("To call createLink() you must implement createLinkRaw()");
+    throw new Error('To call createLink() you must implement createLinkRaw()');
   }
 
   destroyLinkRaw () {
-    throw new Error("To call destroyLink() you must implement destroyLinkRaw()");
+    throw new Error('To call destroyLink() you must implement destroyLinkRaw()');
   }
 }
 
