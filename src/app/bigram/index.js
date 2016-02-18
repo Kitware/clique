@@ -63,9 +63,9 @@ $(function () {
   const html = require('./index.jade');
   $('body').html(html());
 
-  const graphData = bigramGraph(bigram);
+  const {nodes, links} = bigramGraph(bigram);
   let graph = new Graph({
-    adapter: new NodeLinkList(graphData)
+    adapter: new NodeLinkList(nodes, links)
   });
 
   $('#seed').on('click', function () {
