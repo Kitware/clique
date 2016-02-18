@@ -233,7 +233,7 @@ export default class Adapter {
 
         return $.when(...accs);
       })
-      .then(...nodes => ({
+      .then((...nodes) => ({
         nodes,
         links
       }));
@@ -344,7 +344,7 @@ export default class Adapter {
     }
 
     return $.when(...reqs)
-      .then(...results => [...results]);
+      .then((...results) => [].concat(...results));
   }
 
   createNodeRaw () {
