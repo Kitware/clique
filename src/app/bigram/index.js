@@ -1,6 +1,7 @@
 import bigram from './bigram.json';
 import Set from 'es6-set';
 import $ from 'jquery';
+import 'bootstrap/dist/js/bootstrap.js';
 import _ from 'underscore';
 import { Graph } from './../../clique/model.js';
 import { NodeLinkList } from './../../clique/adapter.js';
@@ -55,7 +56,13 @@ function bigramGraph (data) {
   };
 }
 
+import './bootswatch.less';
+import './index.styl';
+
 $(function () {
+  const html = require('./index.jade');
+  $('body').html(html());
+
   const graphData = bigramGraph(bigram);
   let graph = new Graph({
     adapter: new NodeLinkList(graphData)

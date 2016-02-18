@@ -1,6 +1,6 @@
 import _ from 'underscore';
 import Backbone from 'backbone';
-import { require, Set, MultiTable, jqSequence } from './util';
+import { require, CSet, MultiTable, jqSequence } from './util';
 
 const Graph = Backbone.Model.extend({
   constructor: function (options) {
@@ -13,7 +13,7 @@ const Graph = Backbone.Model.extend({
     this.adapter = options.adapter;
 
     this.nodes = {};
-    this.links = new Set();
+    this.links = new CSet();
 
     this.forward = new MultiTable();
     this.back = new MultiTable();
@@ -89,12 +89,12 @@ const Graph = Backbone.Model.extend({
   },
 
   removeNodes: function (nodes) {
-    let marked = new Set();
+    let marked = new CSet();
     let newNodes;
     let newLinks;
 
     // Mark the nodes for removal.
-    marked = new Set();
+    marked = new CSet();
     _.each(nodes, _.bind(function (node) {
       marked.add(node);
       delete this.nodes[node];
@@ -151,7 +151,7 @@ const Graph = Backbone.Model.extend({
       return undefined;
     }
 
-    nbs = new Set();
+    nbs = new CSet();
     _.each((inn || []).concat(outn || []), nbs.add, nbs);
 
     return nbs.items();
@@ -179,4 +179,77 @@ const Graph = Backbone.Model.extend({
   }
 });
 
-export { Graph };
+const Selection = Backbone.Model.extend({
+  initialize: function () {
+    this.focalPoint = 0;
+  },
+
+  add: function (key) {
+    this.set(key, key);
+    if (this.size()) {
+      this.trigger('focused', this.focused());
+    }
+
+    this.trigger('added', key);
+  },
+
+  remove: function (key) {
+    var focused = this.focused() === key;
+
+    this.unset(key);
+
+    if (this.focalPoint >= this.size()) {
+      this.focalPoint = Math.max(0, this.size() - 1);
+      this.trigger('focused', this.focused());
+    } else if (focused) {
+      this.focusLeft();
+    }
+
+    this.trigger('removed', key);
+  },
+
+  items: function () {
+    return _.keys(this.attributes);
+  },
+
+  focusKey: function (target) {
+    var index = _.indexOf(this.items(), target);
+    if (index === -1) {
+      return false;
+    }
+
+    this.focus(index);
+    return true;
+  },
+
+  focus: function (target) {
+    this.focalPoint = target;
+    if (this.focalPoint < 0) {
+      while (this.focalPoint < 0) {
+        this.focalPoint += this.size();
+      }
+    } else if (this.focalPoint >= this.size()) {
+      this.focalPoint = this.focalPoint % this.size();
+    }
+
+    this.trigger('focused', this.focused());
+  },
+
+  focusLeft: function () {
+    this.focus(this.focalPoint - 1);
+  },
+
+  focusRight: function () {
+    this.focus(this.focalPoint + 1);
+  },
+
+  focused: function () {
+    return this.items()[this.focalPoint];
+  },
+
+  size: function () {
+    return _.size(this.attributes);
+  }
+});
+
+export { Graph, Selection };

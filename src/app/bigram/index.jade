@@ -1,0 +1,27 @@
+include ../../jade/mixin/panel.jade
+
+doctype html
+head
+    title Clique - Bigram Graph
+
+body
+    nav.navbar.navbar-default
+        .container-fluid
+            .navbar-header
+                a.navbar-brand Clique Demo
+
+    svg(oncontextmenu="return false;")#content
+
+    +panel("query", "Query")(style="width:380px; position:absolute; left:10px")
+        .row
+            .col-md-12
+                h4 Add node
+                .row
+                    .col-md-12 #[input.form-control(placeholder="Letter")#name]
+                .row
+                    .col-md-1
+                        a.btn.btn-default#seed Query
+        .row
+            .col-md-12
+                h4 Selection Operations
+                #info
