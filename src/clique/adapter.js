@@ -20,10 +20,10 @@ export default class Adapter {
   }
 
   getAccessor (key) {
-    return this._accessors[key];
+    return this.accessors[key];
   }
 
-  findNodes (spec, {offset = 0, limit = null}) {
+  findNodes (spec, {offset = 0, limit = null} = {}) {
     return $.when(this.findNodesRaw(spec, offset, limit))
       .then(results => results.map(x => this.addAccessor(x)));
   }
@@ -38,7 +38,7 @@ export default class Adapter {
     return this.findNode({ key });
   }
 
-  findLinks (spec, {source, target, directed, offset = 0, limit = null}) {
+  findLinks (spec, {source, target, directed, offset = 0, limit = null} = {}) {
     return $.when(this.findLinksRaw(spec, source, target, directed, offset, limit))
       .then(results => results.map(x => this.addAccessor(x)));
   }
@@ -106,8 +106,9 @@ export default class Adapter {
     });
   }
 
-  neighborLinks (node, {outgoing = true, incoming = true, undirected = true}, {offset = 0, limit = null}) {
-    return this.neighborLinksRaw(node, {outgoing, incoming, undirected}, offset, limit);
+  neighborLinks (node, {outgoing = true, incoming = true, undirected = true} = {}, {offset = 0, limit = null} = {}) {
+    return this.neighborLinksRaw(node, {outgoing, incoming, undirected}, offset, limit)
+      .then(results => results.map(x => this.addAccessor(x)));
   }
 
   outgoingLinks (node, slice) {
