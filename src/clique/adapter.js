@@ -1,6 +1,5 @@
 import _ from 'underscore';
-import { deepCopy } from './util';
-import Accessor from './accessor';
+import { deepCopy, Accessor } from './util';
 import $ from 'jquery';
 
 export default class Adapter {
