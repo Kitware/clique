@@ -6,7 +6,7 @@ var CleanWebpackPlugin = require('clean-webpack-plugin');
 module.exports = {
   devtool: 'source-map',
   entry: {
-    clique: ['./src/clique.js'],
+    clique: ['./src/clique/index.js'],
     bigram: './src/app/bigram/index.js',
   },
   output: {
@@ -45,7 +45,7 @@ module.exports = {
     ],
     loaders: [
       {
-        test: require.resolve('./src/clique.js'),
+        test: require.resolve('./src/clique/index.js'),
         loader: 'expose?clique',
       },
       {
