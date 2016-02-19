@@ -1,6 +1,6 @@
 import _ from 'underscore';
 import Backbone from 'backbone';
-import { require, concat, CSet, MultiTable, jqSequence } from './util';
+import { require, concat, CSet, MultiTable } from './util';
 
 const Graph = Backbone.Model.extend({
   constructor: function (options) {
@@ -74,14 +74,6 @@ const Graph = Backbone.Model.extend({
         links: concat(this.get('links'), newLinks)
       });
     }, this));
-  },
-
-  addNodes: function (nodes) {
-    var reqs = _.map(nodes, function (node) {
-      this.addNode(node);
-    }, this);
-
-    return jqSequence(reqs);
   },
 
   removeNode: function (node) {

@@ -12,25 +12,6 @@ export function concat (...lists) {
   return [].concat(...lists);
 }
 
-export function jqSequence (reqs) {
-  const helper = function (reqs, accum, i) {
-    if (i === _.size(reqs)) {
-      return accum;
-    } else {
-      accum = accum.then(function () {
-        return reqs[i];
-      });
-
-      return helper(reqs, accum, i + 1);
-    }
-  };
-
-  let chain = Backbone.$.Deferred();
-  chain.resolve();
-
-  return helper(reqs, chain, 0);
-}
-
 export function CSet () {
   var items = {};
 
