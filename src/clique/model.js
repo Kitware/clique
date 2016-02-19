@@ -1,6 +1,6 @@
 import _ from 'underscore';
 import Backbone from 'backbone';
-import { require, CSet, MultiTable, jqSequence } from './util';
+import { require, concat, CSet, MultiTable, jqSequence } from './util';
 
 const Graph = Backbone.Model.extend({
   constructor: function (options) {
@@ -70,8 +70,8 @@ const Graph = Backbone.Model.extend({
       }, this));
 
       this.set({
-        nodes: this.get('nodes').concat([node.getRaw()]),
-        links: this.get('links').concat(newLinks)
+        nodes: concat(this.get('nodes'), node.getRaw()),
+        links: concat(this.get('links'), newLinks)
       });
     }, this));
   },
@@ -152,7 +152,7 @@ const Graph = Backbone.Model.extend({
     }
 
     nbs = new CSet();
-    _.each((inn || []).concat(outn || []), nbs.add, nbs);
+    _.each(concat(inn || [], outn || []), nbs.add, nbs);
 
     return nbs.items();
   },

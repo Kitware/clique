@@ -8,11 +8,8 @@ export function deepCopy (o) {
   return JSON.parse(JSON.stringify(o));
 }
 
-export function concat () {
-  var lists = _.toArray(arguments);
-  return _.reduce(lists, function (a, b) {
-    return a.concat(b);
-  }, []);
+export function concat (...lists) {
+  return [].concat(...lists);
 }
 
 export function jqSequence (reqs) {
