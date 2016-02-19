@@ -33,10 +33,6 @@ export class CSet {
   items (mapper) {
     return _.map(mapper || _.noop, [...this.s]);
   }
-
-  size () {
-    return this.s.size;
-  }
 }
 
 export function MultiTable () {
