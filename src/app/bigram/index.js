@@ -38,7 +38,8 @@ function bigramGraph (data) {
           source: first.codePointAt(0) - aCodePoint,
           target: second.codePointAt(0) - aCodePoint,
           data: {
-            frequency: data[key]
+            letters: `${first}-${second}`,
+            forward_frequency: data[key]
           }
         };
 
@@ -46,6 +47,7 @@ function bigramGraph (data) {
         // frequent as well.
         if (data[rev] > threshold) {
           link.undirected = true;
+          link.data.back_frequency = data[rev];
           done.add(rev);
         }
 
