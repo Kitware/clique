@@ -4,7 +4,7 @@ import d3 from 'd3';
 import cola from 'webcola';
 
 import { Selection } from './model';
-import { CSet } from './util';
+import Set from 'es6-set';
 import selectionInfo from './template/selectionInfo.jade';
 import linkInfo from './template/linkInfo.jade';
 
@@ -430,12 +430,12 @@ const Cola = Backbone.View.extend({
       .classed('focused', true);
     });
 
-    this.selected = new CSet();
+    this.selected = new Set();
     this.listenTo(this.selection, 'added', function (key) {
       this.selected.add(key);
     });
     this.listenTo(this.selection, 'removed', function (key) {
-      this.selected.remove(key);
+      this.selected.delete(key);
     });
   },
 
