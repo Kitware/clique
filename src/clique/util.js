@@ -13,38 +13,46 @@ export function concat (...lists) {
   return [].concat(...lists);
 }
 
-export function MultiTable () {
-  var table = {};
+export class MultiTable {
+  constructor () {
+    this.table = {};
+  }
 
-  return {
-    add: function (key, item) {
-      if (!_.has(table, key)) {
-        table[key] = new Set();
-      }
+  add (key, item) {
+    let table = this.table;
 
-      table[key].add(item);
-    },
-
-    remove: function (key, item) {
-      if (_.has(table, key)) {
-        table[key].delete(item);
-      }
-    },
-
-    strike: function (key) {
-      delete table[key];
-    },
-
-    has: function (key, item) {
-      return _.has(table, key) && (_.isUndefined(item) || table[key].has(item));
-    },
-
-    items: function (key) {
-      if (_.has(table, key)) {
-        return [...table[key].values()];
-      }
+    if (!table.hasOwnProperty(key)) {
+      table[key] = new Set();
     }
-  };
+
+    table[key].add(item);
+  }
+
+  remove (key, item) {
+    let table = this.table;
+
+    if (table.hasOwnProperty(key)) {
+      table[key].delete(item);
+    }
+  }
+
+  strike (key) {
+    delete this.table[key];
+  }
+
+  has (key, item) {
+    let table = this.table;
+
+    return table.hasOwnProperty(key) && (item === undefined || table[key].has(item));
+  }
+
+  items (key) {
+    let table = this.table;
+
+    if (table.hasOwnProperty(key)) {
+      return [...table[key].values()];
+    }
+  }
 }
 
 export function Accessor (raw) {
