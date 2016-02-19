@@ -1,5 +1,6 @@
 var webpack = require('webpack');
 var path = require('path');
+var CopyWebpackPlugin = require('copy-webpack-plugin');
 
 module.exports = {
   devtool: 'source-map',
@@ -21,7 +22,13 @@ module.exports = {
   plugins: [
     new webpack.ProvidePlugin({
       jQuery: 'jquery'
-    })
+    }),
+    new CopyWebpackPlugin([
+      {
+        from: 'src/app/bigram/stub.html',
+        to: 'index.html'
+      }
+    ])
   ],
   module: {
     preLoaders: [
