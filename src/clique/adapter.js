@@ -38,7 +38,7 @@ export default class Adapter {
     return this.findNode({ key });
   }
 
-  findLinks (spec, {source, target, directed, offset = 0, limit = null} = {}) {
+  findLinks (spec, {source = null, target = null, directed = null, offset = 0, limit = null} = {}) {
     return $.when(this.findLinksRaw(spec, source, target, directed, offset, limit))
       .then(results => results.map(x => this.addAccessor(x)));
   }
@@ -422,8 +422,16 @@ export class NodeLinkList extends Adapter {
     return result.slice(offset, _.isNull(limit) ? undefined : (offset + limit));
   }
 
-  findLinksRaw (spec, source, target, directed, offset, limit) {
-    return _.filter(this.links, link => {
+  findLinksRaw (_spec, source, target, directed, offset, limit) {
+    const spec = deepCopy(_spec);
+    let searchspace = this.links;
+
+    if (spec.key) {
+      searchspace = _.filter(searchspace, link => link.key === spec.key);
+      delete spec.key;
+    }
+
+    return _.filter(searchspace, link => {
       const sourceMatch = _.isNull(source) || (link.source.key === source);
       const targetMatch = _.isNull(target) || (link.target.key === target);
       const dataMatch = _.isMatch(spec, link.data);

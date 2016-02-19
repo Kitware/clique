@@ -7,6 +7,7 @@ import { Graph } from './../../clique/model.js';
 import { NodeLinkList } from './../../clique/adapter.js';
 import { Cola } from './../../clique/view.js';
 import { SelectionInfo } from './../../clique/view.js';
+import { LinkInfo } from './../../clique/view.js';
 
 const aCodePoint = 'a'.codePointAt(0);
 
@@ -202,4 +203,11 @@ $(function () {
     ]
   });
   info.render();
+
+  let linkInfo = new LinkInfo({
+    model: view.linkSelection,
+    el: '#link-info',
+    graph: graph
+  });
+  linkInfo.render();
 });
