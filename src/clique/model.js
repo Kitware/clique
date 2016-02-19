@@ -1,6 +1,6 @@
 import _ from 'underscore';
 import Backbone from 'backbone';
-import { require, concat, CSet, MultiTable } from './util';
+import { concat, CSet, MultiTable } from './util';
 
 const Graph = Backbone.Model.extend({
   constructor: function (options) {
@@ -8,8 +8,6 @@ const Graph = Backbone.Model.extend({
   },
 
   initialize: function (attributes, options) {
-    require(options.adapter, 'adapter');
-
     this.adapter = options.adapter;
 
     this.nodes = {};

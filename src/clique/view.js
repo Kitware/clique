@@ -4,7 +4,7 @@ import d3 from 'd3';
 import cola from 'webcola';
 
 import { Selection } from './model';
-import { require, CSet } from './util';
+import { CSet } from './util';
 import selectionInfo from './template/selectionInfo.jade';
 import linkInfo from './template/linkInfo.jade';
 
@@ -17,9 +17,6 @@ const Cola = Backbone.View.extend({
     let group;
     let userFill;
     let userNodeRadius;
-
-    require(this.model, 'model');
-    require(this.el, 'el');
 
     options = options || {};
 
@@ -920,9 +917,6 @@ let SelectionInfo = Backbone.View.extend({
   initialize: function (options) {
     var debRender;
 
-    require(this.model, 'model');
-    require(options.graph, 'graph');
-
     options = options || {};
     this.graph = options.graph;
     this.nav = _.isUndefined(options.nav) ? true : options.nav;
@@ -1048,9 +1042,6 @@ const LinkInfo = Backbone.View.extend({
 
     options = options || {};
     this.graph = options.graph;
-
-    require(this.model, 'model');
-    require(this.graph, 'graph');
 
     debRender = _.debounce(this.render, 100);
 

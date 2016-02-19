@@ -76,12 +76,6 @@ export function MultiTable () {
   };
 }
 
-export function require (arg, name) {
-  if (_.isUndefined(arg)) {
-    throw new Error(`argument '${name}' is required`);
-  }
-}
-
 export function Accessor (raw) {
   var disallowed = new CSet();
 
