@@ -36,7 +36,10 @@ function bigramGraph (data) {
       if (first !== second && !done.has(key) && data[key] > threshold) {
         let link = {
           source: first.codePointAt(0) - aCodePoint,
-          target: second.codePointAt(0) - aCodePoint
+          target: second.codePointAt(0) - aCodePoint,
+          data: {
+            frequency: data[key]
+          }
         };
 
         // Make the link undirected if the reverse bigram is sufficiently

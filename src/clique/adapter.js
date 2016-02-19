@@ -434,7 +434,7 @@ export class NodeLinkList extends Adapter {
     return _.filter(searchspace, link => {
       const sourceMatch = _.isNull(source) || (link.source.key === source);
       const targetMatch = _.isNull(target) || (link.target.key === target);
-      const dataMatch = _.isMatch(spec, link.data);
+      const dataMatch = _.isMatch(link.data, spec);
       const directedMatch = _.isNull(directed) ? true : (directed ? !link.undirected : link.undirected);
 
       return sourceMatch && targetMatch && dataMatch && directedMatch;
