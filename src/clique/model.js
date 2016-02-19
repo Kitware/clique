@@ -1,6 +1,7 @@
 import _ from 'underscore';
 import Backbone from 'backbone';
-import { concat, CSet, MultiTable } from './util';
+import { concat, MultiTable } from './util';
+import Set from 'es6-set';
 
 const Graph = Backbone.Model.extend({
   constructor: function (options) {
@@ -11,7 +12,7 @@ const Graph = Backbone.Model.extend({
     this.adapter = options.adapter;
 
     this.nodes = {};
-    this.links = new CSet();
+    this.links = new Set();
 
     this.forward = new MultiTable();
     this.back = new MultiTable();
@@ -79,12 +80,12 @@ const Graph = Backbone.Model.extend({
   },
 
   removeNodes: function (nodes) {
-    let marked = new CSet();
+    let marked = new Set();
     let newNodes;
     let newLinks;
 
     // Mark the nodes for removal.
-    marked = new CSet();
+    marked = new Set();
     _.each(nodes, _.bind(function (node) {
       marked.add(node);
       delete this.nodes[node];
@@ -141,7 +142,7 @@ const Graph = Backbone.Model.extend({
       return undefined;
     }
 
-    nbs = new CSet();
+    nbs = new Set();
     _.each(concat(inn || [], outn || []), nbs.add, nbs);
 
     return nbs.items();

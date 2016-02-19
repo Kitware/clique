@@ -13,35 +13,13 @@ export function concat (...lists) {
   return [].concat(...lists);
 }
 
-export class CSet {
-  constructor (initial) {
-    this.s = new Set(initial);
-  }
-
-  add (item) {
-    return this.s.add(item);
-  }
-
-  delete (item) {
-    return this.s.delete(item);
-  }
-
-  has (item) {
-    return this.s.has(item);
-  }
-
-  items (mapper) {
-    return _.map(mapper || _.noop, [...this.s]);
-  }
-}
-
 export function MultiTable () {
   var table = {};
 
   return {
     add: function (key, item) {
       if (!_.has(table, key)) {
-        table[key] = new CSet();
+        table[key] = new Set();
       }
 
       table[key].add(item);
@@ -63,14 +41,14 @@ export function MultiTable () {
 
     items: function (key) {
       if (_.has(table, key)) {
-        return table[key].items();
+        return [...table[key].values()];
       }
     }
   };
 }
 
 export function Accessor (raw) {
-  var disallowed = new CSet();
+  var disallowed = new Set();
 
   raw.data = raw.data || {};
 
