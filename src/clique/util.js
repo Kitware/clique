@@ -1,5 +1,6 @@
 import _ from 'underscore';
 import Backbone from 'backbone';
+import Set from 'es6-set';
 
 export function deepCopy (o) {
   if (_.isUndefined(o)) {
@@ -12,34 +13,30 @@ export function concat (...lists) {
   return [].concat(...lists);
 }
 
-export function CSet () {
-  var items = {};
+export class CSet {
+  constructor (initial) {
+    this.s = new Set(initial);
+  }
 
-  return {
-    add: function (item) {
-      items[item] = null;
-    },
+  add (item) {
+    return this.s.add(item);
+  }
 
-    remove: function (item) {
-      delete items[item];
-    },
+  remove (item) {
+    return this.s.delete(item);
+  }
 
-    has: function (item) {
-      return _.has(items, item);
-    },
+  has (item) {
+    return this.s.has(item);
+  }
 
-    items: function (mapper) {
-      var stuff = _.keys(items);
-      if (mapper) {
-        stuff = _.map(stuff, mapper);
-      }
-      return stuff;
-    },
+  items (mapper) {
+    return _.map(mapper || _.noop, [...this.s]);
+  }
 
-    size: function () {
-      return _.size(items);
-    }
-  };
+  size () {
+    return this.s.size;
+  }
 }
 
 export function MultiTable () {
