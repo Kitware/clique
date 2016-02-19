@@ -5,7 +5,7 @@ import cola from 'webcola';
 
 import { Selection } from './model';
 import { require, CSet } from './util';
-import selectionInfo from './../jade/template/selectionInfo.jade';
+import selectionInfo from './template/selectionInfo.jade';
 
 const strokeWidth = function (d) {
   return this.selected.has(d.key) ? '2px' : '0px';
