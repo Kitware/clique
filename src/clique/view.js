@@ -6,6 +6,7 @@ import cola from 'webcola';
 import { Selection } from './model';
 import { require, CSet } from './util';
 import selectionInfo from './template/selectionInfo.jade';
+import linkInfo from './template/linkInfo.jade';
 
 const strokeWidth = function (d) {
   return this.selected.has(d.key) ? '2px' : '0px';
@@ -1041,4 +1042,46 @@ SelectionInfo.collapseNode = function (node) {
   _.each(accessors, SelectionInfo.hideNode, this);
 };
 
-export { Cola, SelectionInfo };
+const LinkInfo = Backbone.View.extend({
+  initialize: function (options) {
+    var debRender;
+
+    options = options || {};
+    this.graph = options.graph;
+
+    require(this.model, 'model');
+    require(this.graph, 'graph');
+
+    debRender = _.debounce(this.render, 100);
+
+    this.listenTo(this.model, 'focused', debRender);
+    this.listenTo(this.model, 'focused', debRender);
+  },
+
+  render: function () {
+    const doRender = _.bind(function (link) {
+      this.$el.html(linkInfo({
+        link: link
+      }));
+
+      this.$('a.prev').on('click', _.bind(function () {
+        this.model.focusLeft();
+      }, this));
+
+      this.$('a.next').on('click', _.bind(function () {
+        this.model.focusRight();
+      }, this));
+    }, this);
+
+    let key = this.model.focused();
+    if (!key) {
+      doRender(undefined);
+    } else {
+      this.graph.adapter.findLink({
+        key: key
+      }).then(doRender);
+    }
+  }
+});
+
+export { Cola, SelectionInfo, LinkInfo };
