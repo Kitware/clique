@@ -1,6 +1,7 @@
 var webpack = require('webpack');
 var path = require('path');
 var CopyWebpackPlugin = require('copy-webpack-plugin');
+var CleanWebpackPlugin = require('clean-webpack-plugin');
 
 module.exports = {
   devtool: 'source-map',
@@ -28,7 +29,11 @@ module.exports = {
         from: 'src/app/bigram/stub.html',
         to: 'index.html'
       }
-    ])
+    ]),
+    new CleanWebpackPlugin(['dist/*'], {
+      verbose: true,
+      dry: false
+    })
   ],
   module: {
     preLoaders: [
