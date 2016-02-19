@@ -37,7 +37,7 @@ here=`readlink -f $0`
 here=`dirname "${here}"`
 
 # Set the root location of the application
-app="${here}/build/site"
+app="${here}/dist"
 
 # Launch the application
 "${TANGELO}" --root "${app}" --host ${hostname} --port ${port} --config "${here}/tangelo-config.yaml"
