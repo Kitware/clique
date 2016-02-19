@@ -22,7 +22,7 @@ export class CSet {
     return this.s.add(item);
   }
 
-  remove (item) {
+  delete (item) {
     return this.s.delete(item);
   }
 
@@ -53,7 +53,7 @@ export function MultiTable () {
 
     remove: function (key, item) {
       if (_.has(table, key)) {
-        table[key].remove(item);
+        table[key].delete(item);
       }
     },
 

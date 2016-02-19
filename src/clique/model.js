@@ -113,7 +113,7 @@ const Graph = Backbone.Model.extend({
       if (!marked.has(link.source.key) && !marked.has(link.target.key)) {
         newLinks.push(link);
       } else {
-        this.links.remove(link.key);
+        this.links.delete(link.key);
       }
     }, this));
 

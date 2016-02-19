@@ -435,7 +435,7 @@ const Cola = Backbone.View.extend({
       this.selected.add(key);
     });
     this.listenTo(this.selection, 'removed', function (key) {
-      this.selected.remove(key);
+      this.selected.delete(key);
     });
   },
 
