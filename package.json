@@ -29,6 +29,7 @@
     "webpack": "^1.12.13"
   },
   "scripts": {
-    "build": "webpack"
+    "build": "webpack",
+    "serve": "${TANGELO-tangelo} --root dist --port ${PORT-3000} --host ${HOSTNAME-localhost} || echo Something went wrong. Is Tangelo installed? You can install it with 'pip install tangelo'."
   }
 }
