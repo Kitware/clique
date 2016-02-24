@@ -1,9 +1,11 @@
 {
   "version": "0.1.0",
   "devDependencies": {
+    "babel-cli": "^6.5.1",
     "babel-core": "^6.5.2",
     "babel-loader": "^6.2.2",
     "babel-preset-es2015": "^6.5.0",
+    "babel-tape-runner": "^2.0.1",
     "backbone": "^1.2.3",
     "bootstrap": "^3.3.6",
     "bootswatch": "^3.3.6",
@@ -13,6 +15,7 @@
     "d3": "^3.5.15",
     "es6-set": "^0.1.4",
     "expose-loader": "^0.7.1",
+    "faucet": "0.0.1",
     "file-loader": "^0.8.5",
     "jade": "^1.9.2",
     "jade-loader": "^0.8.0",
@@ -23,6 +26,7 @@
     "semistandard-loader": "0.0.3",
     "style-loader": "^0.13.0",
     "stylus-loader": "^1.5.1",
+    "tape": "^4.4.0",
     "underscore": "^1.8.3",
     "url-loader": "^0.5.7",
     "webcola": "^3.1.3",
@@ -30,6 +34,7 @@
   },
   "scripts": {
     "build": "webpack",
+    "test": "babel-tape-runner test/*.js | faucet",
     "serve": "${TANGELO-tangelo} --root dist --port ${PORT-3000} --host ${HOSTNAME-localhost} || echo Something went wrong. Is Tangelo installed? You can install it with 'pip install tangelo'."
   }
 }
