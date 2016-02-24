@@ -5,6 +5,7 @@
     "babel-core": "^6.5.2",
     "babel-loader": "^6.2.2",
     "babel-preset-es2015": "^6.5.0",
+    "babel-tape-runner": "^2.0.1",
     "backbone": "^1.2.3",
     "bootstrap": "^3.3.6",
     "bootswatch": "^3.3.6",
@@ -32,6 +33,6 @@
   },
   "scripts": {
     "build": "webpack",
-    "test": "babel-node --presets es2015 test/*.js | faucet"
+    "test": "babel-tape-runner test/*.js | faucet"
   }
 }
