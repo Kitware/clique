@@ -2,6 +2,6 @@ function hello () {
   console.log('hello, world');
 }
 
-export {
+export default {
   hello
 };
