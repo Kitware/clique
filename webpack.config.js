@@ -74,7 +74,10 @@ module.exports = {
         query: {
           presets: ['es2015'],
         },
-        include: path.resolve(__dirname, 'src'),
+        include: [
+          path.resolve(__dirname, 'src'),
+          path.resolve(__dirname, 'test')
+        ]
       },
       {
         test: /\.json$/,
