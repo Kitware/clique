@@ -2,10 +2,10 @@ var webpack = require('webpack');
 var config = require('./webpack.config.js');
 
 config.entry = {
-  'clique-exports': './test/clique-exports.js'
+  'tests.bundle': './tests.bundle.js'
 };
 
-config.output.path = 'dist/test';
+config.devtool = 'inline-source-map';
 
 config.plugins = [
   new webpack.ProvidePlugin({
