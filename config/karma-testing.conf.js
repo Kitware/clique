@@ -4,7 +4,7 @@ var webpackTestConfig = require('./webpack-testing.config');
 karmaConfigObject.webpack = webpackTestConfig;
 
 karmaConfigObject.reporters = [
-  'tape'
+  'tap'
 ];
 
 module.exports = function (config) {

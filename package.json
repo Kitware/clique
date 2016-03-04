@@ -27,7 +27,7 @@
     "karma-phantomjs-launcher": "^1.0.0",
     "karma-sourcemap-loader": "^0.3.7",
     "karma-tap": "^1.0.3",
-    "karma-tape-reporter": "^1.0.3",
+    "karma-tap-reporter": "0.0.6",
     "karma-webpack": "^1.7.0",
     "less": "^2.6.0",
     "less-loader": "^2.2.2",
@@ -42,7 +42,7 @@
   },
   "scripts": {
     "build": "webpack --config config/webpack.config.js",
-    "test": "karma start config/karma-testing.conf.js",
+    "test": "karma start config/karma-testing.conf.js | faucet",
     "cover": "karma start config/karma-coverage.conf.js",
     "cover:report": "http-server coverage -p ${PORT-3000}",
     "serve": "${TANGELO-tangelo} --root dist --port ${PORT-3000} --host ${HOSTNAME-localhost} || echo Something went wrong. Is Tangelo installed? You can install it with 'pip install tangelo'."
