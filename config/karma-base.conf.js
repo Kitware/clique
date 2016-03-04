@@ -1,6 +1,9 @@
 module.exports = {
   basePath: '..',
   singleRun: true,
+  client: {
+    captureConsole: false
+  },
   browsers: [
     'PhantomJS'
   ],
