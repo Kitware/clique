@@ -7,13 +7,6 @@ config.entry = {
 
 config.devtool = 'inline-source-map';
 
-config.module.preLoaders = [{
-  test: /\.js$/,
-  include: /src/,
-  exclude: /(node_modules|test)/,
-  loader: 'babel-istanbul'
-}];
-
 config.plugins = [
   new webpack.ProvidePlugin({
     jQuery: 'jquery'
