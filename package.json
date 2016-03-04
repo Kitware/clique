@@ -41,8 +41,8 @@
     "webpack": "^1.12.13"
   },
   "scripts": {
-    "build": "webpack && webpack --config webpack-testing.config.js",
-    "test": "karma start",
+    "build": "webpack --config config/webpack.config.js",
+    "test": "karma start config/karma.conf.js",
     "test:covreport": "http-server coverage -p ${PORT-3000}",
     "serve": "${TANGELO-tangelo} --root dist --port ${PORT-3000} --host ${HOSTNAME-localhost} || echo Something went wrong. Is Tangelo installed? You can install it with 'pip install tangelo'."
   }

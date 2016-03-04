@@ -3,6 +3,7 @@ var webpackTestConfig = require('./webpack-testing.config');
 
 module.exports = function (config) {
   config.set({
+    basePath: '..',
     singleRun: true,
     browsers: [
       'PhantomJS'
