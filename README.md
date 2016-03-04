@@ -11,18 +11,49 @@ allowing you to explore graphs step by step, from the bottom up, to formulate
 insights about your data that are not possible solely from large graph
 visualization techniques.
 
-This document contains some information about Clique's API and the example
-application that comes with Clique.
+This document contains some information about building Clique, Clique's API and
+the example application that comes with Clique.
 
-## Example Application
+## Building Clique and Running Tests
 
-To build the example application, be sure NPM is installed on your system, along
-with Gulp (``npm install -g gulp``).  Then, install the Node dependencies (``npm
-install``), and finally run Gulp to build Clique and the example application
-(``gulp``).
+To build Clique, you will need NodeJS installed. First, install the Node
+dependencies:
 
-To run the application, use the Gulp serve task (``gulp serve``).  The
-application will be served at http://localhost:3000 by default.
+    npm install
+
+Then, run the build action:
+
+    npm run build
+
+This should build both the Clique libraries, and the example "bigram"
+application. To run the example application, you will need to install
+[Tangelo](http://tangelo.readthedocs.org/en/latest/), a Python-packaged
+webserver:
+
+    pip install tangelo
+
+Now you can serve the bigram application via:
+
+    npm run serve
+
+and then point your browser to http://localhost:3000.
+
+To run the test suite:
+
+    npm test
+
+This will produce a report of passed and failed tests. To investigate coverage,
+run the coverage test with:
+
+    npm run cover
+
+This task produces a summary coverage report on the console, but you can also
+view a detailed HTML report of coverage of individual files, functions, and
+lines by doing:
+
+    npm run cover:report
+
+and then visiting http://localhost:3000.
 
 ### Interacting with the Application
 
