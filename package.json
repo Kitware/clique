@@ -41,7 +41,7 @@
   },
   "scripts": {
     "build": "webpack && webpack --config webpack-testing.config.js",
-    "test": "tape dist/test/*.js | faucet",
+    "test": "karma start",
     "serve": "${TANGELO-tangelo} --root dist --port ${PORT-3000} --host ${HOSTNAME-localhost} || echo Something went wrong. Is Tangelo installed? You can install it with 'pip install tangelo'."
   }
 }
