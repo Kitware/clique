@@ -69,6 +69,7 @@ module.exports = {
         loader: 'babel-loader',
         query: {
           presets: ['es2015'],
+          compact: 'false'
         },
         include: [
           path.resolve(__dirname, 'src'),
