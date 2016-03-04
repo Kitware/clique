@@ -4,7 +4,6 @@ var webpackTestConfig = require('./webpack-coverage.config');
 karmaConfigObject.webpack = webpackTestConfig;
 
 karmaConfigObject.reporters = [
-  'tape',
   'coverage'
 ];
 
