@@ -45,10 +45,6 @@ module.exports = {
     ],
     loaders: [
       {
-        test: require.resolve('./src/clique/index.js'),
-        loader: 'expose?clique',
-      },
-      {
         test: /\.jade$/,
         loader: 'jade'
       },

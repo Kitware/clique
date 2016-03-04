@@ -2,10 +2,17 @@ var webpack = require('webpack');
 var config = require('./webpack.config.js');
 
 config.entry = {
-  'clique-exports': './test/clique-exports.js'
+  'tests.bundle': './tests.bundle.js'
 };
 
-config.output.path = 'dist/test';
+config.devtool = 'inline-source-map';
+
+config.module.preLoaders = [{
+  test: /\.js$/,
+  include: /src/,
+  exclude: /(node_modules|test)/,
+  loader: 'babel-istanbul'
+}];
 
 config.plugins = [
   new webpack.ProvidePlugin({
