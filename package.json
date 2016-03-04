@@ -45,6 +45,6 @@
     "test": "karma start config/karma-testing.conf.js | faucet",
     "cover": "karma start config/karma-coverage.conf.js",
     "cover:report": "http-server coverage -p ${PORT-3000}",
-    "serve": "${TANGELO-tangelo} --root dist --port ${PORT-3000} --host ${HOSTNAME-localhost} || echo Something went wrong. Is Tangelo installed? You can install it with 'pip install tangelo'."
+    "serve": "${TANGELO-tangelo} --root dist --port ${PORT-3000} --host ${HOSTNAME-localhost} --config config/tangelo-config.yaml || echo Something went wrong. Is Tangelo installed? You can install it with 'pip install tangelo'."
   }
 }
