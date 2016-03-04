@@ -1,5 +1,5 @@
 import _ from 'underscore';
-import { deepCopy, Accessor } from './util';
+import { concat, deepCopy, Accessor } from './util';
 import $ from 'jquery';
 
 export default class Adapter {
@@ -344,7 +344,7 @@ export default class Adapter {
     }
 
     return $.when(...reqs)
-      .then((...results) => [].concat(...results));
+      .then((...results) => concat(...results));
   }
 
   createNodeRaw () {

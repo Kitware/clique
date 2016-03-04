@@ -3,10 +3,12 @@ var path = require('path');
 var CopyWebpackPlugin = require('copy-webpack-plugin');
 var CleanWebpackPlugin = require('clean-webpack-plugin');
 
+__dirname = path.resolve(__dirname, '..');
+
 module.exports = {
   devtool: 'source-map',
   entry: {
-    clique: ['./src/clique.js'],
+    clique: ['./src/clique/index.js'],
     bigram: './src/app/bigram/index.js',
   },
   output: {
@@ -45,10 +47,6 @@ module.exports = {
     ],
     loaders: [
       {
-        test: require.resolve('./src/clique.js'),
-        loader: 'expose?clique',
-      },
-      {
         test: /\.jade$/,
         loader: 'jade'
       },
@@ -73,8 +71,12 @@ module.exports = {
         loader: 'babel-loader',
         query: {
           presets: ['es2015'],
+          compact: 'false'
         },
-        include: path.resolve(__dirname, 'src'),
+        include: [
+          path.resolve(__dirname, 'src'),
+          path.resolve(__dirname, 'test')
+        ]
       },
       {
         test: /\.json$/,
