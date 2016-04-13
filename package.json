@@ -1,4 +1,5 @@
 {
+  "name": "Clique",
   "version": "0.1.0",
   "devDependencies": {
     "babel-cli": "^6.5.1",
