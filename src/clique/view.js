@@ -8,17 +8,61 @@ import Set from 'es6-set';
 import selectionInfo from './template/selectionInfo.jade';
 import linkInfo from './template/linkInfo.jade';
 
-const strokeWidth = function (d) {
-  return this.selected.has(d.key) ? '2px' : '0px';
-};
+/* Given an object that contains options, return the value of an option if it
+ * is defined or a default value if it is not.  Always return a function.  This
+ * uses the original options object, so that object can change and the results
+ * of this function will also change.
+ *
+ * @param {object} option An object with optional properities.
+ * @param {string} optionName the name of the property to use.
+ * @param {object} default A value to use if option[optionName] is undefined.
+ */
+function optionFunctionDefault (option, optionName, defaultValue) {
+  return function () {
+    var optionValue = option[optionName];
+    optionValue = _.isUndefined(optionValue) ? defaultValue : optionValue;
+    if (_.isFunction(optionValue)) {
+      return optionValue.apply(this, arguments);
+    }
+    return optionValue;
+  };
+}
 
 const Cola = Backbone.View.extend({
   initialize: function (options) {
     let group;
-    let userFill;
+    let userFill, focusColor, labelStrokeWidth, selectStrokeWidth;
     let userNodeRadius;
 
     options = options || {};
+
+    /* Process options */
+    this.label = optionFunctionDefault(options, 'label', '');
+    this.mode = 'node';
+
+    this.postLinkAdd = options.postLinkAdd || _.noop;
+
+    this.baseNodeRadius = 7.5;
+    userNodeRadius = optionFunctionDefault(options, 'nodeRadius', function (_, r) {
+      return r;
+    });
+    this.nodeRadius = function (d) {
+      return userNodeRadius(d, this.baseNodeRadius);
+    };
+
+    this.transitionTime = options.transitionTime || 500;
+    /* If transform is passed from options, then the caller can modify it and
+     * call updateTransform() to change the transform. */
+    this.transform = options.transform || [1, 0, 0, 1, 0, 0];
+
+    this.labelBackgroundColor = optionFunctionDefault(options, 'labelBackgroundColor', 'lightgray');
+    this.rootColor = optionFunctionDefault(options, 'rootColor', 'gold');
+    this.strokeColor = optionFunctionDefault(options, 'strokeColor', 'blue');
+    focusColor = optionFunctionDefault(options, 'focusColor', 'pink');
+    userFill = optionFunctionDefault(options, 'fill', 'blue');
+    labelStrokeWidth = optionFunctionDefault(options, 'labelStrokeWidth', '2px');
+    selectStrokeWidth = optionFunctionDefault(options, 'selectStrokeWidth', '2px');
+    /* Done processing options */
 
     this.nodeEnter = _.bind(options.nodeEnter || function (enter) {
       var labels;
@@ -41,9 +85,9 @@ const Cola = Backbone.View.extend({
         .attr('rx', 5)
         .attr('ry', 5)
         .style('pointer-events', 'none')
-        .style('stroke-width', '2px')
+        .style('stroke-width', _.bind(labelStrokeWidth, this))
         .style('stroke', _.bind(this.fill, this))
-        .style('fill', 'lightgray');
+        .style('fill', _.bind(this.labelBackgroundColor, this));
 
       labels.append('text')
         .text(this.label)
@@ -198,8 +242,10 @@ const Cola = Backbone.View.extend({
 
       nodes.selectAll('circle.node')
         .style('fill', _.bind(this.prefill, this))
-        .style('stroke', 'blue')
-        .style('stroke-width', _.bind(strokeWidth, this))
+        .style('stroke', _.bind(this.strokeColor, this))
+        .style('stroke-width', _.bind(function (d) {
+          return this.selected.has(d.key) ? selectStrokeWidth.apply(this, arguments) : '0px';
+        }, this))
         .filter(function (d) {
           return d.root;
         })
@@ -214,10 +260,10 @@ const Cola = Backbone.View.extend({
 
       nodes.selectAll('rect')
         .style('fill', _.bind(function (d) {
-          return d.key === this.focused ? 'pink' : 'lightgray';
+          return d.key === this.focused ? focusColor(d) : this.labelBackgroundColor(d);
         }, this))
       .style('stroke', _.bind(function (d) {
-        return this.selected.has(d.key) ? 'blue' : _.bind(this.fill, this, d)();
+        return _.bind(this.selected.has(d.key) ? this.strokeColor : this.fill, this, d)();
       }, this));
 
       this.renderLabels();
@@ -320,35 +366,6 @@ const Cola = Backbone.View.extend({
         });
     }, this);
 
-    this.label = options.label || '';
-    if (!_.isFunction(this.label)) {
-      this.label = _.constant(this.label);
-    }
-    this.mode = 'node';
-
-    this.postLinkAdd = options.postLinkAdd || _.noop;
-
-    this.baseNodeRadius = 7.5;
-    userNodeRadius = options.nodeRadius || function (_, r) {
-      return r;
-    };
-    if (!_.isFunction(userNodeRadius)) {
-      userNodeRadius = _.constant(userNodeRadius);
-    }
-    this.nodeRadius = function (d) {
-      return userNodeRadius(d, this.baseNodeRadius);
-    };
-
-    this.transitionTime = options.transitionTime || 500;
-
-    this.focusColor = _.isUndefined(options.focusColor) ? 'pink' : options.focusColor;
-    this.rootColor = _.isUndefined(options.rootColor) ? 'gold' : options.rootColor;
-
-    userFill = options.fill || 'blue';
-    if (!_.isFunction(userFill)) {
-      userFill = _.constant(userFill);
-    }
-
     this.fill = _.bind(function (d) {
       var initial;
 
@@ -356,26 +373,26 @@ const Cola = Backbone.View.extend({
         .clearAttribute('root');
 
       if (d.key === this.focused) {
-        initial = this.focusColor;
+        initial = focusColor;
       }
 
-      return initial || userFill(d);
+      return initial ? initial(d) : userFill(d);
     }, this);
 
     this.prefill = _.bind(function (d) {
       var initial;
 
       if (d.key === this.focused) {
-        initial = this.focusColor;
+        initial = focusColor;
       } else if (d.root) {
         initial = this.rootColor;
       }
 
-      return initial || userFill(d);
+      return initial ? initial(d) : userFill(d);
     }, this);
 
     this.cola = cola.d3adaptor()
-      .linkDistance(options.linkDistance || 100)
+      .linkDistance(optionFunctionDefault(options, 'linkDistance', 100))
       .size([this.$el.width(), this.$el.height()])
       .start();
 
@@ -529,6 +546,10 @@ const Cola = Backbone.View.extend({
     }
   },
 
+  updateTransform: function () {
+    d3.select(this.el).select('g').attr('transform', 'matrix(' + this.transform.join(' ') + ')');
+  },
+
   render: function () {
     let nodeData = this.model.get('nodes');
     let linkData = this.model.get('links');
@@ -635,8 +656,8 @@ const Cola = Backbone.View.extend({
       this.onTick();
     }, this));
 
+    let transform = this.transform;
     (function () {
-      let transform = [1, 0, 0, 1, 0, 0];
       let pan;
       let zoom;
 
