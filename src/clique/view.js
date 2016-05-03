@@ -775,15 +775,19 @@ const Cola = Backbone.View.extend({
         // If shift is not held at the beginning of the operation,
         // then remove the current selections.
         if (!d3.event.shiftKey) {
-          _.each(that.model.get('nodes'), _.bind(function (node) {
-            that.selection.remove(node.key);
-          }, this));
+          var rerender;
+          _.each(that.selection.items(), function (key) {
+            that.selection.remove(key);
+            rerender = true;
+          });
 
-          that.renderNodes(that.nodes);
+          if (rerender) {
+            that.renderNodes(that.nodes);
+          }
 
-          _.each(that.model.get('links'), _.bind(function (link) {
-            that.linkSelection.remove(link.key);
-          }, this));
+          _.each(that.linkSelection.items(), function (key) {
+            that.linkSelection.remove(key);
+          });
         }
 
         origin = that.$el.offset();
